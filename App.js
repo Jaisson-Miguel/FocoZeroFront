@@ -1,20 +1,32 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect } from "react";
+import { View, Text, Button } from "react-native";
 
 export default function App() {
+  const BACKEND_URL = "http://192.168.1.10:3333"; // troca pro IP da tua máquina
+
+  useEffect(() => {
+    // Teste GET
+    fetch(`${BACKEND_URL}/`)
+      .then((res) => res.json())
+      .then((data) => console.log("GET:", data))
+      .catch((err) => console.log(err));
+  }, []);
+
+  const testePost = () => {
+    fetch(`${BACKEND_URL}/echo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ msg: "Oi backend!" }),
+    })
+      .then((res) => res.json())
+      .then((data) => console.log("POST:", data))
+      .catch((err) => console.log(err));
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Text>Teste Front ↔ Back</Text>
+      <Button title="Testar POST" onPress={testePost} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
