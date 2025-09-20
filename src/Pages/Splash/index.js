@@ -1,13 +1,23 @@
 import React, { useEffect } from "react";
 import { View, Image, StyleSheet } from "react-native";
+import { existeToken } from "../../utils/tokenStorage";
 
 export default function Splash({ navigation }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace("Login");
-    }, 2000);
+    const verificarToken = async () => {
+      const temToken = await existeToken(); // chama a função
 
-    return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        if (temToken) {
+          navigation.replace("Home");
+        } else {
+          navigation.replace("Login");
+        }
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    };
+    verificarToken();
   }, []);
 
   return (

@@ -1,23 +1,41 @@
-import React from "react";
-import { View, Text, Button, StyleSheet, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { height, width, font } from "../../utils/responsive.js";
+import { getNome, logout } from "../../utils/tokenStorage.js";
 
 export default function Home({ navigation }) {
-  const handlePress = async () => {
-    try {
-      const response = await fetch("http://192.168.50.146:3333/test");
-      const data = await response.json();
-      Alert.alert("Resposta do backend", JSON.stringify(data));
-    } catch (error) {
-      Alert.alert("Erro", error.message);
-    }
-  };
+  const [nomeUsuario, setNomeUsuario] = useState("");
+
+  useEffect(() => {
+    const fetchNome = async () => {
+      const nome = await getNome();
+      if (nome) setNomeUsuario(nome);
+    };
+    fetchNome();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem-vindo ao App!</Text>
-      <Button
-        title="Ir para Login"
+      <Text>{nomeUsuario}</Text>
+      <TouchableOpacity
         onPress={() => navigation.navigate("Login")}
-      />
+        style={styles.buttonsHome}
+      >
+        <Text>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => logout(navigation)}
+        style={[styles.buttonsHome, { backgroundColor: "blue" }]}
+      >
+        <Text>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -33,5 +51,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
+  },
+  buttonsHome: {
+    backgroundColor: "green",
+    width: width(20),
   },
 });

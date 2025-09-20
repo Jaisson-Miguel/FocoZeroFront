@@ -9,8 +9,10 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
+import { API_URL } from "../../config/config.js";
+import { salvarToken } from "../../utils/tokenStorage.js";
 
-export default function Home({ navigation }) {
+export default function Login({ navigation }) {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
 
@@ -21,7 +23,7 @@ export default function Home({ navigation }) {
     }
 
     try {
-      const response = await fetch("http://192.168.10.4:3333/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -36,10 +38,9 @@ export default function Home({ navigation }) {
         return;
       }
 
-      console.log("Usuário logado:", data.usuario);
-      console.log("Token:", data.token);
+      await salvarToken(data.token);
 
-      navigation.navigate("Home", { usuario: data.usuario });
+      navigation.navigate("Home");
     } catch (error) {
       Alert.alert("Erro", "Não foi possível conectar ao servidor");
       console.error(error);
@@ -56,58 +57,37 @@ export default function Home({ navigation }) {
         />
       </View>
 
-      <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
-        <Text style={{ fontSize: 24, textAlign: "center", marginBottom: 20 }}>
-          Login
-        </Text>
-
-        <TextInput
-          placeholder="CPF"
-          value={cpf}
-          onChangeText={setCpf}
-          style={{
-            borderWidth: 1,
-            borderColor: "#ccc",
-            padding: 10,
-            marginBottom: 10,
-            borderRadius: 5,
-            width: 300,
-          }}
-        />
-
-        <TextInput
-          placeholder="Senha"
-          value={senha}
-          onChangeText={setSenha}
-          secureTextEntry
-          style={{
-            borderWidth: 1,
-            borderColor: "#ccc",
-            padding: 10,
-            marginBottom: 20,
-            borderRadius: 5,
-          }}
-        />
-
-        <TouchableOpacity
-          onPress={handleLogin}
-          style={{
-            backgroundColor: "blue",
-            padding: 15,
-            borderRadius: 5,
-          }}
-        >
-          <Text
-            style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}
-          >
-            Entrar
-          </Text>
-        </TouchableOpacity>
-      </View>
       <Button
         title="Ir para Register"
         onPress={() => navigation.navigate("Register")}
       />
+
+      <View style={styles.containerWhite}>
+        <View style={styles.containerInput}>
+          <Text style={{ fontSize: 24, textAlign: "center", marginBottom: 20 }}>
+            Login
+          </Text>
+
+          <TextInput
+            placeholder="CPF"
+            value={cpf}
+            onChangeText={setCpf}
+            style={styles.label}
+          />
+
+          <TextInput
+            placeholder="Senha"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry
+            style={styles.label}
+          />
+
+          <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
+            <Text style={styles.textButtonLogin}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -119,14 +99,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#05419A",
   },
+  containerLogo: {
+    // border,
+  },
+
+  containerWhite: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: "white",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: "center",
+  },
+  containerInput: {
+    width: "80%",
+    flex: 1,
+  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
   },
   label: {
-    width: "80%",
+    flex: 1,
     borderWidth: 2,
     borderRadius: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 20,
+    borderRadius: 5,
+  },
+  buttonLogin: {
+    backgroundColor: "#05419A",
+    flex: 1,
+    alignItems: "center",
+  },
+  textButtonLogin: {
+    color: "white",
   },
 });

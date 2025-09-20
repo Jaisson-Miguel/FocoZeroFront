@@ -21,7 +21,7 @@ export default function Cadastro({ navigation }) {
     }
 
     try {
-      const response = await fetch("http://192.168.10.4:3333/cadastrar", {
+      const response = await fetch(`${API_URL}/cadastrarUsuario`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,6 +51,12 @@ export default function Cadastro({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Home")}
+        style={{ backgroundColor: "blue" }}
+      >
+        <Text style={{ color: "white" }}>Home</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Cadastro</Text>
 
       <TextInput
