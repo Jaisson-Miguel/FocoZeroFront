@@ -68,3 +68,11 @@ export const getFuncao = async () => {
   const usuario = await getUsuarioFromToken();
   return usuario?.funcao || null;
 };
+
+export const isAdm = async () => {
+  const funcao = await getFuncao();
+
+  if ((funcao = "Agente")) {
+    return false;
+  }
+};

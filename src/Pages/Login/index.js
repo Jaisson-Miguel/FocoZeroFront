@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../config/config.js";
 import { salvarToken } from "../../utils/tokenStorage.js";
+import { height, width, font } from "../../utils/responsive.js";
 
 export default function Login({ navigation }) {
   const [cpf, setCpf] = useState("");
@@ -49,44 +50,36 @@ export default function Login({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.conteinerLogo}>
+      <View style={styles.containerLogo}>
         <Image
           style={styles.logo}
           source={require("../../../assets/Logo.png")}
           resizeMode="contain"
         />
       </View>
-
-      <Button
-        title="Ir para Register"
-        onPress={() => navigation.navigate("Register")}
-      />
-
       <View style={styles.containerWhite}>
-        <View style={styles.containerInput}>
-          <Text style={{ fontSize: 24, textAlign: "center", marginBottom: 20 }}>
-            Login
-          </Text>
+        <Text style={styles.title}>Login</Text>
 
+        <View style={styles.containerInput}>
           <TextInput
-            placeholder="CPF"
+            placeholder="CPF..."
             value={cpf}
             onChangeText={setCpf}
             style={styles.label}
           />
 
           <TextInput
-            placeholder="Senha"
+            placeholder="Senha..."
             value={senha}
             onChangeText={setSenha}
             secureTextEntry
             style={styles.label}
           />
-
-          <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
-            <Text style={styles.textButtonLogin}>Entrar</Text>
-          </TouchableOpacity>
         </View>
+
+        <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
+          <Text style={styles.textButtonLogin}>Entrar</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -95,49 +88,61 @@ export default function Login({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
     backgroundColor: "#05419A",
   },
   containerLogo: {
-    // border,
-  },
-
-  containerWhite: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 30,
+  },
+  containerWhite: {
     width: "100%",
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: "center",
-  },
-  containerInput: {
-    width: "80%",
-    flex: 1,
+    // flex: 1,
+    justifyContent: "flex-end",
+    paddingBottom: 100,
   },
   title: {
-    fontSize: 22,
+    fontSize: 50,
     fontWeight: "bold",
-    marginBottom: 20,
+    margin: 30,
+    color: "#05419A",
+    justifyContent: "center",
+  },
+  containerInput: {
+    width: width(90),
+    gap: 20,
+    flexGrow: 1,
   },
   label: {
-    flex: 1,
     borderWidth: 2,
-    borderRadius: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginBottom: 20,
-    borderRadius: 5,
+    borderRadius: 15,
+    fontSize: 28,
+    padding: 20,
+    height: 80,
   },
   buttonLogin: {
+    width: "90%",
     backgroundColor: "#05419A",
-    flex: 1,
+    height: 65,
     alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 15,
+    marginTop: 50,
   },
   textButtonLogin: {
     color: "white",
+    fontSize: 28,
+  },
+  link: {
+    fontSize: 20,
+    marginTop: 15,
+    color: "blue",
   },
 });

@@ -8,15 +8,18 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { height, width, font } from "../../utils/responsive.js";
-import { getNome, logout } from "../../utils/tokenStorage.js";
+import { getFuncao, getNome, logout } from "../../utils/tokenStorage.js";
 
 export default function Home({ navigation }) {
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [funcao, setFuncao] = useState(false);
 
   useEffect(() => {
     const fetchNome = async () => {
       const nome = await getNome();
+      const userFuncao = await getFuncao();
       if (nome) setNomeUsuario(nome);
+      if (userFuncao) setFuncao(userFuncao);
     };
     fetchNome();
   }, []);
@@ -24,18 +27,31 @@ export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
       <Text>{nomeUsuario}</Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Login")}
-        style={styles.buttonsHome}
-      >
-        <Text>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => logout(navigation)}
-        style={[styles.buttonsHome, { backgroundColor: "blue" }]}
-      >
-        <Text>Logout</Text>
-      </TouchableOpacity>
+      <View style={styles.containerBotoes}>
+        <View style={styles.bloco1}>
+          <TouchableOpacity
+            onPress={() => logout(navigation)}
+            style={[styles.buttonsHome, { backgroundColor: "blue" }]}
+          >
+            <Text>Logout</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Login")}
+            style={styles.buttonsHome}
+          >
+            <Text>Login</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Register")}
+          style={[styles.buttonsHome, { backgroundColor: "red" }]}
+        >
+          <Text>Register</Text>
+        </TouchableOpacity>
+      </View>
+      {/* {funcao === "adm" && (
+      )} */}
     </View>
   );
 }
