@@ -7,6 +7,8 @@ import Splash from "./src/Pages/Splash";
 import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
+import Visita from "./src/Pages/Visita";
+import Listar from "./src/Pages/Listar";
 // import Cart from "./src/Pages/Cart";
 // import DrawerRoutes from "./src/Routes/DrawerRoutes";
 
@@ -35,6 +37,16 @@ export default function App() {
           name="Register"
           component={Register}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Visita"
+          component={Visita}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Listar"
+          component={Listar}
+          options={{ headerShown: true }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,0 +1,137 @@
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import { API_URL } from "../../config/config.js";
+
+export default function Listar({ navigation }) {
+  const [areas, setAreas] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await fetch(`${API_URL}/listarAreas`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          Alert.alert("Erro", data.message || "Falha ao carregar áreas");
+          return;
+        }
+
+        setAreas(data);
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível conectar ao servidor");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAreas();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#05419A" />
+        <Text>Carregando áreas...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Áreas cadastradas</Text>
+      {/* <Image
+        source={{
+          uri: "https://www.infoescola.com/wp-content/uploads/2019/07/mapa-do-brasil-legendado-pintado-regioes.jpg",
+        }}
+        style={{ width: "100%", height: 300 }}
+        resizeMode="cover"
+      /> */}
+      <FlatList
+        data={areas}
+        renderItem={({ item }) => <Item area={item} navigation={navigation} />}
+      />
+    </View>
+  );
+}
+
+function Item({ area, navigation }) {
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("Visita")}
+      style={styles.container}
+    >
+      <Image style={styles.img} source={{ uri: area.mapaUrl }} />
+      <View style={styles.containerInfo}>
+        <Text style={styles.title}>{area.nome}</Text>
+        <Text style={styles.description}>{area.codigo}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+    padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#05419A",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    elevation: 3,
+    flex: 1,
+  },
+  nome: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  mapa: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+
+  img: {
+    width: 100,
+    height: 100,
+  },
+  containerInfo: {
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  description: {
+    fontSize: 14,
+    fontWeight: 300,
+  },
+});
