@@ -7,10 +7,12 @@ import Splash from "./src/Pages/Splash";
 import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
-import Visita from "./src/Pages/Visita";
-import Listar from "./src/Pages/Listar";
-// import Cart from "./src/Pages/Cart";
-// import DrawerRoutes from "./src/Routes/DrawerRoutes";
+import ListarArea from "./src/Pages/ListarArea";
+import ListarQuarteirao from "./src/Pages/ListarQuarteirao";
+import ListarImovel from "./src/Pages/ListarImovel";
+import CadastrarArea from "./src/Pages/CadastrarArea";
+import CadastrarQuarteirao from "./src/Pages/CadastrarQuarteirao";
+import CadastrarImovel from "./src/Pages/CadastrarImovel";
 
 const Stack = createNativeStackNavigator();
 
@@ -39,13 +41,33 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Visita"
-          component={Visita}
-          options={{ headerShown: false }}
+          name="ListarArea"
+          component={ListarArea}
+          options={{ headerShown: true }}
         />
         <Stack.Screen
-          name="Listar"
-          component={Listar}
+          name="ListarQuarteirao"
+          component={ListarQuarteirao}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="ListarImovel"
+          component={ListarImovel}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="CadastrarArea"
+          component={CadastrarArea}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="CadastrarQuarteirao"
+          component={CadastrarQuarteirao}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="CadastrarImovel"
+          component={CadastrarImovel}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

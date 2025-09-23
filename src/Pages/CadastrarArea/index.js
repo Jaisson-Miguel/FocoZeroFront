@@ -50,20 +50,12 @@ export default function CadastrarArea({ navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Cadastrar Área</Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Listar")}
-        style={styles.buttonsHome}
-      >
-        <Text>Listar Área</Text>
-      </TouchableOpacity>
-
       <TextInput
         style={styles.input}
         placeholder="Nome"
         value={nome}
         onChangeText={setNome}
       />
-
       <TextInput
         style={styles.input}
         placeholder="Código"

@@ -9,11 +9,13 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
+import ImageViewing from "react-native-image-viewing";
 import { API_URL } from "../../config/config.js";
 
-export default function Listar({ navigation }) {
+export default function ListarArea({ navigation }) {
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const fetchAreas = async () => {
@@ -50,13 +52,13 @@ export default function Listar({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Áreas cadastradas</Text>
-      {/* <Image
-        source={{
-          uri: "https://www.infoescola.com/wp-content/uploads/2019/07/mapa-do-brasil-legendado-pintado-regioes.jpg",
-        }}
-        style={{ width: "100%", height: 300 }}
-        resizeMode="cover"
-      /> */}
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CadastrarArea")}
+        style={styles.buttonsHome}
+      >
+        <Text>Cadastrar Área</Text>
+      </TouchableOpacity>
+
       <FlatList
         data={areas}
         renderItem={({ item }) => <Item area={item} navigation={navigation} />}
@@ -68,10 +70,15 @@ export default function Listar({ navigation }) {
 function Item({ area, navigation }) {
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Visita")}
+      onPress={() =>
+        navigation.navigate("ListarQuarteirao", {
+          idArea: area._id,
+          mapaUrl: area.mapaUrl,
+          nomeArea: area.nome,
+        })
+      }
       style={styles.container}
     >
-      <Image style={styles.img} source={{ uri: area.mapaUrl }} />
       <View style={styles.containerInfo}>
         <Text style={styles.title}>{area.nome}</Text>
         <Text style={styles.description}>{area.codigo}</Text>

@@ -28,33 +28,33 @@ export default function Home({ navigation }) {
     <View style={styles.container}>
       <Text>{nomeUsuario}</Text>
       <View style={styles.containerBotoes}>
-        <View style={styles.bloco1}>
+        <View style={styles.bloco}>
           <TouchableOpacity
             onPress={() => logout(navigation)}
             style={[styles.buttonsHome, { backgroundColor: "blue" }]}
           >
-            <Text>Logout</Text>
+            <Text style={styles.textBotao}>Logout</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => navigation.navigate("Login")}
             style={styles.buttonsHome}
           >
-            <Text>Login</Text>
+            <Text style={styles.textBotao}>Login</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.bloco1}>
+        <View style={styles.bloco}>
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             style={[styles.buttonsHome, { backgroundColor: "red" }]}
           >
-            <Text>Register</Text>
+            <Text style={styles.textBotao}>Register</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate("Visita")}
+            onPress={() => navigation.navigate("ListarArea")}
             style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
           >
-            <Text>Visita</Text>
+            <Text style={styles.textBotao}>Visita</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -76,8 +76,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
+  containerBotoes: {
+    flex: 1,
+    justifyContent: "center",
+    gap: width(5),
+  },
+  bloco: {
+    flexDirection: "row",
+    gap: width(5),
+  },
+
   buttonsHome: {
     backgroundColor: "green",
-    width: width(20),
+    width: width(30),
+    height: height(15),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textBotao: {
+    fontSize: font(3),
   },
 });
