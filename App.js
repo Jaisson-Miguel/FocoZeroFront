@@ -7,12 +7,13 @@ import Splash from "./src/Pages/Splash";
 import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
-import ListarArea from "./src/Pages/ListarArea";
-import ListarQuarteirao from "./src/Pages/ListarQuarteirao";
-import ListarImovel from "./src/Pages/ListarImovel";
-import CadastrarArea from "./src/Pages/CadastrarArea";
-import CadastrarQuarteirao from "./src/Pages/CadastrarQuarteirao";
-import CadastrarImovel from "./src/Pages/CadastrarImovel";
+import ListarArea from "./src/Pages/Listar/ListarArea";
+import ListarQuarteirao from "./src/Pages/Listar/ListarQuarteirao";
+import ListarImovel from "./src/Pages/Listar/ListarImovel";
+import CadastrarArea from "./src/Pages/Cadastro/CadastrarArea";
+import CadastrarQuarteirao from "./src/Pages/Cadastro/CadastrarQuarteirao";
+import CadastrarImovel from "./src/Pages/Cadastro/CadastrarImovel";
+import Visita from "./src/Pages/Visita";
 
 const Stack = createNativeStackNavigator();
 
@@ -68,6 +69,11 @@ export default function App() {
         <Stack.Screen
           name="CadastrarImovel"
           component={CadastrarImovel}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="Visita"
+          component={Visita}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

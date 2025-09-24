@@ -8,7 +8,7 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
-import { API_URL } from "../../config/config.js";
+import { API_URL } from "../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
 
 export default function CadastrarImovel({ route, navigation }) {

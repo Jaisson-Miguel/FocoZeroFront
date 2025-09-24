@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { API_URL } from "../../config/config.js";
+import { API_URL } from "../../../config/config.js";
 
 export default function ListarImoveis({ route, navigation }) {
   const { quarteirao } = route.params; // vem da tela anterior
@@ -83,9 +83,7 @@ export default function ListarImoveis({ route, navigation }) {
             <TouchableOpacity
               style={styles.itemContainer}
               activeOpacity={0.7}
-              onPress={() =>
-                navigation.navigate("DetalheImovel", { imovel: item })
-              }
+              onPress={() => navigation.navigate("Visita", { imovel: item })}
             >
               <Text style={styles.itemTitle}>
                 {item.tipo} - {item.logradouro}, {item.numero}

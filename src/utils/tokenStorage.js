@@ -60,6 +60,11 @@ export const getNome = async () => {
   return usuario?.nome || null;
 };
 
+export const getId = async () => {
+  const usuario = await getUsuarioFromToken();
+  return usuario?.id || null;
+};
+
 /**
  * Recupera a função do usuário
  * @returns {Promise<string|null>}

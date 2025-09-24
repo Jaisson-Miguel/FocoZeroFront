@@ -9,8 +9,8 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { API_URL } from "../../config/config.js";
-import { getFuncao } from "../../utils/tokenStorage.js";
+import { API_URL } from "../../../config/config.js";
+import { getFuncao } from "../../../utils/tokenStorage.js";
 
 export default function ListarArea({ navigation }) {
   const [areas, setAreas] = useState([]);
