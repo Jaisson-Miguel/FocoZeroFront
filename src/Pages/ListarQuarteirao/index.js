@@ -53,9 +53,11 @@ export default function Quarteiroes({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Nome da área */}
+      {nomeArea && <Text style={styles.areaTitle}>{nomeArea}</Text>}
       {/* Mapa da área */}
       <TouchableOpacity onPress={() => setVisible(true)}>
-        <Text style={styles.title}>Mapa</Text>
+        <Text style={styles.areaTitle}>Mapa</Text>
       </TouchableOpacity>
       <ImageViewing
         images={[{ uri: mapaUrl }]}
@@ -63,9 +65,6 @@ export default function Quarteiroes({ route, navigation }) {
         visible={visible}
         onRequestClose={() => setVisible(false)}
       />
-
-      {/* Nome da área */}
-      {nomeArea && <Text style={styles.areaTitle}>{nomeArea}</Text>}
 
       {/* Mensagem de erro */}
       {error && <Text style={styles.error}>{error}</Text>}

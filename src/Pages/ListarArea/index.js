@@ -9,16 +9,19 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import ImageViewing from "react-native-image-viewing";
 import { API_URL } from "../../config/config.js";
+import { getFuncao } from "../../utils/tokenStorage.js";
 
 export default function ListarArea({ navigation }) {
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const [funcao, setFuncao] = useState(false);
 
   useEffect(() => {
     const fetchAreas = async () => {
+      const userFuncao = await getFuncao();
+      if (userFuncao) setFuncao(userFuncao);
       try {
         const response = await fetch(`${API_URL}/listarAreas`);
         const data = await response.json();
@@ -52,12 +55,15 @@ export default function ListarArea({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Áreas cadastradas</Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("CadastrarArea")}
-        style={styles.buttonsHome}
-      >
-        <Text>Cadastrar Área</Text>
-      </TouchableOpacity>
+
+      {funcao === "adm" && (
+        <TouchableOpacity
+          onPress={() => navigation.navigate("CadastrarArea")}
+          style={styles.btnCadastrar}
+        >
+          <Text>Cadastrar Área</Text>
+        </TouchableOpacity>
+      )}
 
       <FlatList
         data={areas}
@@ -141,4 +147,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 300,
   },
+  btnCadastrar: {
+    margin: 10,
+    backgroundColor: "green",
+    padding: 10,
+    borderRadius: 5,
+  },
+  btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });

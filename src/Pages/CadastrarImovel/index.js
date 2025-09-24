@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { API_URL } from "../../config/config.js";
+import { Picker } from "@react-native-picker/picker";
 
 export default function CadastrarImovel({ route, navigation }) {
   const { idQuarteirao, numeroQuarteirao } = route.params;
@@ -77,12 +78,18 @@ export default function CadastrarImovel({ route, navigation }) {
         value={form.numero}
         onChangeText={(v) => handleChange("numero", v)}
       />
-      <TextInput
+      <Picker
+        selectedValue={form.tipo}
         style={styles.input}
-        placeholder="Tipo (Casa, Comércio...)"
-        value={form.tipo}
-        onChangeText={(v) => handleChange("tipo", v)}
-      />
+        onValueChange={(v) => handleChange("tipo", v)}
+      >
+        <Picker.Item label="Selecione o tipo" value="" />
+        <Picker.Item label="Residencial" value="r" />
+        <Picker.Item label="Comércio" value="c" />
+        <Picker.Item label="Terreno baldio" value="tb" />
+        <Picker.Item label="Ponto estratégico" value="pe" />
+        <Picker.Item label="Outro" value="out" />
+      </Picker>
 
       <TextInput
         style={styles.input}
@@ -112,13 +119,6 @@ export default function CadastrarImovel({ route, navigation }) {
         multiline
         value={form.observacao}
         onChangeText={(v) => handleChange("observacao", v)}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Status (aberto, fechado...)"
-        value={form.status}
-        onChangeText={(v) => handleChange("status", v)}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>

@@ -35,20 +35,13 @@ export default function Home({ navigation }) {
           >
             <Text style={styles.textBotao}>Logout</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Login")}
-            style={styles.buttonsHome}
-          >
-            <Text style={styles.textBotao}>Login</Text>
-          </TouchableOpacity>
         </View>
         <View style={styles.bloco}>
           <TouchableOpacity
             onPress={() => navigation.navigate("Register")}
             style={[styles.buttonsHome, { backgroundColor: "red" }]}
           >
-            <Text style={styles.textBotao}>Register</Text>
+            <Text style={styles.textBotao}>Registrar Usuário</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate("ListarArea")}
