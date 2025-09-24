@@ -66,6 +66,7 @@ export default function ListarImoveis({ route, navigation }) {
           navigation.navigate("CadastrarImovel", {
             idQuarteirao: quarteirao._id,
             numeroQuarteirao: quarteirao.numero,
+            imoveis: imoveis,
           })
         }
       >

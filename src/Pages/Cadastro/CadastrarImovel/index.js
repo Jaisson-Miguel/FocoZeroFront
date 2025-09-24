@@ -7,14 +7,23 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Modal,
+  Button,
+  FlatList,
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
+// import { Button } from "@react-navigation/elements";
+// import {  } from "react-native/types_generated/index";
 
 export default function CadastrarImovel({ route, navigation }) {
-  const { idQuarteirao, numeroQuarteirao } = route.params;
+  const { idQuarteirao, numeroQuarteirao, imoveis } = route.params;
+  // console.log(imoveis);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [posicao, setPosicao] = useState(null);
   const [form, setForm] = useState({
     idQuarteirao: idQuarteirao || "",
+    posicao: "",
     logradouro: "",
     numero: "",
     tipo: "",
@@ -22,7 +31,6 @@ export default function CadastrarImovel({ route, navigation }) {
     qtdCachorros: "",
     qtdGatos: "",
     observacao: "",
-    status: "",
   });
 
   function handleChange(field, value) {
@@ -58,13 +66,81 @@ export default function CadastrarImovel({ route, navigation }) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Cadastrar Imóvel</Text>
 
-      {/* <TextInput
-        style={styles.input}
-        placeholder="ID do Quarteirão"
-        value={form.idQuarteirao}
-        onChangeText={(v) => handleChange("idQuarteirao", v)}
-      /> */}
       <Text>Quarteirão: {numeroQuarteirao}</Text>
+      <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <Text>Depois de...</Text>
+      </TouchableOpacity>
+
+      <Text>
+        {posicao !== null
+          ? posicao === 0
+            ? `Primeiro da Lista`
+            : `${imoveis[posicao].logradouro}, ${imoveis[posicao].numero}`
+          : "Nenhuma posição escolhida ainda"}
+      </Text>
+
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              margin: 20,
+              backgroundColor: "white",
+              borderRadius: 10,
+              padding: 15,
+            }}
+          >
+            <Text style={{ fontSize: 18, marginBottom: 10 }}>
+              Escolha depois de qual imóvel adicionar:
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                padding: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: "#ccc",
+              }}
+              onPress={() => {
+                setPosicao(0);
+                setForm({ ...form, posicao: 0 });
+                setModalVisible(false);
+              }}
+            >
+              <Text>Primeiro</Text>
+            </TouchableOpacity>
+            <FlatList
+              data={imoveis}
+              keyExtractor={(item, index) => String(item._id || index)}
+              renderItem={({ item, index }) => (
+                <TouchableOpacity
+                  style={{
+                    padding: 10,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#ccc",
+                  }}
+                  onPress={() => {
+                    setPosicao(index);
+                    setForm({ ...form, posicao: index + 1 });
+                    setModalVisible(false);
+                  }}
+                >
+                  <Text>
+                    {item.logradouro}, {item.numero}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
+
       <TextInput
         style={styles.input}
         placeholder="Logradouro"
