@@ -9,29 +9,24 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { API_URL } from "../../../config/config.js";
-import { getFuncao } from "../../../utils/tokenStorage.js";
+import { API_URL } from "./../../config/config.js";
 
-export default function ListarArea({ navigation }) {
-  const [areas, setAreas] = useState([]);
+export default function ListarAgentes({ navigation }) {
+  const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false);
-  const [funcao, setFuncao] = useState(false);
 
   useEffect(() => {
-    const fetchAreas = async () => {
-      const userFuncao = await getFuncao();
-      if (userFuncao) setFuncao(userFuncao);
+    const fetchAgentes = async () => {
       try {
-        const response = await fetch(`${API_URL}/listarAreas`);
+        const response = await fetch(`${API_URL}/listarUsuarios?funcao=agente`);
         const data = await response.json();
 
         if (!response.ok) {
-          Alert.alert("Erro", data.message || "Falha ao carregar áreas");
+          Alert.alert("Erro", data.message || "Falha ao carregar agentes");
           return;
         }
 
-        setAreas(data);
+        setAgentes(data);
       } catch (error) {
         Alert.alert("Erro", "Não foi possível conectar ao servidor");
         console.error(error);
@@ -40,54 +35,47 @@ export default function ListarArea({ navigation }) {
       }
     };
 
-    fetchAreas();
+    fetchAgentes();
   }, []);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#05419A" />
-        <Text>Carregando áreas...</Text>
+        <Text>Carregando agentes...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Áreas cadastradas</Text>
-
-      {funcao === "adm" && (
-        <TouchableOpacity
-          onPress={() => navigation.navigate("CadastrarArea")}
-          style={styles.btnCadastrar}
-        >
-          <Text>Cadastrar Área</Text>
-        </TouchableOpacity>
-      )}
+      <Text style={styles.title}>Agentes</Text>
 
       <FlatList
-        data={areas}
-        renderItem={({ item }) => <Item area={item} navigation={navigation} />}
+        data={agentes}
+        renderItem={({ item }) => (
+          <Item agente={item} navigation={navigation} />
+        )}
       />
     </View>
   );
 }
 
-function Item({ area, navigation }) {
+function Item({ agente, navigation }) {
   return (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate("ListarQuarteirao", {
-          idArea: area._id,
-          mapaUrl: area.mapaUrl,
-          nomeArea: area.nome,
+        navigation.navigate("ListarArea", {
+          idAgente: agente._id,
+          nomeAgente: agente.nome,
+          modo: "atribuir",
         })
       }
       style={styles.container}
     >
       <View style={styles.containerInfo}>
-        <Text style={styles.title}>{area.nome}</Text>
-        <Text style={styles.description}>{area.codigo}</Text>
+        <Text style={styles.title}>{agente.nome}</Text>
+        <Text style={styles.description}>{agente.codigo}</Text>
       </View>
     </TouchableOpacity>
   );

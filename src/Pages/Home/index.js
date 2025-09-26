@@ -35,24 +35,44 @@ export default function Home({ navigation }) {
           >
             <Text style={styles.textBotao}>Logout</Text>
           </TouchableOpacity>
+          {funcao === "agente" && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ListarVisitas")}
+              style={[styles.buttonsHome, { backgroundColor: "green" }]}
+            >
+              <Text style={styles.textBotao}>Visitas Offline</Text>
+            </TouchableOpacity>
+          )}
+          {funcao === "adm" && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ListarAgentes")}
+              style={[styles.buttonsHome, { backgroundColor: "green" }]}
+            >
+              <Text style={styles.textBotao}>Definir Quarteirões</Text>
+            </TouchableOpacity>
+          )}
         </View>
+
         <View style={styles.bloco}>
+          {funcao === "adm" && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Register")}
+              style={[styles.buttonsHome, { backgroundColor: "red" }]}
+            >
+              <Text style={styles.textBotao}>Registrar Usuário</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
-            onPress={() => navigation.navigate("Register")}
-            style={[styles.buttonsHome, { backgroundColor: "red" }]}
-          >
-            <Text style={styles.textBotao}>Registrar Usuário</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("ListarArea")}
+            onPress={() =>
+              navigation.navigate("ListarArea", { modo: "visualizar" })
+            }
             style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
           >
             <Text style={styles.textBotao}>Visita</Text>
           </TouchableOpacity>
         </View>
       </View>
-      {/* {funcao === "adm" && (
-      )} */}
     </View>
   );
 }

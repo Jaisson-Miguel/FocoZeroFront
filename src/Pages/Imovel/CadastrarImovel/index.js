@@ -11,7 +11,7 @@ import {
   Button,
   FlatList,
 } from "react-native";
-import { API_URL } from "../../../config/config.js";
+import { API_URL } from "./../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
 // import { Button } from "@react-navigation/elements";
 // import {  } from "react-native/types_generated/index";
@@ -73,7 +73,7 @@ export default function CadastrarImovel({ route, navigation }) {
 
       <Text>
         {posicao !== null
-          ? posicao === 0
+          ? posicao === "Primeiro"
             ? `Primeiro da Lista`
             : `${imoveis[posicao].logradouro}, ${imoveis[posicao].numero}`
           : "Nenhuma posição escolhida ainda"}
@@ -106,7 +106,7 @@ export default function CadastrarImovel({ route, navigation }) {
                 borderBottomColor: "#ccc",
               }}
               onPress={() => {
-                setPosicao(0);
+                setPosicao("Primeiro");
                 setForm({ ...form, posicao: 0 });
                 setModalVisible(false);
               }}

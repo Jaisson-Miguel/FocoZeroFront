@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { API_URL } from "../../../config/config.js";
+import { API_URL } from "./../../../config/config.js";
 
 export default function ListarImoveis({ route, navigation }) {
-  const { quarteirao } = route.params; // vem da tela anterior
+  const { quarteirao, idArea, nomeArea } = route.params; // vem da tela anterior
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,6 +73,20 @@ export default function ListarImoveis({ route, navigation }) {
         <Text style={styles.btnText}>Cadastrar Imóvel</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.btnCadastrar}
+        onPress={() =>
+          navigation.navigate("ListarVisitas", {
+            idQuarteirao: quarteirao._id,
+            numeroQuarteirao: quarteirao.numero,
+            idArea: idArea,
+            nomeArea: nomeArea,
+          })
+        }
+      >
+        <Text style={styles.btnText}>Listar Visitas</Text>
+      </TouchableOpacity>
+
       {/* Lista de imóveis */}
       {imoveis.length === 0 ? (
         <Text style={styles.empty}>Nenhum imóvel encontrado.</Text>
@@ -84,7 +98,14 @@ export default function ListarImoveis({ route, navigation }) {
             <TouchableOpacity
               style={styles.itemContainer}
               activeOpacity={0.7}
-              onPress={() => navigation.navigate("Visita", { imovel: item })}
+              onPress={() =>
+                navigation.navigate("Visita", {
+                  imovel: item,
+                  idArea: idArea,
+                  nomeArea: nomeArea,
+                  quarteirao: quarteirao,
+                })
+              }
             >
               <Text style={styles.itemTitle}>
                 {item.tipo} - {item.logradouro}, {item.numero}

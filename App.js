@@ -7,13 +7,17 @@ import Splash from "./src/Pages/Splash";
 import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
-import ListarArea from "./src/Pages/Listar/ListarArea";
-import ListarQuarteirao from "./src/Pages/Listar/ListarQuarteirao";
-import ListarImovel from "./src/Pages/Listar/ListarImovel";
-import CadastrarArea from "./src/Pages/Cadastro/CadastrarArea";
-import CadastrarQuarteirao from "./src/Pages/Cadastro/CadastrarQuarteirao";
-import CadastrarImovel from "./src/Pages/Cadastro/CadastrarImovel";
-import Visita from "./src/Pages/Visita";
+import CadastrarArea from "./src/Pages/Area/CadastrarArea";
+import ListarArea from "./src/Pages/Area/ListarArea";
+import CadastrarQuarteirao from "./src/Pages/Quarteirao/CadastrarQuarteirao";
+import ListarQuarteirao from "./src/Pages/Quarteirao/ListarQuarteirao";
+import CadastrarImovel from "./src/Pages/Imovel/CadastrarImovel";
+import ListarImovel from "./src/Pages/Imovel/ListarImovel";
+import Visita from "./src/Pages/Visita/CadastrarVisita";
+import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
+import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
+import ListarAgentes from "./src/Pages/ListarAgentes";
+import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 
 const Stack = createNativeStackNavigator();
 
@@ -74,6 +78,26 @@ export default function App() {
         <Stack.Screen
           name="Visita"
           component={Visita}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="ListarVisitas"
+          component={ListarVisitas}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="DetalhesVisita"
+          component={DetalhesVisita}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="ListarAgentes"
+          component={ListarAgentes}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="AtribuirQuarteirao"
+          component={AtribuirQuarteirao}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

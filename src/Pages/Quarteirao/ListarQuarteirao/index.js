@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { API_URL } from "../../../config/config.js";
+import { API_URL } from "./../../../config/config.js";
 import ImageViewing from "react-native-image-viewing";
 
 export default function Quarteiroes({ route, navigation }) {
@@ -100,7 +100,11 @@ export default function Quarteiroes({ route, navigation }) {
               style={styles.itemContainer}
               activeOpacity={0.7}
               onPress={() =>
-                navigation.navigate("ListarImovel", { quarteirao: item })
+                navigation.navigate("ListarImovel", {
+                  quarteirao: item,
+                  idArea: idArea,
+                  nomeArea: nomeArea,
+                })
               }
             >
               <Text style={styles.itemTitle}>{item.numero}</Text>

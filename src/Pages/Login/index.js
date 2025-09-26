@@ -8,6 +8,8 @@ import {
   Text,
   Alert,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { API_URL } from "../../config/config.js";
 import { salvarToken } from "../../utils/tokenStorage.js";
@@ -49,39 +51,44 @@ export default function Login({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.containerLogo}>
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/Logo.png")}
-          resizeMode="contain"
-        />
-      </View>
-      <View style={styles.containerWhite}>
-        <Text style={styles.title}>Login</Text>
-
-        <View style={styles.containerInput}>
-          <TextInput
-            placeholder="CPF..."
-            value={cpf}
-            onChangeText={setCpf}
-            style={styles.label}
-          />
-
-          <TextInput
-            placeholder="Senha..."
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry
-            style={styles.label}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={styles.container}>
+        <View style={styles.containerLogo}>
+          <Image
+            style={styles.logo}
+            source={require("./../../../assets/Logo.png")}
+            resizeMode="contain"
           />
         </View>
+        <View style={styles.containerWhite}>
+          <Text style={styles.title}>Login</Text>
 
-        <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
-          <Text style={styles.textButtonLogin}>Entrar</Text>
-        </TouchableOpacity>
+          <View style={styles.containerInput}>
+            <TextInput
+              placeholder="CPF..."
+              value={cpf}
+              onChangeText={setCpf}
+              style={styles.label}
+            />
+
+            <TextInput
+              placeholder="Senha..."
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry
+              style={styles.label}
+            />
+          </View>
+
+          <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
+            <Text style={styles.textButtonLogin}>Entrar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

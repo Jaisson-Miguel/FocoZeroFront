@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 
-import { API_URL } from "../../../config/config.js";
+import { API_URL } from "./../../../config/config.js";
 import { height, width, font } from "../../../utils/responsive.js";
 
 export default function CadastrarArea({ navigation }) {

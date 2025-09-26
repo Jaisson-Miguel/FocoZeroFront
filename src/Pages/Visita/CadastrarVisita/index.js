@@ -8,17 +8,18 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
-import { getId } from "../../utils/tokenStorage.js";
-import { API_URL } from "../../config/config.js";
+import { getId } from "../../../utils/tokenStorage.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Visita({ route, navigation }) {
-  const { imovel } = route.params;
+  const { imovel, idArea, nomeArea, quarteirao } = route.params;
   const [agenteId, setAgenteId] = useState(null);
 
   useEffect(() => {
     const fetchNome = async () => {
       const userId = await getId();
       if (userId) setAgenteId(userId);
+      // console.log(userId);
     };
     fetchNome();
   }, []);
@@ -60,46 +61,45 @@ export default function Visita({ route, navigation }) {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/cadastrarVisita`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idImovel: imovel._id,
-          idAgente: agenteId,
-          tipo: imovel.tipo,
-          dataVisita: new Date(),
-          depositosInspecionados: {
-            a1: Number(form.depositosInspecionados.a1) || 0,
-            a2: Number(form.depositosInspecionados.a2) || 0,
-            b: Number(form.depositosInspecionados.b) || 0,
-            c: Number(form.depositosInspecionados.c) || 0,
-            d1: Number(form.depositosInspecionados.d1) || 0,
-            d2: Number(form.depositosInspecionados.d2) || 0,
-            e: Number(form.depositosInspecionados.e) || 0,
-          },
-          qtdDepEliminado: Number(form.qtdDepEliminado),
-          foco: form.foco === "sim", // true se escrever "sim"
-          qtdLarvicida: Number(form.qtdLarvicida),
-          qtdDepTratado: Number(form.qtdDepTratado),
-          sincronizado: undefined,
-          status: form.status,
-        }),
-      });
+      const visita = {
+        idImovel: imovel._id,
+        idAgente: agenteId,
+        idArea: idArea,
+        idQuarteirao: quarteirao._id,
+        tipo: imovel.tipo,
+        dataVisita: new Date(),
+        depositosInspecionados: {
+          a1: Number(form.depositosInspecionados.a1) || 0,
+          a2: Number(form.depositosInspecionados.a2) || 0,
+          b: Number(form.depositosInspecionados.b) || 0,
+          c: Number(form.depositosInspecionados.c) || 0,
+          d1: Number(form.depositosInspecionados.d1) || 0,
+          d2: Number(form.depositosInspecionados.d2) || 0,
+          e: Number(form.depositosInspecionados.e) || 0,
+        },
+        qtdDepEliminado: Number(form.qtdDepEliminado),
+        foco: form.foco === "sim",
+        qtdLarvicida: Number(form.qtdLarvicida),
+        qtdDepTratado: Number(form.qtdDepTratado),
+        sincronizado: false,
+        status: form.status,
+        nomeArea: nomeArea,
+        nomeQuarteirao: quarteirao.numero,
+        logradouro: imovel.logradouro,
+        numero: imovel.numero,
+      };
 
-      const data = await response.json();
+      const visitasSalvas = await AsyncStorage.getItem("visitas");
+      const lista = visitasSalvas ? JSON.parse(visitasSalvas) : [];
 
-      if (!response.ok) {
-        Alert.alert(
-          "Erro",
-          data.message || "Não foi possível registrar a visita"
-        );
-        return;
-      }
+      lista.push(visita);
 
-      Alert.alert("Sucesso", "Visita registrada com sucesso!");
-      navigation.goBack();
+      await AsyncStorage.setItem("visitas", JSON.stringify(lista));
+
+      Alert.alert("Sucesso", "Visita salva localmente!");
+      navigation.goBack(); // se quiser voltar após salvar
     } catch (error) {
-      Alert.alert("Erro", "Falha de conexão com o servidor.");
+      Alert.alert("Erro", "Não foi possível salvar a visita localmente.");
       console.error(error);
     }
   };

@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { API_URL } from "../../../config/config.js";
+import { API_URL } from "./../../../config/config.js";
 
 export default function CadastrarQuarteirao({ route, navigation }) {
   const { idArea, nomeArea } = route.params;
