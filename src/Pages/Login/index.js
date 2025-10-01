@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { API_URL } from "../../config/config.js";
 import { salvarToken } from "../../utils/tokenStorage.js";
@@ -51,81 +52,117 @@ export default function Login({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <View style={styles.container}>
-        <View style={styles.containerLogo}>
-          <Image
-            style={styles.logo}
-            source={require("./../../../assets/Logo.png")}
-            resizeMode="contain"
-          />
-        </View>
-        <View style={styles.containerWhite}>
-          <Text style={styles.title}>Login</Text>
-
-          <View style={styles.containerInput}>
-            <TextInput
-              placeholder="CPF..."
-              value={cpf}
-              onChangeText={setCpf}
-              style={styles.label}
-            />
-
-            <TextInput
-              placeholder="Senha..."
-              value={senha}
-              onChangeText={setSenha}
-              secureTextEntry
-              style={styles.label}
-            />
-          </View>
-
-          <TouchableOpacity onPress={handleLogin} style={styles.buttonLogin}>
-            <Text style={styles.textButtonLogin}>Entrar</Text>
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.containerLogo}>
+        <Image
+          style={styles.logo}
+          source={require("./../../../assets/Logo.png")}
+          resizeMode="contain"
+        />
       </View>
-    </KeyboardAvoidingView>
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+          // marginTop: height(30),
+          // width: "100%",
+          // backgroundColor: "#05419A",
+          // height: height(100),
+          // justifyContent: "flex-end",
+          // alignItems: "center",
+        }}
+        behavior="padding"
+        // keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 10} // ajusta conforme precisa
+      >
+        <View style={styles.containerWhite}>
+          <ScrollView
+            contentContainerStyle={
+              {
+                // flexGrow: 1,
+                // justifyContent: "flex-end",
+                // alignItems: "center",
+              }
+            }
+            keyboardShouldPersistTaps="handled"
+          >
+            <Text style={styles.title}>Login</Text>
+
+            <View style={styles.containerInput}>
+              <TextInput
+                placeholder="CPF..."
+                value={cpf}
+                onChangeText={setCpf}
+                style={styles.label}
+              />
+
+              <TextInput
+                placeholder="Senha..."
+                value={senha}
+                onChangeText={setSenha}
+                secureTextEntry
+                style={styles.label}
+              />
+              <TouchableOpacity
+                onPress={handleLogin}
+                style={styles.buttonLogin}
+              >
+                <Text style={styles.textButtonLogin}>Entrar</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-end",
+    // justifyContent: "flex-end",
     alignItems: "center",
-    backgroundColor: "#05419A",
+    // backgroundColor: "#05419A",
+    backgroundColor: "#fff",
+    width: width(100),
+  },
+  logo: {
+    // justifyContent: "flex-start",
   },
   containerLogo: {
-    flex: 1,
+    // flex: 1,
+    width: width(100),
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 30,
+    // marginTop: 30,
+    backgroundColor: "#05419A",
+    height: height(40),
+    borderEndEndRadius: 20,
+    borderStartEndRadius: 20,
   },
   containerWhite: {
-    width: "100%",
+    width: width(100),
     backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    // borderTopLeftRadius: 20,
+    // borderTopRightRadius: 20,
     alignItems: "center",
-    // flex: 1,
+    flex: 1,
     justifyContent: "flex-end",
-    paddingBottom: 100,
+    // paddingBottom: height(5),
+    // paddingBottom: height(5),
+    // minHeight: height(80),
+    height: height(60),
   },
   title: {
     fontSize: 50,
     fontWeight: "bold",
-    margin: 30,
+    margin: 25,
     color: "#05419A",
     justifyContent: "center",
+    // width: "100%",
   },
   containerInput: {
     width: width(90),
     gap: 20,
-    flexGrow: 1,
+    // flexGrow: 1,
   },
   label: {
     borderWidth: 2,
@@ -135,21 +172,21 @@ const styles = StyleSheet.create({
     height: 80,
   },
   buttonLogin: {
-    width: "90%",
+    width: width(90),
     backgroundColor: "#05419A",
     height: 65,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 15,
-    marginTop: 50,
+    marginTop: 10,
   },
   textButtonLogin: {
     color: "white",
     fontSize: 28,
   },
-  link: {
-    fontSize: 20,
-    marginTop: 15,
-    color: "blue",
-  },
+  // link: {
+  //   fontSize: 20,
+  //   marginTop: 15,
+  //   color: "blue",
+  // },
 });

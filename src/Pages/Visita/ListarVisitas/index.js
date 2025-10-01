@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL } from "../../../config/config.js";
 
 export default function ListarVisitas({ navigation }) {
   const [visitas, setVisitas] = useState([]);
@@ -49,6 +50,66 @@ export default function ListarVisitas({ navigation }) {
     }
   };
 
+  const finalizarDiario = async () => {
+    try {
+      console.log("Iniciando Finalizar Diário...");
+
+      const visitasSalvas = await AsyncStorage.getItem("visitas");
+      console.log("Visitas salvas brutas:", visitasSalvas);
+
+      let lista = visitasSalvas ? JSON.parse(visitasSalvas) : [];
+      console.log("Lista parseada:", lista);
+
+      // pega só as não sincronizadas
+      const pendentes = lista.filter((v) => !v.sincronizado);
+      console.log("Pendentes:", pendentes);
+
+      if (pendentes.length === 0) {
+        Alert.alert("Aviso", "Nenhuma visita pendente para finalizar.");
+        return;
+      }
+
+      for (let visita of pendentes) {
+        console.log("Enviando visita:", visita);
+
+        try {
+          const { sincronizado, ...dadosParaEnviar } = visita;
+
+          const response = await fetch(`${API_URL}/cadastrarVisita`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dadosParaEnviar),
+          });
+
+          console.log("Resposta status:", response.status);
+
+          if (response.ok) {
+            console.log("Visita enviada com sucesso:", visita.idImovel);
+            visita.sincronizado = true;
+          } else {
+            console.log("Erro no servidor:", await response.text());
+          }
+        } catch (err) {
+          console.error("Erro de rede:", err);
+        }
+      }
+
+      console.log("Atualizando AsyncStorage com lista:", lista);
+      await AsyncStorage.setItem("visitas", JSON.stringify(lista));
+      setVisitas(lista);
+
+      Alert.alert(
+        "Sucesso",
+        "Finalização concluída! Todas as visitas pendentes foram enviadas."
+      );
+    } catch (error) {
+      console.error("Erro no finalizarDiario:", error);
+      Alert.alert("Erro", "Não foi possível finalizar o diário.");
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       {Object.keys(agrupadas).length === 0 ? (
@@ -70,7 +131,8 @@ export default function ListarVisitas({ navigation }) {
                     }
                   >
                     <Text style={styles.logradouro}>
-                      {v.logradouro}, {v.numero} ({v.tipo})
+                      {v.logradouro}, {v.numero} ({v.tipo}){" "}
+                      {v.sincronizado ? "✅" : "⏳"}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -81,6 +143,13 @@ export default function ListarVisitas({ navigation }) {
       )}
 
       <TouchableOpacity
+        style={[styles.botao, { backgroundColor: "#2196F3" }]}
+        onPress={finalizarDiario}
+      >
+        <Text style={styles.textoBotao}>Finalizar Diário</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         style={[styles.botao, { backgroundColor: "#f44336" }]}
         onPress={limparVisitas}
       >
@@ -88,7 +157,7 @@ export default function ListarVisitas({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.botao}
+        style={[styles.botao, { backgroundColor: "#4CAF50" }]}
         onPress={() => navigation.goBack()}
       >
         <Text style={styles.textoBotao}>Voltar</Text>
