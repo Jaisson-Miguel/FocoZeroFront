@@ -8,7 +8,7 @@ import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
 import CadastrarArea from "./src/Pages/Area/CadastrarArea";
-import ListarArea from "./src/Pages/Area/ListarArea";
+import ListarAreas from "./src/Pages/Area/ListarAreas";
 import CadastrarQuarteirao from "./src/Pages/Quarteirao/CadastrarQuarteirao";
 import ListarQuarteirao from "./src/Pages/Quarteirao/ListarQuarteirao";
 import CadastrarImovel from "./src/Pages/Imovel/CadastrarImovel";
@@ -47,8 +47,8 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="ListarArea"
-          component={ListarArea}
+          name="ListarAreas"
+          component={ListarAreas}
           options={{ headerShown: false }}
         />
         <Stack.Screen

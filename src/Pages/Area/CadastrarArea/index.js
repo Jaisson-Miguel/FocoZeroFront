@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 
 import { API_URL } from "./../../../config/config.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { Picker } from "@react-native-picker/picker";
 
 export default function CadastrarArea({ navigation }) {
   const [nome, setNome] = useState("");
@@ -18,6 +19,31 @@ export default function CadastrarArea({ navigation }) {
   const [zona, setZona] = useState("");
   const [categoria, setCategoria] = useState("");
   const [mapaUrl, setMapaUrl] = useState("");
+  const [agentes, setAgentes] = useState([]);
+  const [agenteSelecionado, setAgenteSelecionado] = useState("");
+
+  useEffect(() => {
+    const fetchAgentes = async () => {
+      try {
+        const response = await fetch(`${API_URL}/listarUsuarios?funcao=agente`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          Alert.alert("Erro", data.message || "Falha ao carregar agentes");
+          return;
+        }
+
+        setAgentes(data);
+      } catch (error) {
+        Alert.alert("Erro", "Não foi possível conectar ao servidor");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgentes();
+  }, []);
 
   const handleCadastrar = async () => {
     if (!nome || !codigo || !zona || !categoria || !mapaUrl) {
@@ -29,7 +55,14 @@ export default function CadastrarArea({ navigation }) {
       const response = await fetch(`${API_URL}/cadastrarArea`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, codigo, zona, categoria, mapaUrl }),
+        body: JSON.stringify({
+          nome,
+          codigo,
+          zona,
+          categoria,
+          mapaUrl,
+          idResponsavel: agenteSelecionado,
+        }),
       });
 
       const data = await response.json();
@@ -83,6 +116,22 @@ export default function CadastrarArea({ navigation }) {
         value={mapaUrl}
         onChangeText={setMapaUrl}
       />
+      <Text style={{ marginBottom: 5, fontSize: 16 }}>Agente Responsável:</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={agenteSelecionado}
+          onValueChange={(itemValue) => setAgenteSelecionado(itemValue)}
+        >
+          <Picker.Item label="Selecione um agente" value="" />
+          {agentes.map((agente) => (
+            <Picker.Item
+              key={agente._id}
+              label={agente.nome}
+              value={agente._id}
+            />
+          ))}
+        </Picker>
+      </View>
 
       <TouchableOpacity style={styles.button} onPress={handleCadastrar}>
         <Text style={styles.buttonText}>Cadastrar</Text>
@@ -128,5 +177,11 @@ const styles = StyleSheet.create({
   buttonsHome: {
     // backgroundColor: "green",
     width: width(20),
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    marginBottom: 15,
   },
 });

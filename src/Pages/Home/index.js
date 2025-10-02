@@ -8,19 +8,22 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { height, width, font } from "../../utils/responsive.js";
-import { getFuncao, getNome, logout } from "../../utils/tokenStorage.js";
+import { getFuncao, getNome, getId } from "../../utils/tokenStorage.js";
 import Cabecalho from "../../Components/Cabecalho.js";
 
 export default function Home({ navigation }) {
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [funcao, setFuncao] = useState(false);
+  const [idUsuario, setIdUsuario] = useState("");
 
   useEffect(() => {
     const fetchNome = async () => {
       const nome = await getNome();
       const userFuncao = await getFuncao();
+      const userId = await getId();
       if (nome) setNomeUsuario(nome);
       if (userFuncao) setFuncao(userFuncao);
+      if (userId) setIdUsuario(userId);
     };
     fetchNome();
   }, []);
@@ -32,15 +35,22 @@ export default function Home({ navigation }) {
         <View style={styles.bloco}>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("ListarArea", { modo: "visualizar" })
+              navigation.navigate("ListarAreas", {
+                modo: "visualizar",
+                idUsuario,
+              })
             }
             style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
           >
-            <Text style={styles.textBotao}>Visita</Text>
+            <Text style={styles.textBotao}>Minha Área</Text>
           </TouchableOpacity>
           {funcao === "agente" && (
             <TouchableOpacity
-              onPress={() => navigation.navigate("ListarVisitas")}
+              onPress={() =>
+                navigation.navigate("ListarVisitas", {
+                  modo: "visualizar",
+                })
+              }
               style={[styles.buttonsHome, { backgroundColor: "green" }]}
             >
               <Text style={styles.textBotao}>Visitas Offline</Text>
@@ -57,6 +67,18 @@ export default function Home({ navigation }) {
         </View>
 
         <View style={styles.bloco}>
+          {funcao === "agente" && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ListarAreas", {
+                  modo: "visualizar",
+                })
+              }
+              style={[styles.buttonsHome, { backgroundColor: "red" }]}
+            >
+              <Text style={styles.textBotao}>Visitar</Text>
+            </TouchableOpacity>
+          )}
           {funcao === "adm" && (
             <TouchableOpacity
               onPress={() => navigation.navigate("Register")}

@@ -99,7 +99,7 @@ function Item({ agente, navigation }) {
   return (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate("ListarArea", {
+        navigation.navigate("ListarAreas", {
           idAgente: agente._id,
           nomeAgente: agente.nome,
           modo: "atribuir",

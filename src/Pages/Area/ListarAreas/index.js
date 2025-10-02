@@ -9,13 +9,13 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { API_URL } from "./../../../config/config.js";
+import { API_URL } from "../../../config/config.js";
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function ListarArea({ route, navigation }) {
-  const { modo, idAgente, nomeAgente } = route.params;
+  const { modo, idAgente, nomeAgente, idUsuario } = route.params;
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
@@ -37,7 +37,16 @@ export default function ListarArea({ route, navigation }) {
             return;
           }
 
-          setAreas(data);
+          let areasFiltradas = data;
+
+          // Se for agente, filtra apenas as áreas que ele é responsável
+          if (userFuncao === "agente" && idUsuario) {
+            areasFiltradas = data.filter(
+              (area) => area.idResponsavel === idUsuario
+            );
+          }
+
+          setAreas(areasFiltradas);
         } catch (error) {
           Alert.alert("Erro", "Não foi possível conectar ao servidor");
           console.error(error);
