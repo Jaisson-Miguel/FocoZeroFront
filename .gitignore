@@ -36,5 +36,8 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-#configuracao do servidor
-config.js
+# Ignorar arquivos de protótipo
+/android/
+/build/
+/dist/
+/*.log

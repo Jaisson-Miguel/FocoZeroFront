@@ -18,6 +18,7 @@ import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
 import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
 import ListarAgentes from "./src/Pages/ListarAgentes";
 import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
+import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 
 const Stack = createNativeStackNavigator();
 
@@ -98,6 +99,11 @@ export default function App() {
         <Stack.Screen
           name="AtribuirQuarteirao"
           component={AtribuirQuarteirao}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="ResumoDiario"
+          component={ResumoDiario}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>

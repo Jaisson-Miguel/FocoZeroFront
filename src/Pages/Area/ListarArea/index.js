@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { API_URL } from "./../../../config/config.js";
 import { getFuncao } from "../../../utils/tokenStorage.js";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ListarArea({ route, navigation }) {
   const { modo, idAgente, nomeAgente } = route.params;
@@ -19,30 +20,34 @@ export default function ListarArea({ route, navigation }) {
   const [visible, setVisible] = useState(false);
   const [funcao, setFuncao] = useState(false);
 
-  useEffect(() => {
-    const fetchAreas = async () => {
-      const userFuncao = await getFuncao();
-      if (userFuncao) setFuncao(userFuncao);
-      try {
-        const response = await fetch(`${API_URL}/listarAreas`);
-        const data = await response.json();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAreas = async () => {
+        setLoading(true);
+        const userFuncao = await getFuncao();
+        if (userFuncao) setFuncao(userFuncao);
 
-        if (!response.ok) {
-          Alert.alert("Erro", data.message || "Falha ao carregar áreas");
-          return;
+        try {
+          const response = await fetch(`${API_URL}/listarAreas`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            Alert.alert("Erro", data.message || "Falha ao carregar áreas");
+            return;
+          }
+
+          setAreas(data);
+        } catch (error) {
+          Alert.alert("Erro", "Não foi possível conectar ao servidor");
+          console.error(error);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        setAreas(data);
-      } catch (error) {
-        Alert.alert("Erro", "Não foi possível conectar ao servidor");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAreas();
-  }, []);
+      fetchAreas();
+    }, [])
+  );
 
   if (loading) {
     return (
@@ -69,14 +74,19 @@ export default function ListarArea({ route, navigation }) {
       <FlatList
         data={areas}
         renderItem={({ item }) => (
-          <Item area={item} navigation={navigation} modo={modo} />
+          <Item
+            area={item}
+            navigation={navigation}
+            modo={modo}
+            idAgente={idAgente}
+          />
         )}
       />
     </View>
   );
 }
 
-function Item({ area, navigation, modo }) {
+function Item({ area, navigation, modo, idAgente }) {
   return modo === "atribuir" ? (
     <TouchableOpacity
       onPress={() =>
@@ -84,6 +94,7 @@ function Item({ area, navigation, modo }) {
           idArea: area._id,
           mapaUrl: area.mapaUrl,
           nomeArea: area.nome,
+          idAgente: idAgente,
         })
       }
       style={styles.container}

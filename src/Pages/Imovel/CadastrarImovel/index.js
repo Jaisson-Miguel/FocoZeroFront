@@ -125,7 +125,7 @@ export default function CadastrarImovel({ route, navigation }) {
                   }}
                   onPress={() => {
                     setPosicao(index);
-                    setForm({ ...form, posicao: index + 1 });
+                    setForm({ ...form, posicao: index });
                     setModalVisible(false);
                   }}
                 >

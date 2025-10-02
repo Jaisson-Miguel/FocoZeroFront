@@ -1,47 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
-  Image,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
 import { API_URL } from "./../../../config/config.js";
 import ImageViewing from "react-native-image-viewing";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function Quarteiroes({ route, navigation }) {
-  const { idArea, mapaUrl, nomeArea } = route.params; // pega dados da área
+  const { idArea, mapaUrl, nomeArea } = route.params;
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    async function fetchQuarteiroes() {
-      try {
-        const response = await fetch(`${API_URL}/listarQuarteiroes/${idArea}`);
-        const data = await response.json();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchQuarteiroes = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${API_URL}/listarQuarteiroes/${idArea}`
+          );
+          const data = await response.json();
 
-        if (response.status === 404) {
-          // Nenhum quarteirão encontrado
-          setQuarteiroes([]);
-        } else if (!response.ok) {
-          throw new Error(data.message || "Erro ao buscar quarteirões");
-        } else {
-          setQuarteiroes(data);
+          if (response.status === 404) {
+            setQuarteiroes([]);
+          } else if (!response.ok) {
+            throw new Error(data.message || "Erro ao buscar quarteirões");
+          } else {
+            setQuarteiroes(data);
+          }
+          setError(null);
+        } catch (err) {
+          console.error(err);
+          setError("Não foi possível carregar os quarteirões.");
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error(err);
-        setError("Não foi possível carregar os quarteirões.");
-      } finally {
-        setLoading(false);
-      }
-    }
+      };
 
-    fetchQuarteiroes();
-  }, [idArea]);
+      fetchQuarteiroes();
+    }, [idArea])
+  );
 
   if (loading) {
     return (
@@ -53,9 +58,8 @@ export default function Quarteiroes({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Nome da área */}
       {nomeArea && <Text style={styles.areaTitle}>{nomeArea}</Text>}
-      {/* Mapa da área */}
+
       <TouchableOpacity onPress={() => setVisible(true)}>
         <Text style={styles.areaTitle}>Mapa</Text>
       </TouchableOpacity>
@@ -66,16 +70,10 @@ export default function Quarteiroes({ route, navigation }) {
         onRequestClose={() => setVisible(false)}
       />
 
-      {/* Mensagem de erro */}
       {error && <Text style={styles.error}>{error}</Text>}
 
       <TouchableOpacity
-        style={{
-          margin: 10,
-          backgroundColor: "green",
-          padding: 10,
-          borderRadius: 5,
-        }}
+        style={styles.btnCadastrar}
         onPress={() =>
           navigation.navigate("CadastrarQuarteirao", {
             idArea: idArea,
@@ -83,12 +81,9 @@ export default function Quarteiroes({ route, navigation }) {
           })
         }
       >
-        <Text style={{ color: "#fff", textAlign: "center" }}>
-          Cadastrar Quarteirão
-        </Text>
+        <Text style={styles.btnText}>Cadastrar Quarteirão</Text>
       </TouchableOpacity>
 
-      {/* Lista de quarteirões */}
       {quarteiroes.length === 0 ? (
         <Text style={styles.empty}>Nenhum quarteirão encontrado.</Text>
       ) : (
@@ -102,8 +97,8 @@ export default function Quarteiroes({ route, navigation }) {
               onPress={() =>
                 navigation.navigate("ListarImovel", {
                   quarteirao: item,
-                  idArea: idArea,
-                  nomeArea: nomeArea,
+                  idArea,
+                  nomeArea,
                 })
               }
             >
@@ -119,7 +114,6 @@ export default function Quarteiroes({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 10 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  mapa: { width: "100%", height: 200, marginBottom: 10 },
   areaTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   error: { color: "red", marginBottom: 10 },
   empty: { fontSize: 16, color: "gray", textAlign: "center", marginTop: 20 },
@@ -131,5 +125,11 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   itemTitle: { fontSize: 16 },
-  itemCode: { color: "gray" },
+  btnCadastrar: {
+    margin: 10,
+    backgroundColor: "green",
+    padding: 10,
+    borderRadius: 5,
+  },
+  btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });

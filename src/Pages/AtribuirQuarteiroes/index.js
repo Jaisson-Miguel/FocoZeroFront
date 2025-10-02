@@ -16,6 +16,8 @@ export default function AtribuirQuarteirao({ route, navigation }) {
   const [selecionados, setSelecionados] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  console.log();
+
   // Buscar quarteirões da área
   useEffect(() => {
     const fetchQuarteiroes = async () => {
@@ -28,7 +30,8 @@ export default function AtribuirQuarteirao({ route, navigation }) {
           return;
         }
 
-        setQuarteiroes(data);
+        const semResponsavel = data.filter((q) => !q.idResponsavel);
+        setQuarteiroes(semResponsavel);
       } catch (error) {
         Alert.alert("Erro", "Não foi possível conectar ao servidor");
         console.error(error);
@@ -61,7 +64,7 @@ export default function AtribuirQuarteirao({ route, navigation }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          agenteId: idAgente,
+          idAgente,
           quarteiroes: selecionados,
         }),
       });
