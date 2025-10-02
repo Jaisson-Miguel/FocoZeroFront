@@ -12,6 +12,7 @@ import {
 import { API_URL } from "./../../../config/config.js";
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
+import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function ListarArea({ route, navigation }) {
   const { modo, idAgente, nomeAgente } = route.params;
@@ -60,28 +61,31 @@ export default function ListarArea({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Áreas cadastradas</Text>
+      <Cabecalho navigation={navigation} />
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Áreas cadastradas</Text>
 
-      {funcao === "adm" && (
-        <TouchableOpacity
-          onPress={() => navigation.navigate("CadastrarArea")}
-          style={styles.btnCadastrar}
-        >
-          <Text>Cadastrar Área</Text>
-        </TouchableOpacity>
-      )}
-
-      <FlatList
-        data={areas}
-        renderItem={({ item }) => (
-          <Item
-            area={item}
-            navigation={navigation}
-            modo={modo}
-            idAgente={idAgente}
-          />
+        {funcao === "adm" && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("CadastrarArea")}
+            style={styles.btnCadastrar}
+          >
+            <Text>Cadastrar Área</Text>
+          </TouchableOpacity>
         )}
-      />
+
+        <FlatList
+          data={areas}
+          renderItem={({ item }) => (
+            <Item
+              area={item}
+              navigation={navigation}
+              modo={modo}
+              idAgente={idAgente}
+            />
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -127,6 +131,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+    // padding: 20,
+  },
+  subContainer: {
+    flex: 1,
     padding: 20,
   },
   loadingContainer: {

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { height, width, font } from "../../utils/responsive.js";
 import { getFuncao, getNome, logout } from "../../utils/tokenStorage.js";
+import Cabecalho from "../../Components/Cabecalho.js";
 
 export default function Home({ navigation }) {
   const [nomeUsuario, setNomeUsuario] = useState("");
@@ -26,14 +27,16 @@ export default function Home({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text>{nomeUsuario}</Text>
+      <Cabecalho usuario={nomeUsuario} navigation={navigation} />
       <View style={styles.containerBotoes}>
         <View style={styles.bloco}>
           <TouchableOpacity
-            onPress={() => logout(navigation)}
-            style={[styles.buttonsHome, { backgroundColor: "blue" }]}
+            onPress={() =>
+              navigation.navigate("ListarArea", { modo: "visualizar" })
+            }
+            style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
           >
-            <Text style={styles.textBotao}>Logout</Text>
+            <Text style={styles.textBotao}>Visita</Text>
           </TouchableOpacity>
           {funcao === "agente" && (
             <TouchableOpacity
@@ -57,20 +60,11 @@ export default function Home({ navigation }) {
           {funcao === "adm" && (
             <TouchableOpacity
               onPress={() => navigation.navigate("Register")}
-              style={[styles.buttonsHome, { backgroundColor: "red" }]}
+              style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
             >
-              <Text style={styles.textBotao}>Registrar Usuário</Text>
+              <Text style={styles.textBotao}>Equipe</Text>
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("ListarArea", { modo: "visualizar" })
-            }
-            style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
-          >
-            <Text style={styles.textBotao}>Visita</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -105,6 +99,7 @@ const styles = StyleSheet.create({
     height: height(15),
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 20,
   },
   textBotao: {
     fontSize: font(3),

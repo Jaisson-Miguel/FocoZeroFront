@@ -16,7 +16,7 @@ import ListarImovel from "./src/Pages/Imovel/ListarImovel";
 import Visita from "./src/Pages/Visita/CadastrarVisita";
 import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
 import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
-import ListarAgentes from "./src/Pages/ListarAgentes";
+import ListarAgentes from "./src/Pages/Usuario/ListarAgentes";
 import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 
@@ -49,7 +49,7 @@ export default function App() {
         <Stack.Screen
           name="ListarArea"
           component={ListarArea}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ListarQuarteirao"
@@ -84,7 +84,7 @@ export default function App() {
         <Stack.Screen
           name="ListarVisitas"
           component={ListarVisitas}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="DetalhesVisita"

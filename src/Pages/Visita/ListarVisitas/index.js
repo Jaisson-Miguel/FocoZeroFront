@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
+import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function ListarVisitas({ navigation }) {
   const [visitas, setVisitas] = useState([]);
@@ -88,58 +89,61 @@ export default function ListarVisitas({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {Object.keys(agrupadas).length === 0 ? (
-        <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
-      ) : (
-        Object.keys(agrupadas).map((nomeArea) => (
-          <View key={nomeArea} style={styles.areaBox}>
-            <Text style={styles.areaTitulo}>{nomeArea}:</Text>
-            {Object.keys(agrupadas[nomeArea]).map((nomeQuarteirao) => (
-              <View key={nomeQuarteirao} style={styles.quarteiraoBox}>
-                <Text style={styles.quarteiraoTitulo}>
-                  Quarteirão {nomeQuarteirao}:
-                </Text>
-                {agrupadas[nomeArea][nomeQuarteirao].map((v, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    onPress={() =>
-                      navigation.navigate("DetalhesVisita", { visita: v })
-                    }
-                  >
-                    <Text style={styles.logradouro}>
-                      {v.logradouro}, {v.numero} ({v.tipo}){" "}
-                      {v.sincronizado ? "✅" : "⏳"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ))}
-          </View>
-        ))
-      )}
+    <View style={{ flex: 1 }}>
+      <Cabecalho navigation={navigation} />
+      <ScrollView style={styles.container}>
+        {Object.keys(agrupadas).length === 0 ? (
+          <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
+        ) : (
+          Object.keys(agrupadas).map((nomeArea) => (
+            <View key={nomeArea} style={styles.areaBox}>
+              <Text style={styles.areaTitulo}>{nomeArea}:</Text>
+              {Object.keys(agrupadas[nomeArea]).map((nomeQuarteirao) => (
+                <View key={nomeQuarteirao} style={styles.quarteiraoBox}>
+                  <Text style={styles.quarteiraoTitulo}>
+                    Quarteirão {nomeQuarteirao}:
+                  </Text>
+                  {agrupadas[nomeArea][nomeQuarteirao].map((v, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() =>
+                        navigation.navigate("DetalhesVisita", { visita: v })
+                      }
+                    >
+                      <Text style={styles.logradouro}>
+                        {v.logradouro}, {v.numero} ({v.tipo}){" "}
+                        {v.sincronizado ? "✅" : "⏳"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ))}
+            </View>
+          ))
+        )}
 
-      <TouchableOpacity
-        style={[styles.botao, { backgroundColor: "#2196F3" }]}
-        onPress={finalizarDiario}
-      >
-        <Text style={styles.textoBotao}>Finalizar Diário</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.botao, { backgroundColor: "#2196F3" }]}
+          onPress={finalizarDiario}
+        >
+          <Text style={styles.textoBotao}>Finalizar Diário</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.botao, { backgroundColor: "#f44336" }]}
-        onPress={limparVisitas}
-      >
-        <Text style={styles.textoBotao}>Limpar Visitas</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.botao, { backgroundColor: "#f44336" }]}
+          onPress={limparVisitas}
+        >
+          <Text style={styles.textoBotao}>Limpar Visitas</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.botao, { backgroundColor: "#4CAF50" }]}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.textoBotao}>Voltar</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={[styles.botao, { backgroundColor: "#4CAF50" }]}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.textoBotao}>Voltar</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 

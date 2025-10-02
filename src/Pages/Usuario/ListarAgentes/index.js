@@ -9,11 +9,39 @@ import {
   Image,
   TouchableOpacity,
 } from "react-native";
-import { API_URL } from "./../../config/config.js";
+import { API_URL } from "../../../config/config.js";
 
 export default function ListarAgentes({ navigation }) {
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  function confirmarReset() {
+    Alert.alert(
+      "Atenção",
+      "Você tem certeza que quer resetar todos os responsáveis dos quarteirões?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Sim, resetar",
+          onPress: async () => {
+            try {
+              const response = await fetch(`${API_URL}/resetarResponsaveis`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              const data = await response.json();
+              Alert.alert("Sucesso", data.message);
+            } catch (error) {
+              Alert.alert("Erro", "Não foi possível resetar os responsáveis.");
+            }
+          },
+        },
+      ]
+    );
+  }
 
   useEffect(() => {
     const fetchAgentes = async () => {
@@ -49,6 +77,12 @@ export default function ListarAgentes({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        onPress={confirmarReset}
+        style={{ backgroundColor: "red" }}
+      >
+        <Text style={styles.btnText}>Resetar Responsáveis</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Agentes</Text>
 
       <FlatList

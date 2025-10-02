@@ -16,8 +16,6 @@ export default function AtribuirQuarteirao({ route, navigation }) {
   const [selecionados, setSelecionados] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  console.log();
-
   // Buscar quarteirões da área
   useEffect(() => {
     const fetchQuarteiroes = async () => {
