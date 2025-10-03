@@ -12,7 +12,7 @@ import ImageViewing from "react-native-image-viewing";
 import { useFocusEffect } from "@react-navigation/native";
 
 export default function Quarteiroes({ route, navigation }) {
-  const { idArea, mapaUrl, nomeArea } = route.params;
+  const { idArea, mapaUrl, nomeArea, funcao, modoI } = route.params;
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -71,18 +71,19 @@ export default function Quarteiroes({ route, navigation }) {
       />
 
       {error && <Text style={styles.error}>{error}</Text>}
-
-      <TouchableOpacity
-        style={styles.btnCadastrar}
-        onPress={() =>
-          navigation.navigate("CadastrarQuarteirao", {
-            idArea: idArea,
-            nomeArea: nomeArea,
-          })
-        }
-      >
-        <Text style={styles.btnText}>Cadastrar Quarteirão</Text>
-      </TouchableOpacity>
+      {funcao === "adm" && (
+        <TouchableOpacity
+          style={styles.btnCadastrar}
+          onPress={() =>
+            navigation.navigate("CadastrarQuarteirao", {
+              idArea: idArea,
+              nomeArea: nomeArea,
+            })
+          }
+        >
+          <Text style={styles.btnText}>Cadastrar Quarteirão</Text>
+        </TouchableOpacity>
+      )}
 
       {quarteiroes.length === 0 ? (
         <Text style={styles.empty}>Nenhum quarteirão encontrado.</Text>
@@ -99,6 +100,7 @@ export default function Quarteiroes({ route, navigation }) {
                   quarteirao: item,
                   idArea,
                   nomeArea,
+                  modoI,
                 })
               }
             >

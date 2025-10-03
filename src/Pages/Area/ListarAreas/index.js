@@ -15,7 +15,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function ListarArea({ route, navigation }) {
-  const { modo, idAgente, nomeAgente, idUsuario } = route.params;
+  const { modo, idAgente, nomeAgente, idUsuario, modoI } = route.params;
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
@@ -91,6 +91,8 @@ export default function ListarArea({ route, navigation }) {
               navigation={navigation}
               modo={modo}
               idAgente={idAgente}
+              funcao={funcao}
+              modoI={modoI}
             />
           )}
         />
@@ -99,7 +101,7 @@ export default function ListarArea({ route, navigation }) {
   );
 }
 
-function Item({ area, navigation, modo, idAgente }) {
+function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
   return modo === "atribuir" ? (
     <TouchableOpacity
       onPress={() =>
@@ -124,6 +126,8 @@ function Item({ area, navigation, modo, idAgente }) {
           idArea: area._id,
           mapaUrl: area.mapaUrl,
           nomeArea: area.nome,
+          funcao,
+          modoI,
         })
       }
       style={styles.container}

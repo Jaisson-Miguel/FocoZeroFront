@@ -13,6 +13,7 @@ import CadastrarQuarteirao from "./src/Pages/Quarteirao/CadastrarQuarteirao";
 import ListarQuarteirao from "./src/Pages/Quarteirao/ListarQuarteirao";
 import CadastrarImovel from "./src/Pages/Imovel/CadastrarImovel";
 import ListarImovel from "./src/Pages/Imovel/ListarImovel";
+import EditarImovel from "./src/Pages/Imovel/EditarImovel";
 import Visita from "./src/Pages/Visita/CadastrarVisita";
 import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
 import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
@@ -75,6 +76,11 @@ export default function App() {
           name="CadastrarImovel"
           component={CadastrarImovel}
           options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="EditarImovel"
+          component={EditarImovel}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Visita"

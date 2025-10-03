@@ -37,7 +37,9 @@ export default function Home({ navigation }) {
             onPress={() =>
               navigation.navigate("ListarAreas", {
                 modo: "visualizar",
+
                 idUsuario,
+                modoI: "Editar",
               })
             }
             style={[styles.buttonsHome, { backgroundColor: "yellow" }]}

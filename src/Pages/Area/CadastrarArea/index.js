@@ -103,12 +103,15 @@ export default function CadastrarArea({ navigation }) {
         onChangeText={setZona}
       />
 
-      <TextInput
+      <Picker
+        // selectedValue={form.categoria}
         style={styles.input}
-        placeholder="Categoria"
-        value={categoria}
-        onChangeText={setCategoria}
-      />
+        onValueChange={setCategoria}
+      >
+        <Picker.Item label="Selecione o tipo" value="" />
+        <Picker.Item label="Bairro" value="Bairro" />
+        <Picker.Item label="Povoado" value="Povoado" />
+      </Picker>
 
       <TextInput
         style={styles.input}

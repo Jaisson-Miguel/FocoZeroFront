@@ -10,7 +10,7 @@ import {
 import { API_URL } from "./../../../config/config.js";
 
 export default function ListarImoveis({ route, navigation }) {
-  const { quarteirao, idArea, nomeArea } = route.params; // vem da tela anterior
+  const { quarteirao, idArea, nomeArea, modoI } = route.params; // vem da tela anterior
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,14 +98,23 @@ export default function ListarImoveis({ route, navigation }) {
             <TouchableOpacity
               style={styles.itemContainer}
               activeOpacity={0.7}
-              onPress={() =>
-                navigation.navigate("Visita", {
-                  imovel: item,
-                  idArea: idArea,
-                  nomeArea: nomeArea,
-                  quarteirao: quarteirao,
-                })
-              }
+              onPress={() => {
+                if (modoI === "Editar") {
+                  navigation.navigate("EditarImovel", {
+                    imovel: item,
+                    idArea,
+                    nomeArea,
+                    quarteirao,
+                  });
+                } else {
+                  navigation.navigate("Visita", {
+                    imovel: item,
+                    idArea,
+                    nomeArea,
+                    quarteirao,
+                  });
+                }
+              }}
             >
               <Text style={styles.itemTitle}>
                 {item.tipo} - {item.logradouro}, {item.numero}
