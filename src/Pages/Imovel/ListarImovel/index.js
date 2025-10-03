@@ -15,29 +15,29 @@ export default function ListarImoveis({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function fetchImoveis() {
-      try {
-        const response = await fetch(
-          `${API_URL}/listarImoveis/${quarteirao._id}`
-        );
-        const data = await response.json();
+  async function fetchImoveis() {
+    try {
+      const response = await fetch(
+        `${API_URL}/listarImoveis/${quarteirao._id}`
+      );
+      const data = await response.json();
 
-        if (response.status === 404) {
-          setImoveis([]); // Nenhum imóvel
-        } else if (!response.ok) {
-          throw new Error(data.message || "Erro ao buscar imóveis");
-        } else {
-          setImoveis(data);
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Não foi possível carregar os imóveis.");
-      } finally {
-        setLoading(false);
+      if (response.status === 404) {
+        setImoveis([]); // Nenhum imóvel
+      } else if (!response.ok) {
+        throw new Error(data.message || "Erro ao buscar imóveis");
+      } else {
+        setImoveis(data);
       }
+    } catch (err) {
+      console.error(err);
+      setError("Não foi possível carregar os imóveis.");
+    } finally {
+      setLoading(false);
     }
+  }
 
+  useEffect(() => {
     fetchImoveis();
   }, [quarteirao._id]);
 
@@ -72,20 +72,21 @@ export default function ListarImoveis({ route, navigation }) {
       >
         <Text style={styles.btnText}>Cadastrar Imóvel</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.btnCadastrar}
-        onPress={() =>
-          navigation.navigate("ListarVisitas", {
-            idQuarteirao: quarteirao._id,
-            numeroQuarteirao: quarteirao.numero,
-            idArea: idArea,
-            nomeArea: nomeArea,
-          })
-        }
-      >
-        <Text style={styles.btnText}>Listar Visitas</Text>
-      </TouchableOpacity>
+      {modoI !== "Editar" && (
+        <TouchableOpacity
+          style={styles.btnCadastrar}
+          onPress={() =>
+            navigation.navigate("ListarVisitas", {
+              idQuarteirao: quarteirao._id,
+              numeroQuarteirao: quarteirao.numero,
+              idArea: idArea,
+              nomeArea: nomeArea,
+            })
+          }
+        >
+          <Text style={styles.btnText}>Listar Visitas</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Lista de imóveis */}
       {imoveis.length === 0 ? (
@@ -105,6 +106,7 @@ export default function ListarImoveis({ route, navigation }) {
                     idArea,
                     nomeArea,
                     quarteirao,
+                    onGoBack: () => fetchImoveis(),
                   });
                 } else {
                   navigation.navigate("Visita", {

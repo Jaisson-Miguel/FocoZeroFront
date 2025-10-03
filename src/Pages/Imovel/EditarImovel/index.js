@@ -44,6 +44,7 @@ export default function EditarImovel({ route, navigation }) {
       }
 
       Alert.alert("Sucesso", "Imóvel editado com sucesso!");
+      if (route.params.onGoBack) route.params.onGoBack();
       navigation.goBack();
     } catch (error) {
       console.error(error);
