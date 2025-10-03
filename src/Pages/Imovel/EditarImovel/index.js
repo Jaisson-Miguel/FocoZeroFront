@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { API_URL } from "./../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
+import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function EditarImovel({ route, navigation }) {
   const { imovel } = route.params; // imóvel vindo da lista
@@ -44,7 +46,6 @@ export default function EditarImovel({ route, navigation }) {
       }
 
       Alert.alert("Sucesso", "Imóvel editado com sucesso!");
-      if (route.params.onGoBack) route.params.onGoBack();
       navigation.goBack();
     } catch (error) {
       console.error(error);
@@ -53,70 +54,80 @@ export default function EditarImovel({ route, navigation }) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Editar Imóvel</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Logradouro"
-        value={form.logradouro}
-        onChangeText={(v) => handleChange("logradouro", v)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Número"
-        keyboardType="numeric"
-        value={form.numero}
-        onChangeText={(v) => handleChange("numero", v)}
-      />
-
-      <Picker
-        selectedValue={form.tipo}
-        style={styles.input}
-        onValueChange={(v) => handleChange("tipo", v)}
+    <View style={{ flex: 1 }}>
+      <Cabecalho navigation={navigation} />
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+        }}
+        behavior="padding"
       >
-        <Picker.Item label="Selecione o tipo" value="" />
-        <Picker.Item label="Residencial" value="r" />
-        <Picker.Item label="Comércio" value="c" />
-        <Picker.Item label="Terreno baldio" value="tb" />
-        <Picker.Item label="Ponto estratégico" value="pe" />
-        <Picker.Item label="Outro" value="out" />
-      </Picker>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.title}>Editar Imóvel</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Qtd. Habitantes"
-        keyboardType="numeric"
-        value={form.qtdHabitantes}
-        onChangeText={(v) => handleChange("qtdHabitantes", v)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Qtd. Cachorros"
-        keyboardType="numeric"
-        value={form.qtdCachorros}
-        onChangeText={(v) => handleChange("qtdCachorros", v)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Qtd. Gatos"
-        keyboardType="numeric"
-        value={form.qtdGatos}
-        onChangeText={(v) => handleChange("qtdGatos", v)}
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Logradouro"
+            value={form.logradouro}
+            onChangeText={(v) => handleChange("logradouro", v)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Número"
+            keyboardType="numeric"
+            value={form.numero}
+            onChangeText={(v) => handleChange("numero", v)}
+          />
 
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Observação"
-        multiline
-        value={form.observacao}
-        onChangeText={(v) => handleChange("observacao", v)}
-      />
+          <Picker
+            selectedValue={form.tipo}
+            style={styles.input}
+            onValueChange={(v) => handleChange("tipo", v)}
+          >
+            <Picker.Item label="Selecione o tipo" value="" />
+            <Picker.Item label="Residencial" value="r" />
+            <Picker.Item label="Comércio" value="c" />
+            <Picker.Item label="Terreno baldio" value="tb" />
+            <Picker.Item label="Ponto estratégico" value="pe" />
+            <Picker.Item label="Outro" value="out" />
+          </Picker>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Salvar Alterações</Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Habitantes"
+            keyboardType="numeric"
+            value={form.qtdHabitantes}
+            onChangeText={(v) => handleChange("qtdHabitantes", v)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Cachorros"
+            keyboardType="numeric"
+            value={form.qtdCachorros}
+            onChangeText={(v) => handleChange("qtdCachorros", v)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Gatos"
+            keyboardType="numeric"
+            value={form.qtdGatos}
+            onChangeText={(v) => handleChange("qtdGatos", v)}
+          />
+
+          <TextInput
+            style={[styles.input, { height: 80 }]}
+            placeholder="Observação"
+            multiline
+            value={form.observacao}
+            onChangeText={(v) => handleChange("observacao", v)}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Salvar Alterações</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

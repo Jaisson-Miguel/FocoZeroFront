@@ -10,6 +10,7 @@ import {
 import { API_URL } from "./../../../config/config.js";
 import ImageViewing from "react-native-image-viewing";
 import { useFocusEffect } from "@react-navigation/native";
+import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function Quarteiroes({ route, navigation }) {
   const { idArea, mapaUrl, nomeArea, funcao, modoI } = route.params;
@@ -58,6 +59,8 @@ export default function Quarteiroes({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      <Cabecalho navigation={navigation} />
+
       {nomeArea && <Text style={styles.areaTitle}>{nomeArea}</Text>}
 
       <TouchableOpacity onPress={() => setVisible(true)}>
@@ -114,7 +117,7 @@ export default function Quarteiroes({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   areaTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   error: { color: "red", marginBottom: 10 },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import { API_URL } from "./../../../config/config.js";
+import Cabecalho from "../../../Components/Cabecalho.js";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ListarImoveis({ route, navigation }) {
   const { quarteirao, idArea, nomeArea, modoI } = route.params; // vem da tela anterior
@@ -15,31 +17,41 @@ export default function ListarImoveis({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  async function fetchImoveis() {
-    try {
-      const response = await fetch(
-        `${API_URL}/listarImoveis/${quarteirao._id}`
-      );
-      const data = await response.json();
+  useFocusEffect(
+    useCallback(() => {
+      const fetchImoveis = async () => {
+        try {
+          const response = await fetch(
+            `${API_URL}/listarImoveis/${quarteirao._id}`
+          );
+          const data = await response.json();
 
-      if (response.status === 404) {
-        setImoveis([]); // Nenhum imóvel
-      } else if (!response.ok) {
-        throw new Error(data.message || "Erro ao buscar imóveis");
-      } else {
-        setImoveis(data);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Não foi possível carregar os imóveis.");
-    } finally {
-      setLoading(false);
-    }
-  }
+          if (response.status === 404) {
+            setImoveis([]); // Nenhum imóvel
+          } else if (!response.ok) {
+            throw new Error(data.message || "Erro ao buscar imóveis");
+          } else {
+            setImoveis(data);
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Não foi possível carregar os imóveis.");
+        } finally {
+          setLoading(false);
+        }
+      };
 
-  useEffect(() => {
-    fetchImoveis();
-  }, [quarteirao._id]);
+      fetchImoveis();
+    }, [quarteirao._id])
+  );
+
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener("focus", () => {
+  //     fetchImoveis();
+  //   });
+
+  //   return unsubscribe;
+  // }, [navigation, quarteirao._id]);
 
   if (loading) {
     return (
@@ -51,28 +63,29 @@ export default function ListarImoveis({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Nome do quarteirão */}
+      <Cabecalho navigation={navigation} />
+
       <Text style={styles.areaTitle}>
         Imóveis do Quarteirão {quarteirao.numero}
       </Text>
 
       {/* Mensagem de erro */}
       {error && <Text style={styles.error}>{error}</Text>}
-
-      {/* Botão cadastrar imóvel */}
-      <TouchableOpacity
-        style={styles.btnCadastrar}
-        onPress={() =>
-          navigation.navigate("CadastrarImovel", {
-            idQuarteirao: quarteirao._id,
-            numeroQuarteirao: quarteirao.numero,
-            imoveis: imoveis,
-          })
-        }
-      >
-        <Text style={styles.btnText}>Cadastrar Imóvel</Text>
-      </TouchableOpacity>
-      {modoI !== "Editar" && (
+      {modoI !== "Visualizar" && (
+        <TouchableOpacity
+          style={styles.btnCadastrar}
+          onPress={() =>
+            navigation.navigate("CadastrarImovel", {
+              idQuarteirao: quarteirao._id,
+              numeroQuarteirao: quarteirao.numero,
+              imoveis: imoveis,
+            })
+          }
+        >
+          <Text style={styles.btnText}>Cadastrar Imóvel</Text>
+        </TouchableOpacity>
+      )}
+      {modoI !== "Editar" && modoI !== "Visualizar" ? (
         <TouchableOpacity
           style={styles.btnCadastrar}
           onPress={() =>
@@ -86,7 +99,7 @@ export default function ListarImoveis({ route, navigation }) {
         >
           <Text style={styles.btnText}>Listar Visitas</Text>
         </TouchableOpacity>
-      )}
+      ) : null}
 
       {/* Lista de imóveis */}
       {imoveis.length === 0 ? (
@@ -95,35 +108,40 @@ export default function ListarImoveis({ route, navigation }) {
         <FlatList
           data={imoveis}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.itemContainer}
-              activeOpacity={0.7}
-              onPress={() => {
-                if (modoI === "Editar") {
-                  navigation.navigate("EditarImovel", {
-                    imovel: item,
-                    idArea,
-                    nomeArea,
-                    quarteirao,
-                    onGoBack: () => fetchImoveis(),
-                  });
-                } else {
-                  navigation.navigate("Visita", {
-                    imovel: item,
-                    idArea,
-                    nomeArea,
-                    quarteirao,
-                  });
-                }
-              }}
-            >
+          renderItem={({ item }) =>
+            modoI === "Visualizar" ? (
               <Text style={styles.itemTitle}>
-                {item.tipo} - {item.logradouro}, {item.numero}
+                {item.logradouro}, {item.numero} -- {item.tipo}
               </Text>
-              <Text style={styles.itemCode}>Status: {item.status}</Text>
-            </TouchableOpacity>
-          )}
+            ) : (
+              <TouchableOpacity
+                style={styles.itemContainer}
+                activeOpacity={0.7}
+                onPress={() => {
+                  if (modoI === "Editar") {
+                    navigation.navigate("EditarImovel", {
+                      imovel: item,
+                      idArea,
+                      nomeArea,
+                      quarteirao,
+                    });
+                  } else {
+                    navigation.navigate("Visita", {
+                      imovel: item,
+                      idArea,
+                      nomeArea,
+                      quarteirao,
+                    });
+                  }
+                }}
+              >
+                <Text style={styles.itemTitle}>
+                  {item.tipo} - {item.logradouro}, {item.numero}
+                </Text>
+                <Text style={styles.itemCode}>Status: {item.status}</Text>
+              </TouchableOpacity>
+            )
+          }
         />
       )}
     </View>
@@ -131,7 +149,7 @@ export default function ListarImoveis({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
+  container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   areaTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   error: { color: "red", marginBottom: 10 },

@@ -9,7 +9,6 @@ import {
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from "react-native";
 import { API_URL } from "../../config/config.js";

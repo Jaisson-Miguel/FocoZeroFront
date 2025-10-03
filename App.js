@@ -55,12 +55,12 @@ export default function App() {
         <Stack.Screen
           name="ListarQuarteirao"
           component={ListarQuarteirao}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ListarImovel"
           component={ListarImovel}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="CadastrarArea"
@@ -75,7 +75,7 @@ export default function App() {
         <Stack.Screen
           name="CadastrarImovel"
           component={CadastrarImovel}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="EditarImovel"

@@ -32,21 +32,69 @@ export default function Home({ navigation }) {
     <View style={styles.container}>
       <Cabecalho usuario={nomeUsuario} navigation={navigation} />
       <View style={styles.containerBotoes}>
-        <View style={styles.bloco}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("ListarAreas", {
-                modo: "visualizar",
+        {funcao === "agente" && (
+          <View style={styles.bloco}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ListarAreas", {
+                  modo: "visualizar",
+                })
+              }
+              style={[styles.buttonsHome, { backgroundColor: "#2CA856" }]}
+            >
+              <Text style={styles.textBotao}>Visitar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ListarAreas", {
+                  modo: "visualizar",
+                  idUsuario,
+                  modoI: "Editar",
+                })
+              }
+              style={[styles.buttonsHome, { backgroundColor: "#CEC931" }]}
+            >
+              <Text style={styles.textBotao}>Minha Área</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-                idUsuario,
-                modoI: "Editar",
-              })
-            }
-            style={[styles.buttonsHome, { backgroundColor: "yellow" }]}
-          >
-            <Text style={styles.textBotao}>Minha Área</Text>
-          </TouchableOpacity>
-          {funcao === "agente" && (
+        {funcao === "adm" && (
+          <View style={styles.bloco}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ListarAreas", {
+                  modo: "visualizar",
+                  modoI: "Editar",
+                })
+              }
+              style={[styles.buttonsHome, { backgroundColor: "#CEC931" }]}
+            >
+              <Text style={styles.textBotao}>Áreas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ListarAgentes")}
+              style={[styles.buttonsHome, { backgroundColor: "green" }]}
+            >
+              <Text style={styles.textBotao}>Definir Quarteirões</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {funcao === "agente" && (
+          <View style={styles.bloco}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("ListarAreas", {
+                  modo: "visualizar",
+                  idUsuario,
+                  modoI: "Visualizar",
+                })
+              }
+              style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
+            >
+              <Text style={styles.textBotao}>Áreas do Município</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate("ListarVisitas", {
@@ -57,39 +105,16 @@ export default function Home({ navigation }) {
             >
               <Text style={styles.textBotao}>Visitas Offline</Text>
             </TouchableOpacity>
-          )}
-          {funcao === "adm" && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("ListarAgentes")}
-              style={[styles.buttonsHome, { backgroundColor: "green" }]}
-            >
-              <Text style={styles.textBotao}>Definir Quarteirões</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.bloco}>
-          {funcao === "agente" && (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("ListarAreas", {
-                  modo: "visualizar",
-                })
-              }
-              style={[styles.buttonsHome, { backgroundColor: "red" }]}
-            >
-              <Text style={styles.textBotao}>Visitar</Text>
-            </TouchableOpacity>
-          )}
-          {funcao === "adm" && (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Register")}
-              style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
-            >
-              <Text style={styles.textBotao}>Equipe</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
+        {funcao === "adm" && (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Register")}
+            style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
+          >
+            <Text style={styles.textBotao}>Equipe</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
