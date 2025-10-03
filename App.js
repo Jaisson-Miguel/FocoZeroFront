@@ -20,6 +20,8 @@ import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
 import ListarAgentes from "./src/Pages/Usuario/ListarAgentes";
 import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
+import QuarteiraoOffline from "./src/Pages/Visita/QuarteiraoOffline";
+import ImovelOffline from "./src/Pages/Visita/ImovelOffline";
 
 const Stack = createNativeStackNavigator();
 
@@ -111,6 +113,16 @@ export default function App() {
           name="ResumoDiario"
           component={ResumoDiario}
           options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="QuarteiraoOffline"
+          component={QuarteiraoOffline}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ImovelOffline"
+          component={ImovelOffline}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -36,8 +36,8 @@ export default function Home({ navigation }) {
           <View style={styles.bloco}>
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate("ListarAreas", {
-                  modo: "visualizar",
+                navigation.navigate("QuarteiraoOffline", {
+                  // modo: "visualizar",
                 })
               }
               style={[styles.buttonsHome, { backgroundColor: "#2CA856" }]}
@@ -103,7 +103,7 @@ export default function Home({ navigation }) {
               }
               style={[styles.buttonsHome, { backgroundColor: "green" }]}
             >
-              <Text style={styles.textBotao}>Visitas Offline</Text>
+              <Text style={styles.textBotao}>Diário</Text>
             </TouchableOpacity>
           </View>
         )}
