@@ -3,6 +3,7 @@ import Cabecalho from "../../../Components/Cabecalho";
 
 export default function ImovelOffline({ route, navigation }) {
   const { quarteirao } = route.params;
+  const offline = true;
 
   return (
     <View style={{ flex: 1 }}>
@@ -11,7 +12,7 @@ export default function ImovelOffline({ route, navigation }) {
         Imóveis do Quarteirão {quarteirao.numero} - {quarteirao.nomeArea}
       </Text>
       {quarteirao.imoveis.map((imovel) => (
-        <TouchableOpacity
+        <View
           key={imovel._id}
           style={{
             padding: 12,
@@ -20,21 +21,38 @@ export default function ImovelOffline({ route, navigation }) {
             backgroundColor: "#fff",
             marginTop: 8,
             borderRadius: 6,
+            flexDirection: "row",
+            justifyContent: "space-between",
           }}
-          onPress={() =>
-            navigation.navigate("Visita", {
-              imovel: imovel,
-              idArea: quarteirao.idArea,
-              nomeArea: quarteirao.nomeArea,
-              quarteirao: quarteirao,
-            })
-          }
         >
           <Text style={{ fontSize: 16, fontWeight: "500" }}>
             {imovel.logradouro}, {imovel.numero}
           </Text>
           <Text style={{ color: "gray" }}>Status: {imovel.status}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            // key={imovel._id}
+            onPress={() =>
+              navigation.navigate("Visita", {
+                imovel: imovel,
+                idArea: quarteirao.idArea,
+                nomeArea: quarteirao.nomeArea,
+                quarteirao: quarteirao,
+              })
+            }
+          >
+            <Text style={{ fontSize: 16, fontWeight: "500" }}>Visitar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("EditarImovel", {
+                imovel: imovel,
+                offline,
+              })
+            }
+          >
+            <Text> Editar</Text>
+          </TouchableOpacity>
+        </View>
       ))}
     </View>
   );

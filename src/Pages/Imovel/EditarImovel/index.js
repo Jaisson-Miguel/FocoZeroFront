@@ -12,9 +12,10 @@ import {
 import { API_URL } from "./../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
 import Cabecalho from "../../../Components/Cabecalho.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function EditarImovel({ route, navigation }) {
-  const { imovel } = route.params; // imóvel vindo da lista
+  const { imovel, offline } = route.params; // imóvel vindo da lista
 
   const [form, setForm] = useState({
     logradouro: imovel.logradouro || "",
@@ -33,20 +34,48 @@ export default function EditarImovel({ route, navigation }) {
 
   async function handleSubmit() {
     try {
-      const response = await fetch(`${API_URL}/editarImovel/${imovel._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      if (offline) {
+        // ---- SALVAR LOCALMENTE NO ASYNCSTORAGE ----
+        const raw = await AsyncStorage.getItem("dadosQuarteiroes");
+        if (raw) {
+          let quarteiroes = JSON.parse(raw);
 
-      const data = await response.json();
+          quarteiroes = quarteiroes.map((q) => {
+            if (q._id === imovel.idQuarteirao) {
+              q.imoveis = q.imoveis.map((i) =>
+                i._id === imovel._id
+                  ? { ...i, ...form, editadoOffline: true }
+                  : i
+              );
+            }
+            return q;
+          });
 
-      if (!response.ok) {
-        return Alert.alert("Erro", data.message || "Falha ao editar imóvel.");
+          await AsyncStorage.setItem(
+            "dadosQuarteiroes",
+            JSON.stringify(quarteiroes)
+          );
+        }
+
+        Alert.alert("Sucesso", "Imóvel atualizado offline!");
+        navigation.goBack();
+      } else {
+        // ---- SALVAR DIRETO NO BACKEND ----
+        const response = await fetch(`${API_URL}/editarImovel/${imovel._id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          return Alert.alert("Erro", data.message || "Falha ao editar imóvel.");
+        }
+
+        Alert.alert("Sucesso", "Imóvel editado no servidor!");
+        navigation.goBack();
       }
-
-      Alert.alert("Sucesso", "Imóvel editado com sucesso!");
-      navigation.goBack();
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Não foi possível editar o imóvel.");
@@ -56,12 +85,7 @@ export default function EditarImovel({ route, navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <Cabecalho navigation={navigation} />
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-        }}
-        behavior="padding"
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.title}>Editar Imóvel</Text>
 

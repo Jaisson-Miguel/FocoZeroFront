@@ -87,7 +87,6 @@ export default function Home({ navigation }) {
               onPress={() =>
                 navigation.navigate("ListarAreas", {
                   modo: "visualizar",
-                  idUsuario,
                   modoI: "Visualizar",
                 })
               }

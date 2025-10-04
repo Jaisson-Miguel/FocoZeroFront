@@ -121,9 +121,7 @@ export default function ListarImoveis({ route, navigation }) {
                   if (modoI === "Editar") {
                     navigation.navigate("EditarImovel", {
                       imovel: item,
-                      idArea,
-                      nomeArea,
-                      quarteirao,
+                      offline: false,
                     });
                   } else {
                     navigation.navigate("Visita", {
