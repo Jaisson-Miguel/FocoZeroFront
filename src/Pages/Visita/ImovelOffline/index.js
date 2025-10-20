@@ -18,16 +18,15 @@ export default function ImovelOffline({ route, navigation }) {
       const carregarImoveis = async () => {
         setLoading(true);
         try {
-          const offlineImoveis = await AsyncStorage.getItem("dadosImoveis");
-          if (offlineImoveis) {
-            const todos = JSON.parse(offlineImoveis);
-            const filtrados = todos.filter(
-              (i) => i.idQuarteirao === quarteirao._id
-            );
-            if (isActive) setImoveis(filtrados);
-          } else {
-            if (isActive) setImoveis([]);
-          }
+          const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
+          let todos = rawImoveis ? JSON.parse(rawImoveis) : [];
+
+          // Atualiza os imóveis filtrando pelo quarteirão
+          const filtrados = todos.filter(
+            (i) => i.idQuarteirao === quarteirao._id
+          );
+
+          if (isActive) setImoveis(filtrados);
         } catch (err) {
           console.log("Erro ao carregar imóveis offline:", err);
           if (isActive) setImoveis([]);
@@ -39,7 +38,7 @@ export default function ImovelOffline({ route, navigation }) {
       carregarImoveis();
 
       return () => {
-        isActive = false; // evita setState após unmount
+        isActive = false;
       };
     }, [quarteirao])
   );
@@ -60,58 +59,79 @@ export default function ImovelOffline({ route, navigation }) {
           Nenhum imóvel encontrado.
         </Text>
       ) : (
-        imoveis.map((imovel) => (
-          <View
-            key={imovel._id}
-            style={{
-              padding: 12,
-              borderBottomWidth: 1,
-              borderColor: "#ddd",
-              backgroundColor: "#fff",
-              marginTop: 8,
-              borderRadius: 6,
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <View>
-              <Text style={{ fontSize: 16, fontWeight: "500" }}>
-                {imovel.logradouro}, {imovel.numero}
-              </Text>
-              <Text style={{ color: "gray" }}>Status: {imovel.status}</Text>
-            </View>
+        imoveis.map((imovel) => {
+          const jaVisitado = imovel.status === "visitado";
+          const mostrarStatus = imovel.status === "recusa";
 
-            <View>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("Visita", {
-                    imovel,
-                    idArea: quarteirao.idArea,
-                    nomeArea: quarteirao.nomeArea,
-                    quarteirao,
-                  })
-                }
-              >
-                <Text
-                  style={{ fontSize: 16, fontWeight: "500", color: "#2CA856" }}
-                >
-                  Visitar
+          return (
+            <View
+              key={imovel._id}
+              style={{
+                padding: 12,
+                borderBottomWidth: 1,
+                borderColor: "#ddd",
+                backgroundColor: "#fff",
+                marginTop: 8,
+                borderRadius: 6,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <View>
+                <Text style={{ fontSize: 16, fontWeight: "500" }}>
+                  {imovel.logradouro}, {imovel.numero}
                 </Text>
-              </TouchableOpacity>
+                {mostrarStatus && <Text style={{ color: "red" }}>Recusa</Text>}
+              </View>
 
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("EditarImovelOffline", {
-                    imovel,
-                    offline,
-                  })
-                }
-              >
-                <Text style={{ color: "#007AFF" }}>Editar</Text>
-              </TouchableOpacity>
+              <View>
+                {jaVisitado ? (
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      color: "#2CA856",
+                    }}
+                  >
+                    Visitado
+                  </Text>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("Visita", {
+                        imovel,
+                        idArea: quarteirao.idArea,
+                        nomeArea: quarteirao.nomeArea,
+                        quarteirao,
+                      })
+                    }
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "500",
+                        color: "#ff0000ff",
+                      }}
+                    >
+                      Visitar
+                    </Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("EditarImovelOffline", {
+                      imovel,
+                      offline,
+                    })
+                  }
+                >
+                  <Text style={{ color: "#007AFF" }}>Editar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))
+          );
+        })
       )}
     </View>
   );

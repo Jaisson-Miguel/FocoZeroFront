@@ -52,40 +52,59 @@ export default function ListarVisitas({ navigation }) {
   };
 
   const finalizarDiario = async () => {
-    const visitasSalvas = await AsyncStorage.getItem("visitas");
-    const lista = visitasSalvas ? JSON.parse(visitasSalvas) : [];
+    try {
+      const visitasSalvas = await AsyncStorage.getItem("visitas");
+      const listaVisitas = visitasSalvas ? JSON.parse(visitasSalvas) : [];
+      const pendentes = listaVisitas.filter((v) => !v.sincronizado);
 
-    const pendentes = lista.filter((v) => !v.sincronizado);
+      const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
+      const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
+      const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
 
-    if (pendentes.length === 0) {
-      Alert.alert("Aviso", "Nenhuma visita pendente para finalizar.");
-      return;
+      // Se não houver visitas nem imóveis a sincronizar
+      if (pendentes.length === 0 && imoveisEditados.length === 0) {
+        Alert.alert(
+          "Aviso",
+          "Nenhuma visita pendente ou imóvel editado para finalizar."
+        );
+        return;
+      }
+
+      // Calcula resumo apenas se houver visitas
+      let resumo = {
+        totalVisitas: 0,
+        visitasPorTipo: {},
+        depositosTotais: {},
+        totalFocos: 0,
+      };
+
+      if (pendentes.length > 0) {
+        resumo.totalVisitas = pendentes.length;
+
+        pendentes.forEach((v) => {
+          resumo.visitasPorTipo[v.tipo] =
+            (resumo.visitasPorTipo[v.tipo] || 0) + 1;
+
+          Object.entries(v.depositosInspecionados || {}).forEach(
+            ([campo, valor]) => {
+              resumo.depositosTotais[campo] =
+                (resumo.depositosTotais[campo] || 0) + Number(valor);
+            }
+          );
+
+          if (v.foco) resumo.totalFocos += 1;
+        });
+      }
+
+      // Envia tudo para o ResumoDiario
+      navigation.navigate("ResumoDiario", {
+        pendentes,
+        resumo,
+      });
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Não foi possível finalizar o diário.");
     }
-
-    // calculando resumo
-    const totalVisitas = pendentes.length;
-
-    const visitasPorTipo = {};
-    const depositosTotais = {};
-    let totalFocos = 0;
-
-    pendentes.forEach((v) => {
-      visitasPorTipo[v.tipo] = (visitasPorTipo[v.tipo] || 0) + 1;
-
-      Object.entries(v.depositosInspecionados || {}).forEach(
-        ([campo, valor]) => {
-          depositosTotais[campo] =
-            (depositosTotais[campo] || 0) + Number(valor);
-        }
-      );
-
-      if (v.foco) totalFocos += 1;
-    });
-
-    navigation.navigate("ResumoDiario", {
-      pendentes,
-      resumo: { totalVisitas, visitasPorTipo, depositosTotais, totalFocos },
-    });
   };
 
   return (

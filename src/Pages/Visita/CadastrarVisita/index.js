@@ -19,7 +19,6 @@ export default function Visita({ route, navigation }) {
     const fetchNome = async () => {
       const userId = await getId();
       if (userId) setAgenteId(userId);
-      // console.log(userId);
     };
     fetchNome();
   }, []);
@@ -35,10 +34,9 @@ export default function Visita({ route, navigation }) {
       e: "",
     },
     qtdDepEliminado: "",
-    foco: "",
+    foco: null, // null no início
     qtdLarvicida: "",
     qtdDepTratado: "",
-    // status: "visitado",
   });
 
   const handleChange = (campo, valor) => {
@@ -78,11 +76,11 @@ export default function Visita({ route, navigation }) {
           e: Number(form.depositosInspecionados.e) || 0,
         },
         qtdDepEliminado: Number(form.qtdDepEliminado),
-        foco: form.foco === "sim",
+        foco: form.foco === true, // salva como boolean
         qtdLarvicida: Number(form.qtdLarvicida),
         qtdDepTratado: Number(form.qtdDepTratado),
         sincronizado: false,
-        status: form.status,
+        // status: "visitado",
         nomeArea: nomeArea,
         nomeQuarteirao: quarteirao.numero,
         logradouro: imovel.logradouro,
@@ -93,11 +91,25 @@ export default function Visita({ route, navigation }) {
       const lista = visitasSalvas ? JSON.parse(visitasSalvas) : [];
 
       lista.push(visita);
-
       await AsyncStorage.setItem("visitas", JSON.stringify(lista));
 
+      // 🔹 Atualiza o imóvel no AsyncStorage para status: "visitado"
+      const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
+      if (rawImoveis) {
+        let listaImoveis = JSON.parse(rawImoveis);
+        listaImoveis = listaImoveis.map((i) =>
+          i._id === imovel._id
+            ? { ...i, status: "visitado", editadoOffline: true }
+            : i
+        );
+        await AsyncStorage.setItem(
+          "dadosImoveis",
+          JSON.stringify(listaImoveis)
+        );
+      }
+
       Alert.alert("Sucesso", "Visita salva localmente!");
-      navigation.goBack(); // se quiser voltar após salvar
+      navigation.goBack();
     } catch (error) {
       Alert.alert("Erro", "Não foi possível salvar a visita localmente.");
       console.error(error);
@@ -130,12 +142,43 @@ export default function Visita({ route, navigation }) {
         onChangeText={(v) => handleChange("qtdDepEliminado", v)}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Houve foco? (sim/não)"
-        value={form.foco}
-        onChangeText={(v) => handleChange("foco", v)}
-      />
+      {/* Botões de seleção para Foco */}
+      <Text style={styles.label}>Houve foco?</Text>
+      <View style={styles.opcoesContainer}>
+        <TouchableOpacity
+          style={[
+            styles.opcaoBotao,
+            form.foco === true && styles.opcaoSelecionada,
+          ]}
+          onPress={() => handleChange("foco", true)}
+        >
+          <Text
+            style={[
+              styles.opcaoTexto,
+              form.foco === true && styles.opcaoTextoSelecionado,
+            ]}
+          >
+            Sim
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.opcaoBotao,
+            form.foco === false && styles.opcaoSelecionada,
+          ]}
+          onPress={() => handleChange("foco", false)}
+        >
+          <Text
+            style={[
+              styles.opcaoTexto,
+              form.foco === false && styles.opcaoTextoSelecionado,
+            ]}
+          >
+            Não
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -182,6 +225,36 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ccc",
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  opcoesContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  opcaoBotao: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+  },
+  opcaoSelecionada: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  opcaoTexto: {
+    fontSize: 16,
+    color: "#333",
+  },
+  opcaoTextoSelecionado: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   botao: {
     backgroundColor: "#4CAF50",

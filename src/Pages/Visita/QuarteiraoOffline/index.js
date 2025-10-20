@@ -16,6 +16,7 @@ export default function QuarteiraoOffline({ navigation }) {
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Carrega dados offline
   const carregarOffline = async () => {
     try {
       const offlineQuarteiroes = await AsyncStorage.getItem("dadosQuarteiroes");
@@ -30,26 +31,41 @@ export default function QuarteiraoOffline({ navigation }) {
     }
   };
 
+  // Baixa dados do backend e mescla com dados locais
   const baixarDados = async () => {
     try {
       const idUsuario = await getId();
 
-      // Baixa quarteirões
+      // 🔹 Baixa quarteirões
       const resQ = await fetch(
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`
       );
       const jsonQ = await resQ.json();
-      await AsyncStorage.setItem("dadosQuarteiroes", JSON.stringify(jsonQ));
 
-      // Baixa imóveis
+      // 🔹 Baixa imóveis
       const resI = await fetch(
         `${API_URL}/baixarImoveisResponsavel/${idUsuario}`
       );
       const jsonI = await resI.json();
-      await AsyncStorage.setItem("dadosImoveis", JSON.stringify(jsonI));
+
+      // 🔹 Mescla dados locais
+      const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
+      const locais = rawImoveis ? JSON.parse(rawImoveis) : [];
+
+      const mesclados = jsonI.map((i) => {
+        const local = locais.find((l) => l._id === i._id);
+        // Se estiver visitado ou editadoOffline, mantém tudo do local
+        if (local && (local.status === "visitado" || local.editadoOffline)) {
+          return local;
+        }
+        return i;
+      });
+
+      await AsyncStorage.setItem("dadosQuarteiroes", JSON.stringify(jsonQ));
+      await AsyncStorage.setItem("dadosImoveis", JSON.stringify(mesclados));
 
       setQuarteiroes(jsonQ);
-      setImoveis(jsonI);
+      setImoveis(mesclados);
     } catch (error) {
       console.log("Erro ao baixar:", error);
       await carregarOffline();
@@ -61,7 +77,7 @@ export default function QuarteiraoOffline({ navigation }) {
   useEffect(() => {
     (async () => {
       await carregarOffline(); // Mostra offline rápido
-      await baixarDados(); // Tenta atualizar em background
+      await baixarDados(); // Atualiza em background
     })();
   }, []);
 
@@ -69,14 +85,13 @@ export default function QuarteiraoOffline({ navigation }) {
     return <ActivityIndicator size="large" color="#2CA856" />;
   }
 
-  // Agrupa por área
+  // Agrupa quarteirões por área
   const sections = quarteiroes.reduce((acc, q) => {
     let sec = acc.find((s) => s.title === q.nomeArea);
     if (!sec) {
       sec = { title: q.nomeArea, data: [] };
       acc.push(sec);
     }
-    // Conta quantos imóveis esse quarteirão tem
     const qtdImoveis = imoveis.filter((i) => i.idQuarteirao === q._id).length;
     sec.data.push({ ...q, qtdImoveis });
     return acc;

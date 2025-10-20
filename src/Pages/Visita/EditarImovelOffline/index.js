@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
+import { Picker } from "@react-native-picker/picker";
 
 export default function EditarImovelOffline({ route, navigation }) {
   const { imovel } = route.params;
@@ -79,12 +80,18 @@ export default function EditarImovelOffline({ route, navigation }) {
             value={form.numero}
             onChangeText={(v) => handleChange("numero", v)}
           />
-          <TextInput
+          <Picker
+            selectedValue={form.tipo}
             style={styles.input}
-            placeholder="Tipo"
-            value={form.tipo}
-            onChangeText={(v) => handleChange("tipo", v)}
-          />
+            onValueChange={(v) => handleChange("tipo", v)}
+          >
+            <Picker.Item label="Selecione o tipo" value="" />
+            <Picker.Item label="Residencial" value="r" />
+            <Picker.Item label="Comércio" value="c" />
+            <Picker.Item label="Terreno baldio" value="tb" />
+            <Picker.Item label="Ponto estratégico" value="pe" />
+            <Picker.Item label="Outro" value="out" />
+          </Picker>
           <TextInput
             style={styles.input}
             placeholder="Qtd. Habitantes"

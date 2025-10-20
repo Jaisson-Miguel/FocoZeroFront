@@ -45,13 +45,25 @@ export default function ResumoDiario({ route, navigation }) {
 
   // 🔄 Função principal de sincronização
   const sincronizarVisitas = async () => {
-    if (visitas.length === 0 && selectedQuarteiroes.length === 0) {
-      Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
-      return;
-    }
-
     setLoading(true);
+
     try {
+      // 🔹 Verifica se há imóveis editados offline
+      const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
+      const listaImoveis = rawImoveis ? JSON.parse(rawImoveis) : [];
+      const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
+
+      // 🔹 Verifica se há algo a sincronizar
+      if (
+        visitas.length === 0 &&
+        selectedQuarteiroes.length === 0 &&
+        imoveisEditados.length === 0
+      ) {
+        setLoading(false);
+        Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
+        return;
+      }
+
       const listaAtualizada = [...visitas];
 
       // 1️⃣ Envia visitas pendentes
