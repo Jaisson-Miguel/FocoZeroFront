@@ -9,13 +9,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import { API_URL } from "./../../../config/config.js";
-import Cabecalho from "../../../Components/Cabecalho.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Cabecalho from "../../../Components/Cabecalho";
 
-export default function EditarImovelOnline({ route, navigation }) {
+export default function EditarImovelOffline({ route, navigation }) {
   const { imovel } = route.params;
 
   const [form, setForm] = useState({
@@ -29,46 +27,34 @@ export default function EditarImovelOnline({ route, navigation }) {
     status: imovel.status || "Pendente",
   });
 
-  const [loading, setLoading] = useState(false);
-
-  function handleChange(field, value) {
+  const handleChange = (field, value) => {
     setForm({ ...form, [field]: value });
-  }
+  };
 
-  async function handleSubmit() {
-    // Validação básica
-    if (!form.logradouro || !form.numero || !form.tipo) {
-      return Alert.alert("Erro", "Preencha os campos obrigatórios!");
-    }
-
-    setLoading(true);
-
+  const handleSave = async () => {
     try {
-      const response = await fetch(`${API_URL}/editarImovel/${imovel._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const raw = await AsyncStorage.getItem("dadosImoveis");
+      let imoveis = raw ? JSON.parse(raw) : [];
 
-      const data = await response.json();
+      const index = imoveis.findIndex(
+        (i) => String(i._id) === String(imovel._id)
+      );
 
-      if (!response.ok) {
-        return Alert.alert("Erro", data.message || "Falha ao atualizar imóvel");
+      if (index !== -1) {
+        imoveis[index] = { ...imoveis[index], ...form, editadoOffline: true };
+      } else {
+        imoveis.push({ ...imovel, ...form, editadoOffline: true });
       }
 
-      Alert.alert("Sucesso", "Imóvel atualizado com sucesso!", [
-        { text: "Ok", onPress: () => navigation.goBack() },
-      ]);
-    } catch (error) {
-      console.error("Erro ao editar imóvel online:", error);
-      Alert.alert(
-        "Erro",
-        "Não foi possível atualizar o imóvel. Tente novamente."
-      );
-    } finally {
-      setLoading(false);
+      await AsyncStorage.setItem("dadosImoveis", JSON.stringify(imoveis));
+
+      Alert.alert("Sucesso", "Imóvel atualizado offline!");
+      navigation.goBack(); // volta pra lista
+    } catch (err) {
+      console.error("Erro ao salvar imóvel offline:", err);
+      Alert.alert("Erro", "Não foi possível salvar o imóvel.");
     }
-  }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -78,7 +64,7 @@ export default function EditarImovelOnline({ route, navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Editar Imóvel (Online)</Text>
+          <Text style={styles.title}>Editar Imóvel (Offline)</Text>
 
           <TextInput
             style={styles.input}
@@ -93,20 +79,12 @@ export default function EditarImovelOnline({ route, navigation }) {
             value={form.numero}
             onChangeText={(v) => handleChange("numero", v)}
           />
-
-          <Picker
-            selectedValue={form.tipo}
+          <TextInput
             style={styles.input}
-            onValueChange={(v) => handleChange("tipo", v)}
-          >
-            <Picker.Item label="Selecione o tipo" value="" />
-            <Picker.Item label="Residencial" value="r" />
-            <Picker.Item label="Comércio" value="c" />
-            <Picker.Item label="Terreno baldio" value="tb" />
-            <Picker.Item label="Ponto estratégico" value="pe" />
-            <Picker.Item label="Outro" value="out" />
-          </Picker>
-
+            placeholder="Tipo"
+            value={form.tipo}
+            onChangeText={(v) => handleChange("tipo", v)}
+          />
           <TextInput
             style={styles.input}
             placeholder="Qtd. Habitantes"
@@ -128,7 +106,6 @@ export default function EditarImovelOnline({ route, navigation }) {
             value={form.qtdGatos}
             onChangeText={(v) => handleChange("qtdGatos", v)}
           />
-
           <TextInput
             style={[styles.input, { height: 80 }]}
             placeholder="Observação"
@@ -137,16 +114,8 @@ export default function EditarImovelOnline({ route, navigation }) {
             onChangeText={(v) => handleChange("observacao", v)}
           />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Salvar Alterações</Text>
-            )}
+          <TouchableOpacity style={styles.button} onPress={handleSave}>
+            <Text style={styles.buttonText}>Salvar Alterações</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -157,8 +126,8 @@ export default function EditarImovelOnline({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    backgroundColor: "#f5f5f5",
     flexGrow: 1,
+    backgroundColor: "#f5f5f5",
   },
   title: {
     fontSize: 22,

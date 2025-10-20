@@ -25,11 +25,13 @@ export default function Cabecalho({ usuario, navigation }) {
         )}
       </View>
       {usuario && <Text style={styles.headerText}>Olá, {usuario}</Text>}
-      <Image
-        source={require("../../assets/Logo.png")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+      <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+        <Image
+          source={require("../../assets/Logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
     </View>
   );
 }

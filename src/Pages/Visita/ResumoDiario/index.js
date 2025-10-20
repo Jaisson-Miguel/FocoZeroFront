@@ -16,34 +16,34 @@ export default function ResumoDiario({ route, navigation }) {
   const { pendentes, resumo } = route.params;
   const [loading, setLoading] = useState(false);
   const [visitas, setVisitas] = useState(pendentes);
-  const [selected, setSelected] = useState([]);
 
-  // NOVO: estados para quarteirões e seleção
   const [quarteiroes, setQuarteiroes] = useState([]);
-  const [loadingQuarteiroes, setLoadingQuarteiroes] = useState(true);
+  const [imoveis, setImoveis] = useState([]);
+  const [loadingDados, setLoadingDados] = useState(true);
   const [selectedQuarteiroes, setSelectedQuarteiroes] = useState([]);
 
+  // 🔹 Carrega quarteirões e imóveis offline
   useEffect(() => {
-    const carregarQuarteiroes = async () => {
+    const carregarDadosOffline = async () => {
       try {
-        const raw = await AsyncStorage.getItem("dadosQuarteiroes");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setQuarteiroes(Array.isArray(parsed) ? parsed : []);
-        } else {
-          setQuarteiroes([]);
-        }
+        const rawQ = await AsyncStorage.getItem("dadosQuarteiroes");
+        const rawI = await AsyncStorage.getItem("dadosImoveis");
+
+        const parsedQ = rawQ ? JSON.parse(rawQ) : [];
+        const parsedI = rawI ? JSON.parse(rawI) : [];
+
+        setQuarteiroes(parsedQ);
+        setImoveis(parsedI);
       } catch (err) {
-        console.error("Erro ao carregar quarteirões:", err);
-        setQuarteiroes([]);
+        console.error("Erro ao carregar dados offline:", err);
       } finally {
-        setLoadingQuarteiroes(false);
+        setLoadingDados(false);
       }
     };
-
-    carregarQuarteiroes();
+    carregarDadosOffline();
   }, []);
 
+  // 🔄 Função principal de sincronização
   const sincronizarVisitas = async () => {
     if (visitas.length === 0 && selectedQuarteiroes.length === 0) {
       Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
@@ -51,85 +51,64 @@ export default function ResumoDiario({ route, navigation }) {
     }
 
     setLoading(true);
-
     try {
       const listaAtualizada = [...visitas];
 
-      // 1️⃣ Sincroniza todas as visitas
+      // 1️⃣ Envia visitas pendentes
       const promVisitas = listaAtualizada.map(async (visita) => {
         try {
           const { sincronizado, ...dadosParaEnviar } = visita;
-
           const response = await fetch(`${API_URL}/cadastrarVisita`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(dadosParaEnviar),
           });
-
           if (response.ok) {
-            visita.sincronizado = true; // marca localmente
-          } else {
-            console.log("Erro no servidor:", await response.text());
+            visita.sincronizado = true;
           }
         } catch (err) {
-          console.error("Erro de rede:", err);
+          console.error("Erro ao sincronizar visita:", err);
         }
       });
 
-      // 2️⃣ Sincroniza imóveis editados offline
+      // 2️⃣ Sincroniza imóveis editados offline (novo)
       const promImoveis = (async () => {
         try {
-          const raw = await AsyncStorage.getItem("dadosQuarteiroes");
+          const raw = await AsyncStorage.getItem("dadosImoveis");
           if (!raw) return;
+          let listaImoveis = JSON.parse(raw);
 
-          let quarteiroes = JSON.parse(raw);
-
-          // cria uma lista de promises para todos os imóveis editados offline
-          const promises = [];
-
-          for (let q of quarteiroes) {
-            for (let imovel of q.imoveis) {
-              if (imovel.editadoOffline) {
-                const { editadoOffline, _id, ...dadosParaEnviar } = imovel;
-
-                promises.push(
-                  fetch(`${API_URL}/editarImovel/${_id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(dadosParaEnviar),
-                  })
-                    .then(async (res) => {
-                      if (res.ok) {
-                        imovel.editadoOffline = false;
-                      } else {
-                        console.log(
-                          "Erro ao sincronizar imóvel:",
-                          await res.text()
-                        );
-                      }
-                    })
-                    .catch((err) =>
-                      console.error("Erro de rede ao sincronizar imóvel:", err)
-                    )
-                );
+          const promises = listaImoveis
+            .filter((i) => i.editadoOffline)
+            .map(async (i) => {
+              const { editadoOffline, _id, ...dadosParaEnviar } = i;
+              try {
+                const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(dadosParaEnviar),
+                });
+                if (res.ok) {
+                  i.editadoOffline = false;
+                } else {
+                  console.log("Erro servidor imóvel:", await res.text());
+                }
+              } catch (err) {
+                console.error("Erro rede imóvel:", err);
               }
-            }
-          }
+            });
 
-          // espera todas as promises terminarem
           await Promise.all(promises);
-
-          // salva storage atualizado
           await AsyncStorage.setItem(
-            "dadosQuarteiroes",
-            JSON.stringify(quarteiroes)
+            "dadosImoveis",
+            JSON.stringify(listaImoveis)
           );
         } catch (err) {
           console.error("Erro ao sincronizar imóveis:", err);
         }
       })();
 
-      // 3️⃣ Atualiza todos os quarteirões selecionados em uma única requisição
+      // 3️⃣ Atualiza quarteirões selecionados
       const userId = await getId();
       const promQuarteiroes = selectedQuarteiroes.length
         ? fetch(`${API_URL}/atualizarQuarteiroes`, {
@@ -142,29 +121,24 @@ export default function ResumoDiario({ route, navigation }) {
           })
         : Promise.resolve();
 
-      // 4️⃣ Executa tudo em paralelo
+      // 4️⃣ Executa tudo
       await Promise.all([...promVisitas, promImoveis, promQuarteiroes]);
 
-      // 5️⃣ Atualiza AsyncStorage das visitas
+      // 5️⃣ Atualiza armazenamento de visitas
       const todasVisitasSalvas = await AsyncStorage.getItem("visitas");
       const listaTotal = todasVisitasSalvas
         ? JSON.parse(todasVisitasSalvas)
         : [];
-
       const atualizadas = listaTotal.map((v) => {
         const encontrada = listaAtualizada.find(
           (p) => p.idImovel === v.idImovel
         );
         return encontrada ? encontrada : v;
       });
-
       await AsyncStorage.setItem("visitas", JSON.stringify(atualizadas));
       setVisitas(listaAtualizada);
 
-      Alert.alert(
-        "Sucesso",
-        "Visitas, imóveis e quarteirões foram sincronizados!"
-      );
+      Alert.alert("Sucesso", "Sincronização concluída com sucesso!");
       navigation.goBack();
     } catch (err) {
       console.error("Erro ao sincronizar:", err);
@@ -180,14 +154,16 @@ export default function ResumoDiario({ route, navigation }) {
     );
   };
 
-  // Agrupar quarteirões por área
+  // 🔹 Agrupa quarteirões por área e conta imóveis pelo idQuarteirao
   const sections = quarteiroes.reduce((acc, q) => {
+    const qtdImoveis = imoveis.filter((i) => i.idQuarteirao === q._id).length;
+
     let sec = acc.find((s) => s.title === q.nomeArea);
     if (!sec) {
       sec = { title: q.nomeArea, data: [] };
       acc.push(sec);
     }
-    sec.data.push(q);
+    sec.data.push({ ...q, qtdImoveis });
     return acc;
   }, []);
 
@@ -221,13 +197,11 @@ export default function ResumoDiario({ route, navigation }) {
 
       <Text style={styles.item}>Total de focos: {resumo.totalFocos}</Text>
 
-      {/* ---------- A PARTIR DAQUI: nova listagem de quarteirões (mantendo layout) ---------- */}
-
       <Text style={[styles.titulo, { marginTop: 20 }]}>
         Selecione os quarteirões finalizados:
       </Text>
 
-      {loadingQuarteiroes ? (
+      {loadingDados ? (
         <ActivityIndicator size="small" color="#2CA856" />
       ) : quarteiroes.length === 0 ? (
         <Text style={{ color: "gray", marginTop: 8 }}>
@@ -258,7 +232,7 @@ export default function ResumoDiario({ route, navigation }) {
                     <View>
                       <Text>Quarteirão {q.numero}</Text>
                       <Text style={{ color: "gray" }}>
-                        {q.imoveis?.length || 0} imóveis
+                        {q.qtdImoveis} imóveis
                       </Text>
                     </View>
                     <Text style={{ fontSize: 18 }}>{selected ? "✓" : ""}</Text>
@@ -278,7 +252,7 @@ export default function ResumoDiario({ route, navigation }) {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.textoBotao}>Sincronizar Visitas</Text>
+          <Text style={styles.textoBotao}>Sincronizar Dados</Text>
         )}
       </TouchableOpacity>
 

@@ -118,19 +118,19 @@ export default function ListarImoveis({ route, navigation }) {
                 style={styles.itemContainer}
                 activeOpacity={0.7}
                 onPress={() => {
-                  if (modoI === "Editar") {
-                    navigation.navigate("EditarImovel", {
-                      imovel: item,
-                      offline: false,
-                    });
-                  } else {
-                    navigation.navigate("Visita", {
-                      imovel: item,
-                      idArea,
-                      nomeArea,
-                      quarteirao,
-                    });
-                  }
+                  // if (modoI === "Editar") {
+                  navigation.navigate("EditarImovel", {
+                    imovel: item,
+                    offline: false,
+                  });
+                  // } else {
+                  //   navigation.navigate("Visita", {
+                  //     imovel: item,
+                  //     idArea,
+                  //     nomeArea,
+                  //     quarteirao,
+                  //   });
+                  // }
                 }}
               >
                 <Text style={styles.itemTitle}>

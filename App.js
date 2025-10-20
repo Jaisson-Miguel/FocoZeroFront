@@ -22,6 +22,7 @@ import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 import QuarteiraoOffline from "./src/Pages/Visita/QuarteiraoOffline";
 import ImovelOffline from "./src/Pages/Visita/ImovelOffline";
+import EditarImovelOffline from "./src/Pages/Visita/EditarImovelOffline";
 
 const Stack = createNativeStackNavigator();
 
@@ -122,6 +123,11 @@ export default function App() {
         <Stack.Screen
           name="ImovelOffline"
           component={ImovelOffline}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EditarImovelOffline"
+          component={EditarImovelOffline}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

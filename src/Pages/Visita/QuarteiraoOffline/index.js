@@ -12,31 +12,46 @@ import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function QuarteiraoOffline({ navigation }) {
-  const [dados, setDados] = useState([]);
+  const [quarteiroes, setQuarteiroes] = useState([]);
+  const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const carregarOffline = async () => {
-    const offline = await AsyncStorage.getItem("dadosQuarteiroes");
-    if (offline) {
-      setDados(JSON.parse(offline));
-      setLoading(false); // já mostra o offline
+    try {
+      const offlineQuarteiroes = await AsyncStorage.getItem("dadosQuarteiroes");
+      const offlineImoveis = await AsyncStorage.getItem("dadosImoveis");
+
+      if (offlineQuarteiroes) setQuarteiroes(JSON.parse(offlineQuarteiroes));
+      if (offlineImoveis) setImoveis(JSON.parse(offlineImoveis));
+
+      setLoading(false);
+    } catch (err) {
+      console.log("Erro ao carregar offline:", err);
     }
   };
 
   const baixarDados = async () => {
     try {
       const idUsuario = await getId();
-      const response = await fetch(
+
+      // Baixa quarteirões
+      const resQ = await fetch(
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`
       );
-      if (!response.ok) throw new Error("Erro ao buscar no servidor");
-      const json = await response.json();
+      const jsonQ = await resQ.json();
+      await AsyncStorage.setItem("dadosQuarteiroes", JSON.stringify(jsonQ));
 
-      await AsyncStorage.setItem("dadosQuarteiroes", JSON.stringify(json));
-      setDados(json);
+      // Baixa imóveis
+      const resI = await fetch(
+        `${API_URL}/baixarImoveisResponsavel/${idUsuario}`
+      );
+      const jsonI = await resI.json();
+      await AsyncStorage.setItem("dadosImoveis", JSON.stringify(jsonI));
+
+      setQuarteiroes(jsonQ);
+      setImoveis(jsonI);
     } catch (error) {
       console.log("Erro ao baixar:", error);
-      // se não conseguir, garante que pelo menos o offline esteja mostrado
       await carregarOffline();
     } finally {
       setLoading(false);
@@ -45,8 +60,8 @@ export default function QuarteiraoOffline({ navigation }) {
 
   useEffect(() => {
     (async () => {
-      await carregarOffline(); // mostra offline rápido
-      await baixarDados(); // tenta atualizar em background
+      await carregarOffline(); // Mostra offline rápido
+      await baixarDados(); // Tenta atualizar em background
     })();
   }, []);
 
@@ -54,13 +69,16 @@ export default function QuarteiraoOffline({ navigation }) {
     return <ActivityIndicator size="large" color="#2CA856" />;
   }
 
-  const sections = dados.reduce((acc, q) => {
+  // Agrupa por área
+  const sections = quarteiroes.reduce((acc, q) => {
     let sec = acc.find((s) => s.title === q.nomeArea);
     if (!sec) {
       sec = { title: q.nomeArea, data: [] };
       acc.push(sec);
     }
-    sec.data.push(q);
+    // Conta quantos imóveis esse quarteirão tem
+    const qtdImoveis = imoveis.filter((i) => i.idQuarteirao === q._id).length;
+    sec.data.push({ ...q, qtdImoveis });
     return acc;
   }, []);
 
@@ -90,7 +108,7 @@ export default function QuarteiraoOffline({ navigation }) {
             }
           >
             <Text>Quarteirão {item.numero}</Text>
-            <Text style={{ color: "gray" }}>{item.imoveis.length} imóveis</Text>
+            <Text style={{ color: "gray" }}>{item.qtdImoveis} imóveis</Text>
           </TouchableOpacity>
         )}
       />
