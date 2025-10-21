@@ -74,22 +74,10 @@ export default function AtualizarQuarteiroes({ navigation }) {
                 }),
               });
 
-              const data = await res.json();
-
               if (res.ok) {
-                Alert.alert(
-                  "Sucesso",
-                  `Quarteirões atualizados: ${data.quarteiroesAtualizados}`
-                );
-
-                setQuarteiroes((prev) =>
-                  prev.map((q) =>
-                    selected.includes(q._id) ? { ...q, finalizado: true } : q
-                  )
-                );
-
-                setSelected([]);
+                navigation.replace("ResumoDiario"); // vai direto para o resumo
               } else {
+                const data = await res.json();
                 Alert.alert(
                   "Erro",
                   data.message || "Falha ao atualizar quarteirões."
