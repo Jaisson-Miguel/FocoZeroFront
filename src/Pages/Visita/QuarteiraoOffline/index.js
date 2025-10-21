@@ -5,8 +5,11 @@ import {
   SectionList,
   ActivityIndicator,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+// import Icon from "react-native-vector-icons/MaterialIcons"; // Ícone de localização removido
+
 import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
@@ -38,6 +41,7 @@ export default function QuarteiraoOffline({ navigation }) {
 
   // Baixa dados do backend e mescla com dados locais
   const baixarDados = async () => {
+    setLoading(true); // Opcional: Mostra o loading ao iniciar o download
     try {
       const idUsuario = await getId();
 
@@ -100,13 +104,15 @@ export default function QuarteiraoOffline({ navigation }) {
   useEffect(() => {
     (async () => {
       await carregarOffline(); // mostra dados locais rápido
-      await baixarDados(); // tenta atualizar (se falhar, já tratamos)
+      // O baixarDados foi mantido, pois faz parte da sua lógica original,
+      // mas o FAB foi removido da UI.
+      await baixarDados(); 
     })();
   }, []);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2CA856" />
       </View>
     );
@@ -116,63 +122,81 @@ export default function QuarteiraoOffline({ navigation }) {
   const qList = Array.isArray(quarteiroes) ? quarteiroes : [];
   const iList = Array.isArray(imoveis) ? imoveis : [];
 
-  // Agrupa quarteirões por área (se algum nome for undefined, usa "Sem Área")
+  // Agrupa quarteirões por área
   const sections = qList.reduce((acc, q) => {
-    const title = q.nomeArea || "Sem Área";
+    const title = q.nomeArea || "SEM ÁREA DEFINIDA";
     let sec = acc.find((s) => s.title === title);
     if (!sec) {
       sec = { title, data: [] };
       acc.push(sec);
     }
     const qtdImoveis = iList.filter((i) => i.idQuarteirao === q._id).length;
-    sec.data.push({ ...q, qtdImoveis });
+    // Usamos o nomeArea como title da seção e o numero do quarteirão no item.
+    sec.data.push({ ...q, qtdImoveis }); 
     return acc;
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <Cabecalho navigation={navigation} />
+
+      {/* Título Principal */}
+      <View style={styles.headerTitleContainer}>
+        <Text style={styles.headerTitle}>QUARTEIRÕES DO DIA</Text>
+      </View>
+
       {sections.length === 0 ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text style={{ fontSize: 16, color: "gray" }}>
-            Nenhum quarteirão atribuido a este agente.
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            Nenhum quarteirão atribuído a este agente.
           </Text>
         </View>
       ) : (
         <SectionList
           sections={sections}
-          keyExtractor={(item) =>
-            item && item._id ? String(item._id) : Math.random().toString()
-          }
-          renderSectionHeader={({ section }) => (
+          keyExtractor={(item) => String(item._id)}
+          renderItem={({ item }) => {
+            try {
+              const areaNome = (item?.nomeArea || "NOME INDEFINIDO").toUpperCase();
+              const numero =
+                item?.numero !== undefined && item?.numero !== null
+                  ? String(item.numero).padStart(2, "0")
+                  : "00";
+
+              const textoFinal = `${areaNome} - ${numero}`;
+
+              return (
+                <TouchableOpacity
+                  style={styles.listItemContainer}
+                  onPress={() =>
+                    navigation.navigate("ImovelOffline", { quarteirao: item })
+                  }
+                >
+                  <View>
             <Text
               style={{
+                fontSize: 20,
+                color: "black",
                 fontWeight: "bold",
-                fontSize: 18,
-                backgroundColor: "#eee",
-                padding: 5,
               }}
             >
-              {section.title}
+              {textoFinal}
             </Text>
-          )}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={{ padding: 10, borderBottomWidth: 1 }}
-              onPress={() =>
-                navigation.navigate("ImovelOffline", { quarteirao: item })
-              }
-            >
-              <Text>Quarteirão {item.numero}</Text>
-              <Text style={{ color: "gray" }}>{item.qtdImoveis} imóveis</Text>
-            </TouchableOpacity>
-          )}
-          // proteções adicionais (renderEmptyComponent não causa crash)
+          </View>
+
+                </TouchableOpacity>
+              );
+            } catch (e) {
+              console.log("Erro ao renderizar item:", e);
+              return null;
+            }
+          }}
+
+
+// ...
           ListEmptyComponent={() => (
-            <View style={{ padding: 20 }}>
-              <Text style={{ color: "gray" }}>
+            <View style={styles.listEmptyContainer}>
+              <Text style={styles.listEmptyText}>
                 Nenhum quarteirão encontrado.
               </Text>
             </View>
@@ -182,3 +206,64 @@ export default function QuarteiraoOffline({ navigation }) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff", // Fundo branco
+  },
+  loadingContainer: {
+    flex: 1, 
+    justifyContent: "center",
+  },
+  
+  // --- Título Principal (QUARTEIRÕES DO DIA) ---
+  headerTitleContainer: {
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    backgroundColor: "#fff", 
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#274F8B", // Azul escuro
+    textAlign: "center",
+  },
+
+  // --- Item da Lista (Linha de Quarteirão) ---
+listItemContainer: {
+  flexDirection: "row", // garante que o texto fique na mesma linha
+  alignItems: "center", // centraliza verticalmente
+  justifyContent: "flex-start",
+  paddingVertical: 18,
+  paddingHorizontal: 20,
+  backgroundColor: "#F4F7F9",
+  borderBottomWidth: 1,
+  borderBottomColor: "#CDCDCD",
+  width: "100%", // evita corte
+},
+
+listItemText: {
+  fontSize: 17,
+  color: "#333333", // cor bem visível
+  fontWeight: "600",
+  includeFontPadding: false,
+  textAlignVertical: "center",
+},
+  // --- Estados Vazios ---
+  emptyContainer: {
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16, 
+    color: "gray",
+  },
+  listEmptyContainer: {
+    padding: 20,
+  },
+  listEmptyText: {
+    color: "gray",
+  },
+});
