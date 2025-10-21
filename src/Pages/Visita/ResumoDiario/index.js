@@ -23,14 +23,15 @@ export default function ResumoDiario({ navigation }) {
   const [atividade, setAtividade] = useState("");
   const [areaSelecionada, setAreaSelecionada] = useState(null);
 
+  // 🔹 Busca o resumo diário ao montar a tela
   useEffect(() => {
     const buscarResumo = async () => {
       try {
         setLoading(true);
         const hoje = new Date().toISOString().split("T")[0];
         const idAgente = await getId();
-
         const url = `${API_URL}/resumoDiario?idAgente=${idAgente}&data=${hoje}`;
+
         const res = await fetch(url);
         const data = await res.json();
 
@@ -57,6 +58,7 @@ export default function ResumoDiario({ navigation }) {
     buscarResumo();
   }, []);
 
+  // 🔹 Envia fechamento do diário para o backend
   const handleFecharDiario = async (idArea, atividade) => {
     try {
       const idAgente = await getId();
@@ -71,7 +73,6 @@ export default function ResumoDiario({ navigation }) {
         return;
       }
 
-      // 🔹 Mapeia apenas os campos existentes
       const resumoParaEnvio = {
         totalVisitas: areaSelecionadaObj.totalVisitas,
         totalVisitasTipo: areaSelecionadaObj.totalPorTipoImovel,
@@ -81,6 +82,8 @@ export default function ResumoDiario({ navigation }) {
         totalQtdLarvicida: areaSelecionadaObj.totalLarvicidaAplicada,
         totalDepLarvicida: areaSelecionadaObj.depositosTratadosComLarvicida,
         imoveisComFoco: areaSelecionadaObj.totalFocos,
+        quarteiroes: areaSelecionadaObj.quarteiroes || [], // adiciona os números
+        totalQuarteiroes: areaSelecionadaObj.totalQuarteiroes || 0,
       };
 
       const res = await fetch(`${API_URL}/cadastrarDiario`, {
@@ -97,7 +100,7 @@ export default function ResumoDiario({ navigation }) {
 
       const data = await res.json();
       if (res.ok) {
-        Alert.alert("Sucesso", `Diário da área cadastrado!`);
+        Alert.alert("Sucesso", "Diário da área cadastrado!");
       } else {
         Alert.alert("Erro", data.message || "Falha ao cadastrar diário.");
       }
@@ -127,85 +130,92 @@ export default function ResumoDiario({ navigation }) {
           </View>
 
           {/* 🔹 Resumo por Área */}
-          {resumoPorArea.length > 0 &&
-            resumoPorArea.map((area) => (
-              <View key={area.idArea} style={{ marginBottom: 20 }}>
-                <Text style={styles.sectionHeader}>{area.nomeArea}</Text>
+          {resumoPorArea.map((area) => (
+            <View key={area.idArea} style={{ marginBottom: 20 }}>
+              <Text style={styles.sectionHeader}>{area.nomeArea}</Text>
 
-                <View style={styles.box}>
-                  <Text style={styles.subtitulo}>
-                    Total de visitas: {area.totalVisitas}
-                  </Text>
-                </View>
-
-                <View style={styles.box}>
-                  <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
-                  {Object.entries(area.totalPorTipoImovel).map(
-                    ([tipo, qtd]) => {
-                      const tiposMap = {
-                        r: "Residencial",
-                        c: "Comercial",
-                        tb: "Terreno Baldio",
-                        out: "Outros",
-                        pe: "Ponto Estratégico",
-                      };
-                      return (
-                        <Text key={tipo}>
-                          {tiposMap[tipo] || tipo}: {qtd}
-                        </Text>
-                      );
-                    }
-                  )}
-                </View>
-
-                <View style={styles.box}>
-                  <Text style={styles.subtitulo}>Depósitos inspecionados:</Text>
-                  {Object.entries(area.totalDepositosInspecionados).map(
-                    ([tipo, qtd]) => (
-                      <Text key={tipo}>
-                        {tipo.toUpperCase()}: {qtd}
-                      </Text>
-                    )
-                  )}
-                </View>
-
-                <View style={styles.box}>
-                  <Text>Depósitos eliminados: {area.totalDepEliminados}</Text>
-                </View>
-
-                <View style={styles.box}>
-                  <Text>
-                    Imóveis tratados com larvicida: {area.totalImoveisLarvicida}
-                  </Text>
-                  <Text>
-                    Total de larvicida aplicada: {area.totalLarvicidaAplicada}
-                  </Text>
-                  <Text>
-                    Depósitos tratados com larvicida:{" "}
-                    {area.depositosTratadosComLarvicida}
-                  </Text>
-                </View>
-
-                <View style={styles.box}>
-                  <Text>Total de amostras: {area.totalAmostras}</Text>
-                </View>
-
-                <View style={styles.box}>
-                  <Text>Imóveis com foco: {area.totalFocos}</Text>
-                </View>
-
-                {/* 🔹 Botão Fechar Diário */}
-                <TouchableOpacity
-                  style={styles.botaoFechar}
-                  onPress={() => {
-                    setAreaSelecionada(area.idArea);
-                    setModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.textoBotao}>Fechar Diário</Text>
-                </TouchableOpacity>
+              <View style={styles.box}>
+                <Text style={styles.subtitulo}>
+                  Total de visitas: {area.totalVisitas}
+                </Text>
               </View>
-            ))}
+
+              <View style={styles.box}>
+                <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
+                {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => {
+                  const tiposMap = {
+                    r: "Residencial",
+                    c: "Comercial",
+                    tb: "Terreno Baldio",
+                    out: "Outros",
+                    pe: "Ponto Estratégico",
+                  };
+                  return (
+                    <Text key={tipo}>
+                      {tiposMap[tipo] || tipo}: {qtd}
+                    </Text>
+                  );
+                })}
+              </View>
+
+              <View style={styles.box}>
+                <Text style={styles.subtitulo}>Depósitos inspecionados:</Text>
+                {Object.entries(area.totalDepositosInspecionados).map(
+                  ([tipo, qtd]) => (
+                    <Text key={tipo}>
+                      {tipo.toUpperCase()}: {qtd}
+                    </Text>
+                  )
+                )}
+              </View>
+
+              <View style={styles.box}>
+                <Text>Depósitos eliminados: {area.totalDepEliminados}</Text>
+              </View>
+
+              <View style={styles.box}>
+                <Text>
+                  Imóveis tratados com larvicida: {area.totalImoveisLarvicida}
+                </Text>
+                <Text>
+                  Total de larvicida aplicada: {area.totalLarvicidaAplicada}
+                </Text>
+                <Text>
+                  Depósitos tratados com larvicida:{" "}
+                  {area.depositosTratadosComLarvicida}
+                </Text>
+              </View>
+
+              <View style={styles.box}>
+                <Text>Total de amostras: {area.totalAmostras}</Text>
+              </View>
+
+              <View style={styles.box}>
+                <Text>Imóveis com foco: {area.totalFocos}</Text>
+              </View>
+
+              <View style={styles.box}>
+                <Text style={styles.subtitulo}>Quarteirões finalizados:</Text>
+                <Text>
+                  {(area.quarteiroes || []).length > 0
+                    ? (area.quarteiroes || []).join(", ")
+                    : "Nenhum finalizado"}
+                </Text>
+                <Text>Total de quarteirões: {area.totalQuarteiroes || 0}</Text>
+              </View>
+
+              {/* 🔹 Botão Fechar Diário */}
+              <TouchableOpacity
+                style={styles.botaoFechar}
+                onPress={() => {
+                  setAreaSelecionada(area.idArea);
+                  setModalVisible(true);
+                }}
+              >
+                <Text style={styles.textoBotao}>Fechar Diário</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
         </>
       )}
 
@@ -242,7 +252,7 @@ export default function ResumoDiario({ navigation }) {
                 style={[styles.modalBotao, { backgroundColor: "#4CAF50" }]}
                 onPress={() => {
                   handleFecharDiario(areaSelecionada, Number(atividade));
-                  setModalVisible(false); // fecha o modal após enviar
+                  setModalVisible(false);
                 }}
               >
                 <Text style={styles.textoBotao}>Confirmar</Text>
@@ -262,6 +272,7 @@ export default function ResumoDiario({ navigation }) {
   );
 }
 
+// 🔹 Estilos
 const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 20, backgroundColor: "#f5f5f5" },
   titulo: { fontSize: 22, fontWeight: "bold", marginBottom: 15 },
