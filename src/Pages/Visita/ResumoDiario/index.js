@@ -8,137 +8,76 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
 
 export default function ResumoDiario({ navigation }) {
   const [loading, setLoading] = useState(true);
-  const [loadingDados, setLoadingDados] = useState(true);
-  const [quarteiroes, setQuarteiroes] = useState([]);
-  const [imoveis, setImoveis] = useState([]);
-  const [visitas, setVisitas] = useState([]);
   const [resumoPorArea, setResumoPorArea] = useState([]);
 
-  // 🔹 Carrega dados offline (quarteirões e imóveis)
+  // 🔹 Busca resumo diário direto do backend
   useEffect(() => {
-    const carregarDadosOffline = async () => {
-      try {
-        const rawQ = await AsyncStorage.getItem("dadosQuarteiroes");
-        const rawI = await AsyncStorage.getItem("dadosImoveis");
-        setQuarteiroes(rawQ ? JSON.parse(rawQ) : []);
-        setImoveis(rawI ? JSON.parse(rawI) : []);
-      } catch (err) {
-        console.error("Erro ao carregar dados offline:", err);
-      } finally {
-        setLoadingDados(false);
-      }
-    };
-    carregarDadosOffline();
-  }, []);
-
-  // 🔹 Busca visitas da data atual
-  useEffect(() => {
-    const buscarVisitas = async () => {
+    const buscarResumo = async () => {
       try {
         const hoje = new Date().toISOString().split("T")[0];
         const url = `${API_URL}/visitasPorData?data=${hoje}`;
         const res = await fetch(url);
         const data = await res.json();
-        setVisitas(data.visitas || []);
+
+        if (!res.ok) {
+          Alert.alert("Aviso", data.message || "Nenhum dado encontrado.");
+          setResumoPorArea([]);
+        } else {
+          // `resumoPorArea` vem como um objeto — convertemos para array
+          setResumoPorArea(Object.values(data.resumoPorArea || {}));
+        }
       } catch (err) {
-        console.error("Erro ao buscar visitas:", err);
-        Alert.alert("Erro", "Não foi possível carregar visitas.");
+        console.error("Erro ao buscar resumo:", err);
+        Alert.alert("Erro", "Não foi possível carregar o resumo diário.");
       } finally {
         setLoading(false);
       }
     };
 
-    buscarVisitas();
+    buscarResumo();
   }, []);
-
-  // 🔹 Calcula resumo diário por área
-  useEffect(() => {
-    if (!loading && !loadingDados) {
-      const areasMap = {};
-
-      quarteiroes.forEach((q) => {
-        const areaId = q.idArea || "semArea";
-        if (!areasMap[areaId]) {
-          areasMap[areaId] = {
-            nomeArea: q.nomeArea || "Sem Área",
-            totalPorTipoImovel: {},
-            totalDepositosInspecionados: {},
-            totalFocos: 0,
-            totalImoveisLarvicida: 0,
-            totalLarvicidaAplicada: 0,
-            depositosTratadosComLarvicida: 0,
-          };
-        }
-
-        // Imóveis do quarteirão
-        const imoveisQ = imoveis.filter((i) => i.idQuarteirao === q._id);
-
-        imoveisQ.forEach((i) => {
-          // Procura a visita correspondente
-          const visita = visitas.find(
-            (v) =>
-              v.idImovel &&
-              ((typeof v.idImovel === "object" && v.idImovel._id === i._id) ||
-                v.idImovel === i._id)
-          );
-          if (!visita) return;
-
-          // Total por tipo de imóvel
-          if (visita.tipo) {
-            areasMap[areaId].totalPorTipoImovel[visita.tipo] =
-              (areasMap[areaId].totalPorTipoImovel[visita.tipo] || 0) + 1;
-          }
-
-          // Depósitos inspecionados
-          const depositos = visita.depositosInspecionados || {};
-          Object.entries(depositos).forEach(([key, value]) => {
-            areasMap[areaId].totalDepositosInspecionados[key] =
-              (areasMap[areaId].totalDepositosInspecionados[key] || 0) +
-              (value || 0);
-          });
-
-          // Focos
-          if (visita.foco) areasMap[areaId].totalFocos += 1;
-
-          // Larvicida
-          if (visita.qtdLarvicida && visita.qtdLarvicida > 0)
-            areasMap[areaId].totalImoveisLarvicida += 1;
-          areasMap[areaId].totalLarvicidaAplicada += visita.qtdLarvicida || 0;
-          areasMap[areaId].depositosTratadosComLarvicida +=
-            visita.qtdDepTratado || 0;
-        });
-      });
-
-      setResumoPorArea(Object.values(areasMap));
-    }
-  }, [loading, loadingDados, quarteiroes, imoveis, visitas]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.titulo}>Resumo Diário por Área</Text>
 
-      {loading || loadingDados ? (
+      {loading ? (
         <ActivityIndicator size="large" color="#2CA856" />
       ) : resumoPorArea.length === 0 ? (
         <Text>Nenhum dado disponível para hoje.</Text>
       ) : (
         resumoPorArea.map((area) => (
-          <View key={area.nomeArea} style={{ marginBottom: 20 }}>
+          <View key={area.idArea} style={{ marginBottom: 20 }}>
             <Text style={styles.sectionHeader}>{area.nomeArea}</Text>
+
+            {/* 🔹 Visitas */}
+            <View style={styles.box}>
+              <Text style={styles.subtitulo}>
+                Total de visitas: {area.totalVisitas}
+              </Text>
+            </View>
 
             {/* 🔹 Tipo de imóvel */}
             <View style={styles.box}>
-              <Text style={styles.subtitulo}>Total de imóveis por tipo:</Text>
-              {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => (
-                <Text key={tipo}>
-                  {tipo.toUpperCase()}: {qtd}
-                </Text>
-              ))}
+              <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
+              {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => {
+                const tiposMap = {
+                  r: "Residencial",
+                  c: "Comercial",
+                  tb: "Terreno Baldio",
+                  out: "Outros",
+                  pe: "Ponto Estratégico",
+                };
+                return (
+                  <Text key={tipo}>
+                    {tiposMap[tipo] || tipo}: {qtd}
+                  </Text>
+                );
+              })}
             </View>
 
             {/* 🔹 Depósitos inspecionados */}
@@ -153,9 +92,9 @@ export default function ResumoDiario({ navigation }) {
               )}
             </View>
 
-            {/* 🔹 Imóveis com foco */}
+            {/* 🔹 Depósitos eliminados */}
             <View style={styles.box}>
-              <Text>Imóveis com foco: {area.totalFocos}</Text>
+              <Text>Depósitos eliminados: {area.totalDepEliminados}</Text>
             </View>
 
             {/* 🔹 Larvicida */}
@@ -170,6 +109,16 @@ export default function ResumoDiario({ navigation }) {
                 Depósitos tratados com larvicida:{" "}
                 {area.depositosTratadosComLarvicida}
               </Text>
+            </View>
+
+            {/* 🔹 Amostras */}
+            <View style={styles.box}>
+              <Text>Total de amostras: {area.totalAmostras}</Text>
+            </View>
+
+            {/* 🔹 Focos */}
+            <View style={styles.box}>
+              <Text>Imóveis com foco: {area.totalFocos}</Text>
             </View>
           </View>
         ))
@@ -211,6 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     backgroundColor: "#eee",
     padding: 8,
+    borderRadius: 6,
   },
   botao: {
     padding: 15,
