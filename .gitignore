@@ -41,4 +41,4 @@ yarn-error.*
 /build/
 /dist/
 /*.log
-src/config/config.js
+/src/config/config.js
