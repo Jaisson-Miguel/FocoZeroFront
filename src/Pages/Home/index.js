@@ -109,7 +109,7 @@ export default function Home({ navigation }) {
         {funcao === "adm" && (
           <View style={styles.bloco}>
             <TouchableOpacity
-              onPress={() => navigation.navigate("Register")}
+              onPress={() => navigation.navigate("ListarAgentes")}
               style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
             >
               <Text style={styles.textBotao}>Equipe</Text>
