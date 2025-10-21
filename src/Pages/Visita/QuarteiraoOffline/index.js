@@ -41,18 +41,22 @@ export default function QuarteiraoOffline({ navigation }) {
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`
       );
       const jsonQ = await resQ.json();
+      const quarteiroesArray = Array.isArray(jsonQ) ? jsonQ : [];
+      if (!Array.isArray(jsonQ))
+        console.log("Nenhum quarteirão encontrado para este usuário.");
 
       // 🔹 Baixa imóveis
       const resI = await fetch(
         `${API_URL}/baixarImoveisResponsavel/${idUsuario}`
       );
       const jsonI = await resI.json();
+      const imoveisArray = Array.isArray(jsonI) ? jsonI : [];
 
       // 🔹 Mescla dados locais
       const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
       const locais = rawImoveis ? JSON.parse(rawImoveis) : [];
 
-      const mesclados = jsonI.map((i) => {
+      const mesclados = imoveisArray.map((i) => {
         const local = locais.find((l) => l._id === i._id);
         // Se estiver visitado ou editadoOffline, mantém tudo do local
         if (local && (local.status === "visitado" || local.editadoOffline)) {
@@ -61,10 +65,13 @@ export default function QuarteiraoOffline({ navigation }) {
         return i;
       });
 
-      await AsyncStorage.setItem("dadosQuarteiroes", JSON.stringify(jsonQ));
+      await AsyncStorage.setItem(
+        "dadosQuarteiroes",
+        JSON.stringify(quarteiroesArray)
+      );
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(mesclados));
 
-      setQuarteiroes(jsonQ);
+      setQuarteiroes(quarteiroesArray);
       setImoveis(mesclados);
     } catch (error) {
       console.log("Erro ao baixar:", error);
@@ -100,33 +107,43 @@ export default function QuarteiraoOffline({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <Cabecalho navigation={navigation} />
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item._id}
-        renderSectionHeader={({ section }) => (
-          <Text
-            style={{
-              fontWeight: "bold",
-              fontSize: 18,
-              backgroundColor: "#eee",
-              padding: 5,
-            }}
-          >
-            {section.title}
+      {sections.length === 0 ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={{ fontSize: 16, color: "gray" }}>
+            Nenhum quarteirão atribuido a este agente.
           </Text>
-        )}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={{ padding: 10, borderBottomWidth: 1 }}
-            onPress={() =>
-              navigation.navigate("ImovelOffline", { quarteirao: item })
-            }
-          >
-            <Text>Quarteirão {item.numero}</Text>
-            <Text style={{ color: "gray" }}>{item.qtdImoveis} imóveis</Text>
-          </TouchableOpacity>
-        )}
-      />
+        </View>
+      ) : (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item._id}
+          renderSectionHeader={({ section }) => (
+            <Text
+              style={{
+                fontWeight: "bold",
+                fontSize: 18,
+                backgroundColor: "#eee",
+                padding: 5,
+              }}
+            >
+              {section.title}
+            </Text>
+          )}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={{ padding: 10, borderBottomWidth: 1 }}
+              onPress={() =>
+                navigation.navigate("ImovelOffline", { quarteirao: item })
+              }
+            >
+              <Text>Quarteirão {item.numero}</Text>
+              <Text style={{ color: "gray" }}>{item.qtdImoveis} imóveis</Text>
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }

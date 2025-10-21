@@ -61,49 +61,85 @@ export default function ListarVisitas({ navigation }) {
       const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
       const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
 
-      // Se não houver visitas nem imóveis a sincronizar
-      if (pendentes.length === 0 && imoveisEditados.length === 0) {
+      // ⚠️ Se houver algo pendente, bloqueia o acesso
+      if (pendentes.length > 0 || imoveisEditados.length > 0) {
         Alert.alert(
-          "Aviso",
-          "Nenhuma visita pendente ou imóvel editado para finalizar."
+          "Atenção",
+          "Existem visitas ou imóveis pendentes de sincronização. Sincronize antes de finalizar o diário."
         );
         return;
       }
 
-      // Calcula resumo apenas se houver visitas
-      let resumo = {
-        totalVisitas: 0,
-        visitasPorTipo: {},
-        depositosTotais: {},
-        totalFocos: 0,
-      };
-
-      if (pendentes.length > 0) {
-        resumo.totalVisitas = pendentes.length;
-
-        pendentes.forEach((v) => {
-          resumo.visitasPorTipo[v.tipo] =
-            (resumo.visitasPorTipo[v.tipo] || 0) + 1;
-
-          Object.entries(v.depositosInspecionados || {}).forEach(
-            ([campo, valor]) => {
-              resumo.depositosTotais[campo] =
-                (resumo.depositosTotais[campo] || 0) + Number(valor);
-            }
-          );
-
-          if (v.foco) resumo.totalFocos += 1;
-        });
-      }
-
-      // Envia tudo para o ResumoDiario
-      navigation.navigate("ResumoDiario", {
-        pendentes,
-        resumo,
-      });
+      // ✅ Tudo sincronizado → pode acessar o resumo
+      navigation.navigate("ResumoDiario");
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Não foi possível finalizar o diário.");
+    }
+  };
+
+  const sincronizarTudo = async () => {
+    try {
+      // Visitas pendentes
+      const visitasSalvas = await AsyncStorage.getItem("visitas");
+      const listaVisitas = visitasSalvas ? JSON.parse(visitasSalvas) : [];
+      const pendentes = listaVisitas.filter((v) => !v.sincronizado);
+
+      // Imóveis editados
+      const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
+      const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
+      const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
+
+      if (pendentes.length === 0 && imoveisEditados.length === 0) {
+        Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
+        return;
+      }
+
+      // 🔹 Sincroniza visitas
+      await Promise.all(
+        pendentes.map(async (v) => {
+          try {
+            const { sincronizado, ...dadosParaEnviar } = v;
+            const res = await fetch(`${API_URL}/cadastrarVisita`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(dadosParaEnviar),
+            });
+            if (res.ok) v.sincronizado = true;
+          } catch (err) {
+            console.error("Erro ao sincronizar visita:", err);
+          }
+        })
+      );
+
+      // 🔹 Sincroniza imóveis
+      await Promise.all(
+        imoveisEditados.map(async (i) => {
+          const { editadoOffline, _id, ...dadosParaEnviar } = i;
+          try {
+            const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(dadosParaEnviar),
+            });
+            if (res.ok) i.editadoOffline = false;
+          } catch (err) {
+            console.error("Erro rede imóvel:", err);
+          }
+        })
+      );
+
+      // Atualiza AsyncStorage
+      await AsyncStorage.setItem("visitas", JSON.stringify(listaVisitas));
+      await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
+
+      // Atualiza state
+      setVisitas(listaVisitas);
+
+      Alert.alert("Sucesso", "Sincronização concluída!");
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Erro", "Falha na sincronização.");
     }
   };
 
@@ -140,6 +176,13 @@ export default function ListarVisitas({ navigation }) {
             </View>
           ))
         )}
+
+        <TouchableOpacity
+          style={[styles.botao, { backgroundColor: "#2196F3" }]}
+          onPress={sincronizarTudo}
+        >
+          <Text style={styles.textoBotao}>Sincronizar Dados</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.botao, { backgroundColor: "#2196F3" }]}

@@ -107,12 +107,21 @@ export default function Home({ navigation }) {
           </View>
         )}
         {funcao === "adm" && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Register")}
-            style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
-          >
-            <Text style={styles.textBotao}>Equipe</Text>
-          </TouchableOpacity>
+          <View style={styles.bloco}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Register")}
+              style={[styles.buttonsHome, { backgroundColor: "#D38B17" }]}
+            >
+              <Text style={styles.textBotao}>Equipe</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ResumoCiclo")}
+              style={[styles.buttonsHome, { backgroundColor: "#d3175fff" }]}
+            >
+              <Text style={styles.textBotao}>Resumo Ciclo</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>

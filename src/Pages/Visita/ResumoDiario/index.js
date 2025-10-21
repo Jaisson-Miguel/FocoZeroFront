@@ -5,35 +5,28 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
-import { getId } from "../../../utils/tokenStorage.js";
 
-export default function ResumoDiario({ route, navigation }) {
-  const { pendentes, resumo } = route.params;
-  const [loading, setLoading] = useState(false);
-  const [visitas, setVisitas] = useState(pendentes);
-
+export default function ResumoDiario({ navigation }) {
+  const [loading, setLoading] = useState(true);
+  const [loadingDados, setLoadingDados] = useState(true);
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [imoveis, setImoveis] = useState([]);
-  const [loadingDados, setLoadingDados] = useState(true);
-  const [selectedQuarteiroes, setSelectedQuarteiroes] = useState([]);
+  const [visitas, setVisitas] = useState([]);
+  const [resumoPorArea, setResumoPorArea] = useState([]);
 
-  // 🔹 Carrega quarteirões e imóveis offline
+  // 🔹 Carrega dados offline (quarteirões e imóveis)
   useEffect(() => {
     const carregarDadosOffline = async () => {
       try {
         const rawQ = await AsyncStorage.getItem("dadosQuarteiroes");
         const rawI = await AsyncStorage.getItem("dadosImoveis");
-
-        const parsedQ = rawQ ? JSON.parse(rawQ) : [];
-        const parsedI = rawI ? JSON.parse(rawI) : [];
-
-        setQuarteiroes(parsedQ);
-        setImoveis(parsedI);
+        setQuarteiroes(rawQ ? JSON.parse(rawQ) : []);
+        setImoveis(rawI ? JSON.parse(rawI) : []);
       } catch (err) {
         console.error("Erro ao carregar dados offline:", err);
       } finally {
@@ -43,230 +36,144 @@ export default function ResumoDiario({ route, navigation }) {
     carregarDadosOffline();
   }, []);
 
-  // 🔄 Função principal de sincronização
-  const sincronizarVisitas = async () => {
-    setLoading(true);
-
-    try {
-      // 🔹 Verifica se há imóveis editados offline
-      const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
-      const listaImoveis = rawImoveis ? JSON.parse(rawImoveis) : [];
-      const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
-
-      // 🔹 Verifica se há algo a sincronizar
-      if (
-        visitas.length === 0 &&
-        selectedQuarteiroes.length === 0 &&
-        imoveisEditados.length === 0
-      ) {
+  // 🔹 Busca visitas da data atual
+  useEffect(() => {
+    const buscarVisitas = async () => {
+      try {
+        const hoje = new Date().toISOString().split("T")[0];
+        const url = `${API_URL}/visitasPorData?data=${hoje}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setVisitas(data.visitas || []);
+      } catch (err) {
+        console.error("Erro ao buscar visitas:", err);
+        Alert.alert("Erro", "Não foi possível carregar visitas.");
+      } finally {
         setLoading(false);
-        Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
-        return;
       }
+    };
 
-      const listaAtualizada = [...visitas];
-
-      // 1️⃣ Envia visitas pendentes
-      const promVisitas = listaAtualizada.map(async (visita) => {
-        try {
-          const { sincronizado, ...dadosParaEnviar } = visita;
-          const response = await fetch(`${API_URL}/cadastrarVisita`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(dadosParaEnviar),
-          });
-          if (response.ok) {
-            visita.sincronizado = true;
-          }
-        } catch (err) {
-          console.error("Erro ao sincronizar visita:", err);
-        }
-      });
-
-      // 2️⃣ Sincroniza imóveis editados offline (novo)
-      const promImoveis = (async () => {
-        try {
-          const raw = await AsyncStorage.getItem("dadosImoveis");
-          if (!raw) return;
-          let listaImoveis = JSON.parse(raw);
-
-          const promises = listaImoveis
-            .filter((i) => i.editadoOffline)
-            .map(async (i) => {
-              const { editadoOffline, _id, ...dadosParaEnviar } = i;
-              try {
-                const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(dadosParaEnviar),
-                });
-                if (res.ok) {
-                  i.editadoOffline = false;
-                } else {
-                  console.log("Erro servidor imóvel:", await res.text());
-                }
-              } catch (err) {
-                console.error("Erro rede imóvel:", err);
-              }
-            });
-
-          await Promise.all(promises);
-          await AsyncStorage.setItem(
-            "dadosImoveis",
-            JSON.stringify(listaImoveis)
-          );
-        } catch (err) {
-          console.error("Erro ao sincronizar imóveis:", err);
-        }
-      })();
-
-      // 3️⃣ Atualiza quarteirões selecionados
-      const userId = await getId();
-      const promQuarteiroes = selectedQuarteiroes.length
-        ? fetch(`${API_URL}/atualizarQuarteiroes`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ids: selectedQuarteiroes,
-              trabalhadoPor: userId,
-            }),
-          })
-        : Promise.resolve();
-
-      // 4️⃣ Executa tudo
-      await Promise.all([...promVisitas, promImoveis, promQuarteiroes]);
-
-      // 5️⃣ Atualiza armazenamento de visitas
-      const todasVisitasSalvas = await AsyncStorage.getItem("visitas");
-      const listaTotal = todasVisitasSalvas
-        ? JSON.parse(todasVisitasSalvas)
-        : [];
-      const atualizadas = listaTotal.map((v) => {
-        const encontrada = listaAtualizada.find(
-          (p) => p.idImovel === v.idImovel
-        );
-        return encontrada ? encontrada : v;
-      });
-      await AsyncStorage.setItem("visitas", JSON.stringify(atualizadas));
-      setVisitas(listaAtualizada);
-
-      Alert.alert("Sucesso", "Sincronização concluída com sucesso!");
-      navigation.goBack();
-    } catch (err) {
-      console.error("Erro ao sincronizar:", err);
-      Alert.alert("Erro", "Não foi possível sincronizar tudo.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleSelect = (id) => {
-    setSelectedQuarteiroes((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  // 🔹 Agrupa quarteirões por área e conta imóveis pelo idQuarteirao
-  const sections = quarteiroes.reduce((acc, q) => {
-    const qtdImoveis = imoveis.filter((i) => i.idQuarteirao === q._id).length;
-
-    let sec = acc.find((s) => s.title === q.nomeArea);
-    if (!sec) {
-      sec = { title: q.nomeArea, data: [] };
-      acc.push(sec);
-    }
-    sec.data.push({ ...q, qtdImoveis });
-    return acc;
+    buscarVisitas();
   }, []);
+
+  // 🔹 Calcula resumo diário por área
+  useEffect(() => {
+    if (!loading && !loadingDados) {
+      const areasMap = {};
+
+      quarteiroes.forEach((q) => {
+        const areaId = q.idArea || "semArea";
+        if (!areasMap[areaId]) {
+          areasMap[areaId] = {
+            nomeArea: q.nomeArea || "Sem Área",
+            totalPorTipoImovel: {},
+            totalDepositosInspecionados: {},
+            totalFocos: 0,
+            totalImoveisLarvicida: 0,
+            totalLarvicidaAplicada: 0,
+            depositosTratadosComLarvicida: 0,
+          };
+        }
+
+        // Imóveis do quarteirão
+        const imoveisQ = imoveis.filter((i) => i.idQuarteirao === q._id);
+
+        imoveisQ.forEach((i) => {
+          // Procura a visita correspondente
+          const visita = visitas.find(
+            (v) =>
+              v.idImovel &&
+              ((typeof v.idImovel === "object" && v.idImovel._id === i._id) ||
+                v.idImovel === i._id)
+          );
+          if (!visita) return;
+
+          // Total por tipo de imóvel
+          if (visita.tipo) {
+            areasMap[areaId].totalPorTipoImovel[visita.tipo] =
+              (areasMap[areaId].totalPorTipoImovel[visita.tipo] || 0) + 1;
+          }
+
+          // Depósitos inspecionados
+          const depositos = visita.depositosInspecionados || {};
+          Object.entries(depositos).forEach(([key, value]) => {
+            areasMap[areaId].totalDepositosInspecionados[key] =
+              (areasMap[areaId].totalDepositosInspecionados[key] || 0) +
+              (value || 0);
+          });
+
+          // Focos
+          if (visita.foco) areasMap[areaId].totalFocos += 1;
+
+          // Larvicida
+          if (visita.qtdLarvicida && visita.qtdLarvicida > 0)
+            areasMap[areaId].totalImoveisLarvicida += 1;
+          areasMap[areaId].totalLarvicidaAplicada += visita.qtdLarvicida || 0;
+          areasMap[areaId].depositosTratadosComLarvicida +=
+            visita.qtdDepTratado || 0;
+        });
+      });
+
+      setResumoPorArea(Object.values(areasMap));
+    }
+  }, [loading, loadingDados, quarteiroes, imoveis, visitas]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.titulo}>Resumo Diário</Text>
+      <Text style={styles.titulo}>Resumo Diário por Área</Text>
 
-      <Text style={styles.item}>
-        Total de visitas pendentes: {resumo.totalVisitas}
-      </Text>
-
-      <View style={styles.box}>
-        <Text style={styles.subtitulo}>Visitas por tipo:</Text>
-        {Object.entries(resumo.visitasPorTipo).map(([tipo, qtd]) => (
-          <Text key={tipo}>
-            {tipo.toUpperCase()}: {qtd}
-          </Text>
-        ))}
-      </View>
-
-      <View style={styles.box}>
-        <Text style={styles.subtitulo}>
-          Depósitos inspecionados (total por tipo):
-        </Text>
-        {Object.entries(resumo.depositosTotais).map(([campo, qtd]) => (
-          <Text key={campo}>
-            {campo.toUpperCase()}: {qtd}
-          </Text>
-        ))}
-      </View>
-
-      <Text style={styles.item}>Total de focos: {resumo.totalFocos}</Text>
-
-      <Text style={[styles.titulo, { marginTop: 20 }]}>
-        Selecione os quarteirões finalizados:
-      </Text>
-
-      {loadingDados ? (
-        <ActivityIndicator size="small" color="#2CA856" />
-      ) : quarteiroes.length === 0 ? (
-        <Text style={{ color: "gray", marginTop: 8 }}>
-          Nenhum quarteirão baixado.
-        </Text>
+      {loading || loadingDados ? (
+        <ActivityIndicator size="large" color="#2CA856" />
+      ) : resumoPorArea.length === 0 ? (
+        <Text>Nenhum dado disponível para hoje.</Text>
       ) : (
-        sections.map((sec) => (
-          <View key={sec.title} style={{ width: "100%", marginTop: 8 }}>
-            <Text style={styles.sectionHeader}>{sec.title}</Text>
-            {sec.data.map((q) => {
-              const selected = selectedQuarteiroes.includes(q._id);
-              return (
-                <TouchableOpacity
-                  key={q._id}
-                  style={[
-                    styles.quarteiraoItem,
-                    selected && styles.quarteiraoSelecionado,
-                  ]}
-                  onPress={() => toggleSelect(q._id)}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <View>
-                      <Text>Quarteirão {q.numero}</Text>
-                      <Text style={{ color: "gray" }}>
-                        {q.qtdImoveis} imóveis
-                      </Text>
-                    </View>
-                    <Text style={{ fontSize: 18 }}>{selected ? "✓" : ""}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+        resumoPorArea.map((area) => (
+          <View key={area.nomeArea} style={{ marginBottom: 20 }}>
+            <Text style={styles.sectionHeader}>{area.nomeArea}</Text>
+
+            {/* 🔹 Tipo de imóvel */}
+            <View style={styles.box}>
+              <Text style={styles.subtitulo}>Total de imóveis por tipo:</Text>
+              {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => (
+                <Text key={tipo}>
+                  {tipo.toUpperCase()}: {qtd}
+                </Text>
+              ))}
+            </View>
+
+            {/* 🔹 Depósitos inspecionados */}
+            <View style={styles.box}>
+              <Text style={styles.subtitulo}>Depósitos inspecionados:</Text>
+              {Object.entries(area.totalDepositosInspecionados).map(
+                ([tipo, qtd]) => (
+                  <Text key={tipo}>
+                    {tipo.toUpperCase()}: {qtd}
+                  </Text>
+                )
+              )}
+            </View>
+
+            {/* 🔹 Imóveis com foco */}
+            <View style={styles.box}>
+              <Text>Imóveis com foco: {area.totalFocos}</Text>
+            </View>
+
+            {/* 🔹 Larvicida */}
+            <View style={styles.box}>
+              <Text>
+                Imóveis tratados com larvicida: {area.totalImoveisLarvicida}
+              </Text>
+              <Text>
+                Total de larvicida aplicada: {area.totalLarvicidaAplicada}
+              </Text>
+              <Text>
+                Depósitos tratados com larvicida:{" "}
+                {area.depositosTratadosComLarvicida}
+              </Text>
+            </View>
           </View>
         ))
       )}
-
-      <TouchableOpacity
-        style={[styles.botao, { backgroundColor: "#2196F3" }]}
-        onPress={sincronizarVisitas}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.textoBotao}>Sincronizar Dados</Text>
-        )}
-      </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.botao, { backgroundColor: "#4CAF50" }]}
@@ -289,10 +196,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
   },
-  item: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
   box: {
     padding: 10,
     backgroundColor: "#e0e0e0",
@@ -302,6 +205,12 @@ const styles = StyleSheet.create({
   subtitulo: {
     fontWeight: "600",
     marginBottom: 5,
+  },
+  sectionHeader: {
+    fontWeight: "bold",
+    fontSize: 18,
+    backgroundColor: "#eee",
+    padding: 8,
   },
   botao: {
     padding: 15,
@@ -313,20 +222,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  sectionHeader: {
-    fontWeight: "bold",
-    fontSize: 18,
-    backgroundColor: "#eee",
-    padding: 8,
-  },
-  quarteiraoItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
-  },
-  quarteiraoSelecionado: {
-    backgroundColor: "#c8e6c9",
   },
 });

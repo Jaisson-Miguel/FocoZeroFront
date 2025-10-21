@@ -23,6 +23,7 @@ import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 import QuarteiraoOffline from "./src/Pages/Visita/QuarteiraoOffline";
 import ImovelOffline from "./src/Pages/Visita/ImovelOffline";
 import EditarImovelOffline from "./src/Pages/Visita/EditarImovelOffline";
+import ResumoCiclo from "./src/Pages/Fiscal/ResumoCiclo";
 
 const Stack = createNativeStackNavigator();
 
@@ -128,6 +129,11 @@ export default function App() {
         <Stack.Screen
           name="EditarImovelOffline"
           component={EditarImovelOffline}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ResumoCiclo"
+          component={ResumoCiclo}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
