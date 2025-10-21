@@ -70,8 +70,23 @@ export default function ListarVisitas({ navigation }) {
         return;
       }
 
-      // ✅ Tudo sincronizado → pode acessar o resumo
-      navigation.navigate("ResumoDiario");
+      // ✅ Tudo sincronizado → perguntar se finalizou algum quarteirão
+      Alert.alert(
+        "Finalizar Diário",
+        "Você finalizou algum quarteirão?",
+        [
+          {
+            text: "Não",
+            onPress: () => navigation.navigate("ResumoDiario"),
+            style: "cancel",
+          },
+          {
+            text: "Sim",
+            onPress: () => navigation.navigate("AtualizarQuarteirao"),
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (error) {
       console.error(error);
       Alert.alert("Erro", "Não foi possível finalizar o diário.");
