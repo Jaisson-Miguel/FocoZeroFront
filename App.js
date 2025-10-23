@@ -90,7 +90,7 @@ export default function App() {
         <Stack.Screen
           name="Visita"
           component={Visita}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="ListarVisitas"
