@@ -22,7 +22,6 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function ImovelOffline({ route, navigation }) {
   const { quarteirao } = route.params;
-      console.log("Quarteirão recebido via route.params:", quarteirao);
 
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);

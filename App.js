@@ -167,7 +167,7 @@ export default function App() {
                     <Stack.Screen
                         name="ResumoDiario"
                         component={ResumoDiario}
-                        options={{ headerShown: true }}
+                        options={{ headerShown: false }}
                     />
                     <Stack.Screen
                         name="QuarteiraoOffline"
@@ -192,7 +192,7 @@ export default function App() {
                     <Stack.Screen
                         name="AtualizarQuarteirao"
                         component={AtualizarQuarteirao}
-                        options={{ headerShown: true }}
+                        options={{ headerShown: false }}
                     />
                 </Stack.Navigator>
             </NavigationContainer>

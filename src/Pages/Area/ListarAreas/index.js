@@ -219,7 +219,6 @@ export default function ListarArea({ route, navigation }) {
           onPress={() => navigation.navigate("CadastrarArea")}
           style={styles.fabButton}
         >
-          {/* O ÍCONE deve estar funcionando se 'react-native-vector-icons' estiver instalado e linkado. */}
           <Icon name="plus" size={font(5)} color="#fff" />
         </TouchableOpacity>
       )}

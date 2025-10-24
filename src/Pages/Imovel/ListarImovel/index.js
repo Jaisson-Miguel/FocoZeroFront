@@ -39,7 +39,6 @@ const screenWidth = Dimensions.get('window').width;
 export default function ImovelOffline({ route, navigation }) {
     const { quarteirao } = route.params;
     const { idArea, nomeArea } = route.params; // <-- Exemplo de como obter
-    console.log("Quarteirão recebido via route.params:", nomeArea);
     const [imoveis, setImoveis] = useState({});
     const [loading, setLoading] = useState(true);
     const offline = true;
@@ -133,7 +132,6 @@ export default function ImovelOffline({ route, navigation }) {
                             {imoveis[rua].map((imovel) => {
                                 // Lógica de status
                                 const isDisabled = imovel.status === "visitado"; 
-                                
                                 const tipoDoImovel = imovel.complemento || imovel.tipo;
                                 const tipoMapeado = mapearTipoImovel(tipoDoImovel); 
                                 const contentText = `Nº ${imovel.numero} - ${tipoMapeado}`;
@@ -141,8 +139,6 @@ export default function ImovelOffline({ route, navigation }) {
                                 return (
                                     <View key={imovel._id} style={styles.imovelItem}>
                                         <View style={styles.imovelLeft}>
-                                            {/* Texto do Imóvel */}
-                                            {/* Usamos o TouchableOpacity para simular a área de toque */}
                                             <TouchableOpacity 
                                                 style={styles.imovelTextTouchable}
                                                 onPress={() =>
