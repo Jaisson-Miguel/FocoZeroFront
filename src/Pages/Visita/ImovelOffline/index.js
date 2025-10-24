@@ -22,6 +22,8 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function ImovelOffline({ route, navigation }) {
   const { quarteirao } = route.params;
+      console.log("Quarteirão recebido via route.params:", quarteirao);
+
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
   const offline = true;
@@ -120,7 +122,7 @@ export default function ImovelOffline({ route, navigation }) {
                         {jaVisitado && (
                           <MaterialCommunityIcons
                             name="check"
-                            size={18}
+                            size={font(2.5)}
                             color="#fff"
                           />
                         )}
@@ -192,28 +194,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainTitle: {
-    fontSize: 20,
+    fontSize: font(3.5),
     fontWeight: "bold",
     color: "#05419A",
-    margin: 10,
-    marginVertical: 20,
-    paddingHorizontal: 5,
+    margin: width(2.5),
+    marginVertical: height(2.5),
+    paddingHorizontal: width(1.25),
   },
   streetHeader: {
-    fontSize: 18,
+    fontSize: font(2.5),
     fontWeight: "bold",
     backgroundColor: "#05419A",
     color: "white",
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingVertical: height(1.5),
+    paddingHorizontal: width(3.75),
     marginBottom: 0,
   },
   imovelItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingVertical: height(1.25),
+    paddingHorizontal: width(3.75),
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
@@ -223,11 +225,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: width(5),
+    height: width(5),
     borderWidth: 1,
     borderColor: "#000",
-    marginRight: 10,
+    marginRight: width(2.5),
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 3,
@@ -240,34 +242,34 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   imovelText: {
-    fontSize: 14,
+    fontSize: font(1.9),
     color: "#000",
   },
   recusaText: {
     color: "red",
-    fontSize: 12,
+    fontSize: font(1.5),
   },
   imovelRight: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 10,
+    marginLeft: width(2.5),
   },
   editButton: {
     backgroundColor: "#2CA856",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: height(0.6),
+    paddingHorizontal: width(2.5),
     borderRadius: 5,
-    marginRight: 8,
+    marginRight: width(2),
   },
   editText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 12,
+    fontSize: font(1.6),
   },
   visitButton: {
     backgroundColor: "#05419A",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    paddingVertical: height(0.6),
+    paddingHorizontal: width(2.5),
     borderRadius: 5,
   },
   visitButtonDisabled: {
@@ -276,30 +278,31 @@ const styles = StyleSheet.create({
   visitText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 12,
+    fontSize: font(1.6),
   },
   emptyText: {
     textAlign: "center",
-    marginTop: 20,
+    marginTop: height(2.5),
     color: "gray",
+    fontSize: font(2),
   },
   simpleTitleContainer: {
-        paddingHorizontal: 15,
-        alignItems:"center",
-        paddingVertical: 10,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    simpleTitle: {
-        fontSize: font(3.5),
-        fontWeight: "bold",
-        color: "#05419A",
-        textTransform: 'uppercase',
-    },
-    simpleSubtitle: {
-        fontSize: font(2.25),
-        color: "#666",
-        textTransform: 'uppercase',
-    },
+    paddingHorizontal: width(3.75),
+    alignItems:"center",
+    paddingVertical: height(1.25),
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  simpleTitle: {
+    fontSize: font(3.5),
+    fontWeight: "bold",
+    color: "#05419A",
+    textTransform: 'uppercase',
+  },
+  simpleSubtitle: {
+    fontSize: font(2.25),
+    color: "#666",
+    textTransform: 'uppercase',
+  },
 });
