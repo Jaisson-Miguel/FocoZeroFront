@@ -166,8 +166,6 @@ export default function Quarteiroes({ route, navigation }) {
   const renderListItem = ({ item }) => {
     if (item.type === "mapa") {
       return (
-        // MAPA DA ÁREA: o ícone 'map-o' estava com o caractere japonês.
-        // O código está OK. O problema é a linkagem nativa.
         <TouchableOpacity
           onPress={() => setVisible(true)}
           style={styles.mapaButton}
