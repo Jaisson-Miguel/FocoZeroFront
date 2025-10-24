@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView, Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { height, width, font } from "../../../utils/responsive.js"; 
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -16,6 +17,8 @@ const mapearTipoImovel = (tipoAbreviado) => {
   const chave = tipoAbreviado ? String(tipoAbreviado).toLowerCase().trim() : "";
   return tipos[chave] || (tipoAbreviado ? String(tipoAbreviado).toUpperCase() : "NÃO ESPECIFICADO");
 };
+
+const screenWidth = Dimensions.get('window').width;
 
 export default function ImovelOffline({ route, navigation }) {
   const { quarteirao } = route.params;
@@ -81,9 +84,15 @@ export default function ImovelOffline({ route, navigation }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
       <ScrollView style={styles.scrollView}>
-        <Text style={styles.mainTitle}>
-          Imóveis do Quarteirão {quarteirao.numero} - {quarteirao.nomeArea}
-        </Text>
+        <View style={styles.simpleTitleContainer}>
+          
+          <Text style={styles.simpleTitle}>
+            {quarteirao.nomeArea} - {quarteirao.numero}
+          </Text>
+          <Text style={styles.simpleSubtitle}>
+            Código {quarteirao.codigoArea} - Zona {quarteirao.zonaArea}
+          </Text>
+        </View>
 
         {ruas.length === 0 ? (
           <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
@@ -274,4 +283,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "gray",
   },
+  simpleTitleContainer: {
+        paddingHorizontal: 15,
+        alignItems:"center",
+        paddingVertical: 10,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    simpleTitle: {
+        fontSize: font(3.5),
+        fontWeight: "bold",
+        color: "#05419A",
+        textTransform: 'uppercase',
+    },
+    simpleSubtitle: {
+        fontSize: font(2.25),
+        color: "#666",
+        textTransform: 'uppercase',
+    },
 });

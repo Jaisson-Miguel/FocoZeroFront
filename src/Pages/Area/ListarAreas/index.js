@@ -1,208 +1,308 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-  Image,
-  TouchableOpacity,
+    View,
+    Text,
+    FlatList,
+    StyleSheet,
+    ActivityIndicator,
+    Alert,
+    TouchableOpacity,
+    SafeAreaView,
 } from "react-native";
+// IMPORT DE ÍCONE REMOVIDO PARA EVITAR DEPENDÊNCIA, USANDO <Text> PARA O '+'
 import { API_URL } from "../../../config/config.js";
+import Icon from 'react-native-vector-icons/FontAwesome'; 
+
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
+import { height, width, font } from "../../../utils/responsive.js"; 
 
-export default function ListarArea({ route, navigation }) {
-  const { modo, idAgente, nomeAgente, idUsuario, modoI } = route.params;
-  const [areas, setAreas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false);
-  const [funcao, setFuncao] = useState(false);
+const getIdString = (id) => {
+    if (typeof id === 'string') {
+        return id;
+    }
+    if (id && typeof id === 'object' && id.toString) {
+        return id.toString();
+    }
+    return '';
+};
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchAreas = async () => {
-        setLoading(true);
-        const userFuncao = await getFuncao();
-        if (userFuncao) setFuncao(userFuncao);
-
-        try {
-          const response = await fetch(`${API_URL}/listarAreas`);
-          const data = await response.json();
-
-          if (!response.ok) {
-            Alert.alert("Erro", data.message || "Falha ao carregar áreas");
-            return;
-          }
-
-          let areasFiltradas = data;
-
-          // Se for agente, filtra apenas as áreas que ele é responsável
-          if (userFuncao === "agente" && idUsuario) {
-            areasFiltradas = data.filter(
-              (area) => area.idResponsavel === idUsuario
-            );
-          }
-
-          setAreas(areasFiltradas);
-        } catch (error) {
-          Alert.alert("Erro", "Não foi possível conectar ao servidor");
-          console.error(error);
-        } finally {
-          setLoading(false);
+const groupAreas = (areasList) => {
+    const groupedData = areasList.reduce((acc, area) => {
+        const categoria = (area.categoria || 'Outros').toLowerCase(); 
+        if (!acc[categoria]) {
+            acc[categoria] = [];
         }
-      };
+        acc[categoria].push({ type: 'item', data: area });
+        return acc;
+    }, {});
 
-      fetchAreas();
-    }, [])
-  );
+    const finalGrouped = [];
+    
+    const order = ['bairro', 'povoado']; 
+    const processedKeys = new Set();
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#05419A" />
-        <Text>Carregando áreas...</Text>
-      </View>
+    order.forEach(key => {
+        if (groupedData[key] && groupedData[key].length > 0) {
+            const title = key.toUpperCase();
+            finalGrouped.push({ type: 'header', title: title, key: `header-${title}` });
+            finalGrouped.push(...groupedData[key]);
+            processedKeys.add(key);
+        }
+    });
+    
+    Object.keys(groupedData).forEach(categoria => {
+        if (!processedKeys.has(categoria)) {
+             const title = categoria.toUpperCase();
+             finalGrouped.push({ type: 'header', title: title, key: `header-${title}` });
+             finalGrouped.push(...groupedData[categoria]);
+        }
+    }
     );
-  }
 
-  return (
-    <View style={styles.container}>
-      <Cabecalho navigation={navigation} />
-      <View style={styles.subContainer}>
-        <Text style={styles.title}>Áreas cadastradas</Text>
-
-        {funcao === "adm" && (
-          <TouchableOpacity
-            onPress={() => navigation.navigate("CadastrarArea")}
-            style={styles.btnCadastrar}
-          >
-            <Text>Cadastrar Área</Text>
-          </TouchableOpacity>
-        )}
-
-        <FlatList
-          data={areas}
-          renderItem={({ item }) => (
-            <Item
-              area={item}
-              navigation={navigation}
-              modo={modo}
-              idAgente={idAgente}
-              funcao={funcao}
-              modoI={modoI}
-            />
-          )}
-        />
-      </View>
-    </View>
-  );
-}
+    return finalGrouped;
+};
 
 function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
-  return modo === "atribuir" ? (
-    <TouchableOpacity
-      onPress={() =>
-        navigation.navigate("AtribuirQuarteirao", {
-          idArea: area._id,
-          mapaUrl: area.mapaUrl,
-          nomeArea: area.nome,
-          idAgente: idAgente,
-        })
-      }
-      style={styles.container}
-    >
-      <View style={styles.containerInfo}>
-        <Text style={styles.title}>Atribuir ... {area.nome}</Text>
-        <Text style={styles.description}>{area.codigo}</Text>
-      </View>
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity
-      onPress={() =>
-        navigation.navigate("ListarQuarteirao", {
-          idArea: area._id,
-          mapaUrl: area.mapaUrl,
-          nomeArea: area.nome,
-          funcao,
-          modoI,
-        })
-      }
-      style={styles.container}
-    >
-      <View style={styles.containerInfo}>
-        <Text style={styles.title}>{area.nome}</Text>
-        <Text style={styles.description}>{area.codigo}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+    
+    const areaCodigo = area.codigo || ''; 
+    
+    const areaNomeFormatado = (areaCodigo && areaCodigo !== '000') 
+        ? `${area.nome} - ${areaCodigo}`
+        : area.nome;
+
+    const handlePress = () => {
+        if (modo === "atribuir") {
+            navigation.navigate("AtribuirQuarteirao", {
+                idArea: area._id,
+                mapaUrl: area.mapaUrl,
+                nomeArea: area.nome,
+                idAgente: idAgente,
+            });
+        } else {
+            navigation.navigate("ListarQuarteirao", {
+                idArea: area._id,
+                mapaUrl: area.mapaUrl,
+                nomeArea: area.nome,
+                funcao,
+                modoI,
+            });
+        }
+    };
+    
+    return (
+        <TouchableOpacity
+            onPress={handlePress}
+            style={styles.listItem}
+        >
+            <View style={styles.listItemContent}>
+                <Text 
+                    style={styles.listItemText}
+                    numberOfLines={0}
+                    ellipsizeMode="tail"
+                >
+                    {areaNomeFormatado}
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    // padding: 20,
-  },
-  subContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#05419A",
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    elevation: 3,
-    flex: 1,
-  },
-  nome: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  mapa: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginTop: 10,
-  },
+export default function ListarArea({ route, navigation }) {
+    const { modo, idAgente, nomeAgente, idUsuario, modoI } = route.params;
+    const [areas, setAreas] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [funcao, setFuncao] = useState(false);
 
-  img: {
-    width: 100,
-    height: 100,
-  },
-  containerInfo: {
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    flex: 1,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  description: {
-    fontSize: 14,
-    fontWeight: 300,
-  },
-  btnCadastrar: {
-    margin: 10,
-    backgroundColor: "green",
-    padding: 10,
-    borderRadius: 5,
-  },
-  btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
+    useFocusEffect(
+        useCallback(() => {
+            const fetchAreas = async () => {
+                setLoading(true);
+                const userFuncao = await getFuncao();
+                if (userFuncao) setFuncao(userFuncao);
+
+                try {
+                    const response = await fetch(`${API_URL}/listarAreas`);
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        Alert.alert("Erro", data.message || "Falha ao carregar áreas");
+                        return;
+                    }
+
+                    let areasFiltradas = data;
+
+                    if (userFuncao === "agente" && idUsuario) {
+                        areasFiltradas = data.filter(
+                            (area) => area.idResponsavel === idUsuario
+                        );
+                    }
+
+                    setAreas(areasFiltradas);
+                } catch (error) {
+                    Alert.alert("Erro", "Não foi possível conectar ao servidor");
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            fetchAreas();
+        }, [])
+    );
+
+    const renderItem = ({ item }) => {
+        if (item.type === 'header') {
+            return (
+                <View style={styles.groupHeaderContainer}>
+                     <Text style={styles.groupHeader}>{item.title}</Text>
+                </View>
+            );
+        }
+        return (
+             <Item
+                 area={item.data}
+                 navigation={navigation}
+                 modo={modo}
+                 idAgente={idAgente}
+                 funcao={funcao}
+                 modoI={modoI}
+             />
+        );
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#05419A" />
+                <Text style={{ marginTop: font(1.5) }}>Carregando áreas...</Text>
+            </View>
+        );
+    }
+    
+    const groupedAreas = groupAreas(areas);
+
+    return (
+        <SafeAreaView style={styles.safeArea}>
+            <Cabecalho navigation={navigation} /> 
+            
+            <View style={styles.container}>
+                <View style={styles.areasTitleContainer}>
+                    <Text style={styles.areasTitle}>ÁREAS</Text>
+                </View>
+
+                <FlatList
+                    data={groupedAreas}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.type === 'header' ? item.key : item.data._id}
+                    contentContainerStyle={styles.listContent}
+                />
+            </View>
+            
+            {/* BOTÃO FAB (Flutuante) */}
+            {funcao === "adm" && (
+                <TouchableOpacity
+                    onPress={() => navigation.navigate("CadastrarArea")}
+                    style={styles.fabButton}
+                >
+                    <Icon name="plus" size={font(5)} color="#fff" />
+                </TouchableOpacity>
+            )}
+
+        </SafeAreaView>
+    );
+}
+
+const FAB_SIZE = height(8); // Aumentado o tamanho
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: "#fff",
+    },
+    container: {
+        flex: 1,
+        backgroundColor: "#fff",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+    listContent: {
+        paddingBottom: height(2),
+    },
+    areasTitleContainer: {
+              backgroundColor: "#ecececff", 
+        paddingVertical: height(2),
+        alignItems: 'center',
+        borderBottomWidth: 2,
+        borderBottomColor: "#05419A"
+    },
+    areasTitle: {
+        color: "#05419A",
+        fontSize: font(4.5),
+    },
+    groupHeaderContainer: {
+        backgroundColor: "#05419A", 
+        paddingHorizontal: width(4), 
+        paddingVertical: height(1.5),
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    groupHeader: {
+        color: "#fff",
+        fontSize: font(3), 
+        fontWeight: "bold",
+        textTransform: 'uppercase',
+    },
+    listItem: {
+        backgroundColor: "#ecececff", 
+        paddingVertical: height(1.5),
+        paddingHorizontal: width(4), 
+        borderBottomWidth: 1,
+        borderBottomColor: '#05419A', 
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    listItemContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+        marginLeft: width(5), 
+    },
+    listItemText: {
+        fontSize: font(3),
+        color: "#05419A",
+        fontWeight: "600",
+        flex: 1,
+        flexWrap: 'wrap',
+    },
+    
+    fabButton: {
+        position: 'absolute',
+        width: FAB_SIZE,
+        height: FAB_SIZE,
+        alignItems: 'center',
+        justifyContent: 'center',
+        right: width(6),
+        bottom: height(4),
+        backgroundColor: '#05419A',
+        borderRadius: FAB_SIZE / 2, 
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        zIndex: 10,
+        borderWidth: 1, 
+        borderColor: '#fff', 
+    },
+    fabText: { 
+        color: "#fff", 
+        fontSize: font(6.5), // Fonte maior
+        lineHeight: font(6.5), 
+    },
 });
