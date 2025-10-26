@@ -104,6 +104,7 @@ export default function ImovelOffline({ route, navigation }) {
               {imoveis[rua].map((imovel) => {
                 const jaVisitado = imovel.status === "visitado";
                 const mostrarRecusa = imovel.status === "recusa";
+                const fechado = imovel.status === "fechado";
                 const isDisabled = jaVisitado;
                 
                 const tipoDoImovel = imovel.complemento || imovel.tipo;
@@ -121,7 +122,7 @@ export default function ImovelOffline({ route, navigation }) {
                         {jaVisitado && (
                           <MaterialCommunityIcons
                             name="check"
-                            size={font(2.5)}
+                            size={font(2)}
                             color="#fff"
                           />
                         )}

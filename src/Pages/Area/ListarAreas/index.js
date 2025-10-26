@@ -197,9 +197,7 @@ export default function ListarArea({ route, navigation }) {
 
   return (
     <View style={styles.safeArea}>
-      {/* USO DO SafeAreaView CORRIGIDO */}
       <Cabecalho navigation={navigation} />
-      {/* <SafeAreaView style={styles.safeArea}> */}
       <View style={styles.container}>
         <View style={styles.areasTitleContainer}>
           <Text style={styles.areasTitle}>ÁREAS</Text>
@@ -245,14 +243,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
   },
-  listContent: {
-    paddingBottom: height(2),
-  },
+
   areasTitleContainer: {
     backgroundColor: "#ecececff",
     paddingVertical: height(2),
     alignItems: "center",
-    borderBottomWidth: 2,
+    borderBottomWidth: 1,
     borderBottomColor: "#05419A",
   },
   areasTitle: {

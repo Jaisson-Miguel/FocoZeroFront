@@ -49,7 +49,8 @@ export default function ResumoDiario({ navigation }) {
                 const data = await res.json();
 
                 if (!res.ok) {
-                    Alert.alert("Aviso", data.message || "Nenhum dado encontrado.");
+                    // Mantenho o Alert, mas garanto o estado vazio
+                    // Alert.alert("Aviso", data.message || "Nenhum dado encontrado.");
                     setResumoPorArea([]);
                     setQuarteiroes([]);
                 } else {
@@ -126,138 +127,154 @@ export default function ResumoDiario({ navigation }) {
         }
     };
 
+    // Variável para checar se há dados para exibir
+    const hasData = resumoPorArea.length > 0 || quarteiroes.length > 0;
+    
+    // Define o estilo do contentContainerStyle do ScrollView
+    const scrollContentStyle = hasData || loading 
+        ? styles.containerWithData 
+        : styles.containerEmpty;
+
     return (
-        <ScrollView>
-            <Cabecalho navigation={navigation} />
-          <View style={styles.container}>
-            <Text style={styles.titulo}>Resumo Diário</Text>
+        <View style={styles.fullScreenContainer}>
+             <Cabecalho navigation={navigation} />
+             
+            <ScrollView contentContainerStyle={scrollContentStyle}>
+                <View style={styles.contentWrapper}> 
+                    <Text style={styles.titulo}>Resumo Diário</Text>
 
-            {loading ? (
-                <ActivityIndicator size="large" color="#2CA856" />
-            ) : resumoPorArea.length === 0 && quarteiroes.length === 0 ? (
-                <Text style={styles.textBase}>Nenhum dado disponível para hoje.</Text>
-            ) : (
-                <>
-                    {/* 🔹 Totais Gerais */}
-                    <View style={styles.box}>
-                        <Text style={styles.subtitulo}>Totais do dia:</Text>
-                        <Text style={styles.textBase}>Total de visitas: {totais.totalVisitas || 0}</Text>
-                        <Text style={styles.textBase}>
-                            Total de quarteirões finalizados: {totais.totalQuarteiroes || 0}
-                        </Text>
-                    </View>
-
-                    {/* 🔹 Resumo por Área - Implementação de Expansão/Colapso */}
-                    {resumoPorArea.map((area) => (
-                        <View key={area.idArea}> 
-                            
-                            {/* 1. Área Clicável para o Nome e Expansão/Colapso (Section Header) */}
-                            <TouchableOpacity
-                                style={styles.sectionHeaderContainer} 
-                                onPress={() => toggleArea(area.idArea)}
-                            >
-                                {/* Nome da Área alinhado à esquerda */}
-                                <Text style={styles.sectionTitle}>{area.nomeArea}</Text>
-
-                                {/* 🆕 Ícone de seta alinhado à direita */}
-                                <Icon
-                                    name={expandedAreaId === area.idArea ? 'chevron-down' : 'chevron-forward'}
-                                    size={font(3)}
-                                    color="#eee"
-                                    style={styles.arrowIcon}
-                                />
-
-                            </TouchableOpacity>
-
-                            {/* 2. Conteúdo Condicional: Mostra se o expandedAreaId for igual ao idArea atual */}
-                            {expandedAreaId === area.idArea && (
-                                <View>
-                                    <View style={styles.box}>
-                                        <Text style={styles.subtitulo}>
-                                            Total de visitas: {area.totalVisitas}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
-                                        {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => {
-                                            const tiposMap = {
-                                                r: "Residencial",
-                                                c: "Comercial",
-                                                tb: "Terreno Baldio",
-                                                out: "Outros",
-                                                pe: "Ponto Estratégico",
-                                            };
-                                            return (
-                                                <Text key={tipo} style={styles.textBase}>
-                                                    {tiposMap[tipo] || tipo}: {qtd}
-                                                </Text>
-                                            );
-                                        })}
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.subtitulo}>Depósitos inspecionados:</Text>
-                                        {Object.entries(area.totalDepositosInspecionados).map(
-                                            ([tipo, qtd]) => (
-                                                <Text key={tipo} style={styles.textBase}>
-                                                    {tipo.toUpperCase()}: {qtd}
-                                                </Text>
-                                            )
-                                        )}
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.textBase}>Depósitos eliminados: {area.totalDepEliminados}</Text>
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.textBase}>
-                                            Imóveis tratados com larvicida: {area.totalImoveisLarvicida}
-                                        </Text>
-                                        <Text style={styles.textBase}>
-                                            Total de larvicida aplicada: {area.totalLarvicidaAplicada}
-                                        </Text>
-                                        <Text style={styles.textBase}>
-                                            Depósitos tratados com larvicida:{" "}
-                                            {area.depositosTratadosComLarvicida}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.textBase}>Total de amostras: {area.totalAmostras}</Text>
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.textBase}>Imóveis com foco: {area.totalFocos}</Text>
-                                    </View>
-
-                                    <View style={styles.box}>
-                                        <Text style={styles.subtitulo}>Quarteirões finalizados:</Text>
-                                        <Text style={styles.textBase}>
-                                            {(area.quarteiroes || []).length > 0
-                                                ? (area.quarteiroes || []).join(", ")
-                                                : "Nenhum finalizado"}
-                                        </Text>
-                                        <Text style={styles.textBase}>Total de quarteirões: {area.totalQuarteiroes || 0}</Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {/* 3. Botão Fechar Diário (Visível sempre) */}
-                            <TouchableOpacity
-                                style={styles.botaoFechar}
-                                onPress={() => {
-                                    setAreaSelecionada(area.idArea);
-                                    setModalVisible(true);
-                                }}
-                            >
-                                <Text style={styles.textoBotao}>FECHAR DIÁRIO</Text>
-                            </TouchableOpacity>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#2CA856" style={styles.loadingIndicator} />
+                    ) : !hasData ? (
+                        // ⚠️ Container para a mensagem de "vazio"
+                        <View style={styles.emptyMessageContainer}>
+                            <Text style={styles.textBase}>Nenhum dado disponível para hoje.</Text>
                         </View>
-                    ))}
-                </>
-            )}
+                    ) : (
+                        // ⚠️ Conteúdo normal, só é exibido se houver dados
+                        <>
+                            {/* 🔹 Totais Gerais */}
+                            <View style={styles.box}>
+                                <Text style={styles.subtitulo}>Totais do dia:</Text>
+                                <Text style={styles.textBase}>Total de visitas: {totais.totalVisitas || 0}</Text>
+                                <Text style={styles.textBase}>
+                                    Total de quarteirões finalizados: {totais.totalQuarteiroes || 0}
+                                </Text>
+                            </View>
+
+                            {/* 🔹 Resumo por Área - Implementação de Expansão/Colapso */}
+                            {resumoPorArea.map((area) => (
+                                <View key={area.idArea}> 
+                                    
+                                    {/* 1. Área Clicável para o Nome e Expansão/Colapso (Section Header) */}
+                                    <TouchableOpacity
+                                        style={styles.sectionHeaderContainer} 
+                                        onPress={() => toggleArea(area.idArea)}
+                                    >
+                                        {/* Nome da Área alinhado à esquerda */}
+                                        <Text style={styles.sectionTitle}>{area.nomeArea}</Text>
+
+                                        {/* 🆕 Ícone de seta alinhado à direita */}
+                                        <Icon
+                                            name={expandedAreaId === area.idArea ? 'chevron-down' : 'chevron-forward'}
+                                            size={font(3)}
+                                            color="#eee"
+                                            style={styles.arrowIcon}
+                                        />
+
+                                    </TouchableOpacity>
+
+                                    {/* 2. Conteúdo Condicional: Mostra se o expandedAreaId for igual ao idArea atual */}
+                                    {expandedAreaId === area.idArea && (
+                                        <View>
+                                            <View style={styles.box}>
+                                                <Text style={styles.subtitulo}>
+                                                    Total de visitas: {area.totalVisitas}
+                                                </Text>
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
+                                                {Object.entries(area.totalPorTipoImovel).map(([tipo, qtd]) => {
+                                                    const tiposMap = {
+                                                        r: "Residencial",
+                                                        c: "Comercial",
+                                                        tb: "Terreno Baldio",
+                                                        out: "Outros",
+                                                        pe: "Ponto Estratégico",
+                                                    };
+                                                    return (
+                                                        <Text key={tipo} style={styles.textBase}>
+                                                            {tiposMap[tipo] || tipo}: {qtd}
+                                                        </Text>
+                                                    );
+                                                })}
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.subtitulo}>Depósitos inspecionados:</Text>
+                                                {Object.entries(area.totalDepositosInspecionados).map(
+                                                    ([tipo, qtd]) => (
+                                                        <Text key={tipo} style={styles.textBase}>
+                                                            {tipo.toUpperCase()}: {qtd}
+                                                        </Text>
+                                                    )
+                                                )}
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.textBase}>Depósitos eliminados: {area.totalDepEliminados}</Text>
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.textBase}>
+                                                    Imóveis tratados com larvicida: {area.totalImoveisLarvicida}
+                                                </Text>
+                                                <Text style={styles.textBase}>
+                                                    Total de larvicida aplicada: {area.totalLarvicidaAplicada}
+                                                </Text>
+                                                <Text style={styles.textBase}>
+                                                    Depósitos tratados com larvicida:{" "}
+                                                    {area.depositosTratadosComLarvicida}
+                                                </Text>
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.textBase}>Total de amostras: {area.totalAmostras}</Text>
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.textBase}>Imóveis com foco: {area.totalFocos}</Text>
+                                            </View>
+
+                                            <View style={styles.box}>
+                                                <Text style={styles.subtitulo}>Quarteirões finalizados:</Text>
+                                                <Text style={styles.textBase}>
+                                                    {(area.quarteiroes || []).length > 0
+                                                        ? (area.quarteiroes || []).join(", ")
+                                                        : "Nenhum finalizado"}
+                                                </Text>
+                                                <Text style={styles.textBase}>Total de quarteirões: {area.totalQuarteiroes || 0}</Text>
+                                            </View>
+                                        </View>
+                                    )}
+
+                                    {/* 3. Botão Fechar Diário (Visível sempre) */}
+                                    <TouchableOpacity
+                                        style={styles.botaoFechar}
+                                        onPress={() => {
+                                            setAreaSelecionada(area.idArea);
+                                            setModalVisible(true);
+                                        }}
+                                    >
+                                        <Text style={styles.textoBotao}>FECHAR DIÁRIO</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
+                        </>
+                    )}
+                </View>
+            </ScrollView>
 
             <Modal
                 transparent
@@ -307,8 +324,7 @@ export default function ResumoDiario({ navigation }) {
                     </View>
                 </View>
             </Modal>
-            </View>
-        </ScrollView>
+        </View>
     );
 }
 
@@ -316,20 +332,45 @@ export default function ResumoDiario({ navigation }) {
 // ESTILOS RESPONSIVOS
 // ----------------------------------------------------------------------------------
 const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        paddingHorizontal: width(2), 
-        paddingVertical: height(2), 
+    // ⚠️ NOVO: Container principal com flex: 1 para ocupar toda a tela
+    fullScreenContainer: {
+        flex: 1,
         backgroundColor: "#f5f5f5",
     },
     
+    // ⚠️ NOVO: Estilo para o contentContainerStyle quando há dados ou está carregando
+    containerWithData: {
+        flexGrow: 1, // Permite que o ScrollView cresça
+        paddingHorizontal: width(2), 
+        paddingVertical: height(2), 
+    },
+    
+    // ⚠️ NOVO: Estilo para o contentContainerStyle quando está vazio (centralizado)
+    containerEmpty: {
+        flexGrow: 1, // Ocupa todo o espaço vertical
+        justifyContent: 'center', // Centraliza o conteúdo verticalmente
+        alignItems: 'center', // Centraliza o conteúdo horizontalmente
+    },
+    
+    // ⚠️ NOVO: Wrapper para o conteúdo interno, só aplica o padding para o conteúdo com dados
+    contentWrapper: {
+        flex: 1,
+        // O paddingHorizontal/Vertical está no containerWithData/containerEmpty
+    },
+    
+    // ⚠️ NOVO: Estilo para o ActivityIndicator (Centralizado)
+    loadingIndicator: {
+        marginTop: height(10), // Adiciona um espaçamento para não ficar grudado no título
+    },
+
     // --- Título Principal ---
     titulo: {
         fontSize: font(3.8), 
         fontWeight: "bold",
         color: '#05419A',
         paddingBottom: height(2), 
-        alignSelf: "center"
+        alignSelf: "center",
+        marginTop: height(1)
     },
 
     // --- Card de Resumo (Box) ---
@@ -353,6 +394,14 @@ const styles = StyleSheet.create({
         fontSize: font(2.25), 
         marginBottom: height(0.25), 
         color: '#333',
+    },
+    
+    // ⚠️ NOVO: Container para a mensagem de vazio (Centralizada)
+    emptyMessageContainer: {
+        flex: 1,
+        justifyContent: 'center', // Centraliza a mensagem verticalmente
+        alignItems: 'center', // Centraliza a mensagem horizontalmente
+        paddingHorizontal: width(5),
     },
     
     // CONTAINER DO CABEÇALHO DA SEÇÃO (TouchableOpacity)

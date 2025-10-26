@@ -24,6 +24,8 @@ export default function ListarVisitas({ navigation }) {
             const visitasSalvas = await AsyncStorage.getItem("visitas");
             if (visitasSalvas) {
                 setVisitas(JSON.parse(visitasSalvas));
+            } else {
+                setVisitas([]); // Garante que o estado é limpo se não houver dados
             }
         } catch (error) {
             Alert.alert("Erro", "Não foi possível carregar as visitas.");
@@ -211,6 +213,9 @@ export default function ListarVisitas({ navigation }) {
          // Não reativo, mantido por fidelidade ao código original. Retorna 0 no estado atual.
          return 0; 
     }
+    
+    // Variável para checar se há visitas
+    const hasVisitas = visitas.length > 0;
 
     return (
         <View style={styles.container}>
@@ -223,82 +228,92 @@ export default function ListarVisitas({ navigation }) {
                 </Text>
             </View>
 
-            <ScrollView style={styles.scrollView}>
+            {/* Ajuste no ScrollView para centralizar o conteúdo quando vazio */}
+            <ScrollView contentContainerStyle={!hasVisitas ? styles.scrollViewCentralized : styles.scrollView}>
                 {Object.keys(agrupadas).length === 0 ? (
-                    <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
+                    <View style={styles.emptyMessageContainer}>
+                         <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
+                    </View>
                 ) : (
-                    Object.keys(agrupadas).map((nomeArea) => (
-                        <View key={nomeArea} style={styles.areaBox}>
-                            {/* Título da Área (Fundo Azul) */}
-                            <Text style={styles.areaTitulo}>{nomeArea.toUpperCase()}</Text>
-                            
-                            {Object.keys(agrupadas[nomeArea]).map((nomeQuarteirao) => (
-                                <View key={nomeQuarteirao} style={styles.quarteiraoBox}>
-                                    {/* Título do Quarteirão (Subtítulo com cor diferente) */}
-                                    <Text style={styles.quarteiraoTitulo}>
-                                        Quarteirão: {nomeQuarteirao}
-                                    </Text>
-                                    
-                                    {agrupadas[nomeArea][nomeQuarteirao].map((v, i) => (
-                                        <TouchableOpacity
-                                            key={i}
-                                            style={styles.itemContainer}
-                                            onPress={() =>
-                                                navigation.navigate("DetalhesVisita", { visita: v })
-                                            }
-                                            activeOpacity={0.7}
-                                        >
-                                            <View style={styles.logradouroContainer}>
-                                                <Text style={styles.logradouroText}>
-                                                    {v.logradouro}, {v.numero} - ({ (v.tipo || 'Tipo não def.').toUpperCase() })
-                                                </Text>
-                                            </View>
-                                            
-                                            {/* Status de Sincronização */}
-                                            <View style={styles.syncStatus}>
-                                                {v.sincronizado ? (
-                                                    <MaterialCommunityIcons name="check-circle" size={font(2.5)} color="#4CAF50" />
-                                                ) : (
-                                                    <MaterialCommunityIcons name="cloud-sync" size={font(2.5)} color="#F44336" />
-                                                )}
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            ))}
-                        </View>
-                    ))
+                    <>
+                        {Object.keys(agrupadas).map((nomeArea) => (
+                            <View key={nomeArea} style={styles.areaBox}>
+                                {/* Título da Área (Fundo Azul) */}
+                                <Text style={styles.areaTitulo}>{nomeArea.toUpperCase()}</Text>
+                                
+                                {Object.keys(agrupadas[nomeArea]).map((nomeQuarteirao) => (
+                                    <View key={nomeQuarteirao} style={styles.quarteiraoBox}>
+                                        {/* Título do Quarteirão (Subtítulo com cor diferente) */}
+                                        <Text style={styles.quarteiraoTitulo}>
+                                            Quarteirão: {nomeQuarteirao}
+                                        </Text>
+                                        
+                                        {agrupadas[nomeArea][nomeQuarteirao].map((v, i) => (
+                                            <TouchableOpacity
+                                                key={i}
+                                                style={styles.itemContainer}
+                                                onPress={() =>
+                                                    navigation.navigate("DetalhesVisita", { visita: v })
+                                                }
+                                                activeOpacity={0.7}
+                                            >
+                                                <View style={styles.logradouroContainer}>
+                                                    <Text style={styles.logradouroText}>
+                                                        {v.logradouro}, {v.numero} - ({ (v.tipo || 'Tipo não def.').toUpperCase() })
+                                                    </Text>
+                                                </View>
+                                                
+                                                {/* Status de Sincronização */}
+                                                <View style={styles.syncStatus}>
+                                                    {v.sincronizado ? (
+                                                        <MaterialCommunityIcons name="check-circle" size={font(2.5)} color="#4CAF50" />
+                                                    ) : (
+                                                        <MaterialCommunityIcons name="cloud-sync" size={font(2.5)} color="#F44336" />
+                                                    )}
+                                                </View>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                ))}
+                            </View>
+                        ))}
+                        
+                        {/* Botões de Ação - Só aparecem se houver visitas */}
+                        {hasVisitas && (
+                            <>
+                                <TouchableOpacity
+                                    style={[styles.botao, styles.botaoSincronizar]}
+                                    onPress={sincronizarTudo}
+                                    disabled={isSyncing}
+                                >
+                                    {isSyncing ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Text style={styles.textoBotao}>SINCRONIZAR DADOS</Text>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.botao, styles.botaoFinalizar]}
+                                    onPress={finalizarDiario}
+                                    disabled={isSyncing}
+                                >
+                                    <Text style={styles.textoBotao}>FINALIZAR DIÁRIO</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.botao, styles.botaoLimpar]}
+                                    onPress={limparVisitas}
+                                    disabled={isSyncing}
+                                >
+                                    <Text style={styles.textoBotao}>LIMPAR VISITAS</Text>
+                                </TouchableOpacity>
+                                
+                                <View style={{ height: height(4) }} /> 
+                            </>
+                        )}
+                    </>
                 )}
-                
-                <TouchableOpacity
-                    style={[styles.botao, styles.botaoSincronizar]}
-                    onPress={sincronizarTudo}
-                    disabled={isSyncing}
-                >
-                    {isSyncing ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Text style={styles.textoBotao}>SINCRONIZAR DADOS</Text>
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.botao, styles.botaoFinalizar]}
-                    onPress={finalizarDiario}
-                    disabled={isSyncing}
-                >
-                    <Text style={styles.textoBotao}>FINALIZAR DIÁRIO</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.botao, styles.botaoLimpar]}
-                    onPress={limparVisitas}
-                    disabled={isSyncing}
-                >
-                    <Text style={styles.textoBotao}>LIMPAR VISITAS</Text>
-                </TouchableOpacity>
-                
-                <View style={{ height: height(4) }} /> 
             </ScrollView>
         </View>
     );
@@ -312,9 +327,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#F5F5F5",
     },
+    // Estilo para o ScrollView quando HÁ conteúdo
     scrollView: {
         paddingHorizontal: width(3.75), // ~15px base
-        paddingVertical: height(2.5),     // ~10px base
+        paddingVertical: height(2.5),     // ~10px base
+    },
+    // NOVO: Estilo para o contentContainerStyle quando NÃO HÁ conteúdo
+    scrollViewCentralized: {
+        flexGrow: 1, // Permite que o conteúdo ocupe o espaço total
+        justifyContent: 'center', // Centraliza o conteúdo verticalmente
+        alignItems: 'center', // Centraliza o conteúdo horizontalmente
     },
     
     // --- Header com contagem de pendentes ---
@@ -346,10 +368,10 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         backgroundColor: "#05419A",
         color: "white",
-        paddingVertical: height(2),   // ~8px base
+        paddingVertical: height(2),   // ~8px base
         paddingHorizontal: width(2.5), // ~10px base
-        marginBottom: height(1),    // ~8px base
-        borderRadius: width(1),     // ~4px base
+        marginBottom: height(1),    // ~8px base
+        borderRadius: width(1),     // ~4px base
     },
 
     // --- Agrupamento por Quarteirão ---
@@ -364,10 +386,10 @@ const styles = StyleSheet.create({
         fontWeight: "600",
         color: '#333',
         backgroundColor: '#EAEAEA',
-        paddingVertical: height(1.25),  // ~5px base
+        paddingVertical: height(1.25),  // ~5px base
         paddingHorizontal: width(2.5), // ~10px base
-        marginBottom: height(0.25),   // ~5px base
-        borderRadius: width(1),      // ~2px base
+        marginBottom: height(0.25),   // ~5px base
+        borderRadius: width(1),      // ~2px base
     },
 
     // --- Item de Visita ---
@@ -376,12 +398,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#fff',
-        paddingVertical: height(1.75),  // ~12px base
+        paddingVertical: height(1.75),  // ~12px base
         paddingHorizontal: width(3.75), // ~15px base
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
-        borderRadius: width(2),      // ~4px base
-        marginBottom: height(0.25),   // ~2px base
+        borderRadius: width(2),      // ~4px base
+        marginBottom: height(0.25),   // ~2px base
     },
     logradouroContainer: {
         flex: 1,
@@ -397,12 +419,17 @@ const styles = StyleSheet.create({
     },
 
     // --- Mensagem de Vazio ---
+    // NOVO: Container para a mensagem de vazio
+    emptyMessageContainer: {
+        flex: 1, // Ocupa todo o espaço do contentContainerStyle (centralizado)
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: width(5),
+    },
     msg: {
         textAlign: "center",
-        marginTop: height(7.5), // ~30px base
-        fontSize: font(2.25), // ~16px base
+        fontSize: font(2.5), // Aumentei um pouco o tamanho para dar destaque
         color: "#777",
-        padding: height(2), // ~20px base
     },
 
     // --- Botões de Ação ---

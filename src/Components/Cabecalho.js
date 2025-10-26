@@ -40,11 +40,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     backgroundColor: "#05419A",
-    paddingVertical: height(1),
+    paddingVertical: height(2),
     paddingHorizontal: width(2),
     alignItems: "flex-end",
     justifyContent: "space-between",
-    height: height(11),
+    height: height(12),
     width: width(100),
   },
   headerText: {

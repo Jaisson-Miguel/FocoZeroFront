@@ -122,7 +122,7 @@ export default function ImovelOffline({ route, navigation }) {
             </View>
 
                 {ruas.length === 0 ? (
-                    <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
+                        <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
                 ) : (
                     ruas.map((rua) => (
                         <View key={rua}>
