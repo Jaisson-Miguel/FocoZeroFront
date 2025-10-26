@@ -1,9 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 
-/**
- * Salva o token no SecureStore
- */
 export const salvarToken = async (token) => {
   try {
     await SecureStore.setItemAsync("token", token);
@@ -13,9 +10,6 @@ export const salvarToken = async (token) => {
   }
 };
 
-/**
- * Remove o token (logout)
- */
 export const logout = async (navigation) => {
   try {
     await SecureStore.deleteItemAsync("token");
@@ -26,19 +20,12 @@ export const logout = async (navigation) => {
   }
 };
 
-/**
- * Verifica se existe um token
- * @returns {Promise<boolean>}
- */
 export const existeToken = async () => {
   const token = await SecureStore.getItemAsync("token");
-  return !!token; // true se existir, false se não
+  return !!token; 
 };
 
-/**
- * Recupera o payload do token
- * @returns {Promise<object|null>} payload do JWT ou null
- */
+
 export const getUsuarioFromToken = async () => {
   try {
     const token = await SecureStore.getItemAsync("token");
@@ -51,10 +38,6 @@ export const getUsuarioFromToken = async () => {
   }
 };
 
-/**
- * Recupera o nome do usuário
- * @returns {Promise<string|null>}
- */
 export const getNome = async () => {
   const usuario = await getUsuarioFromToken();
   return usuario?.nome || null;
@@ -65,10 +48,6 @@ export const getId = async () => {
   return usuario?.id || null;
 };
 
-/**
- * Recupera a função do usuário
- * @returns {Promise<string|null>}
- */
 export const getFuncao = async () => {
   const usuario = await getUsuarioFromToken();
   return usuario?.funcao || null;

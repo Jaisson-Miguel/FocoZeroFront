@@ -10,11 +10,10 @@ import {
     Modal,
     TextInput,
 } from "react-native";
-// 🆕 Importa o Ionicons (Um conjunto de ícones comum)
-import Icon from 'react-native-vector-icons/Ionicons'; 
+import Icon from 'react-native-vector-icons/Ionicons';
 import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
-import { height, width, font } from "../../../utils/responsive.js"; 
+import { height, width, font } from "../../../utils/responsive.js";
 import Cabecalho from "../../../Components/Cabecalho";
 
 
@@ -28,15 +27,12 @@ export default function ResumoDiario({ navigation }) {
     const [atividade, setAtividade] = useState("");
     const [areaSelecionada, setAreaSelecionada] = useState(null);
 
-    // ESTADO para controlar qual área está expandida.
     const [expandedAreaId, setExpandedAreaId] = useState(null);
 
-    // NOVA FUNÇÃO: Alterna a expansão da área.
     const toggleArea = (idArea) => {
         setExpandedAreaId(idArea === expandedAreaId ? null : idArea);
     };
 
-    // 🔹 Busca o resumo diário ao montar a tela
     useEffect(() => {
         const buscarResumo = async () => {
             try {
@@ -49,8 +45,6 @@ export default function ResumoDiario({ navigation }) {
                 const data = await res.json();
 
                 if (!res.ok) {
-                    // Mantenho o Alert, mas garanto o estado vazio
-                    // Alert.alert("Aviso", data.message || "Nenhum dado encontrado.");
                     setResumoPorArea([]);
                     setQuarteiroes([]);
                 } else {
@@ -72,7 +66,6 @@ export default function ResumoDiario({ navigation }) {
         buscarResumo();
     }, []);
 
-    // 🔹 Envia fechamento do diário para o backend
     const handleFecharDiario = async (idArea, atividade) => {
         try {
             const idAgente = await getId();
@@ -95,7 +88,7 @@ export default function ResumoDiario({ navigation }) {
                 totalImoveisLarvicida: areaSelecionadaObj.totalImoveisLarvicida,
                 totalQtdLarvicida: areaSelecionadaObj.totalLarvicidaAplicada,
                 totalDepLarvicida: areaSelecionadaObj.depositosTratadosComLarvicida,
-                quarteiroes: areaSelecionadaObj.quarteiroes || [], // adiciona os números
+                quarteiroes: areaSelecionadaObj.quarteiroes || [],
                 totalQuarteiroes: areaSelecionadaObj.totalQuarteiroes || 0,
             };
 
@@ -114,8 +107,7 @@ export default function ResumoDiario({ navigation }) {
             const data = await res.json();
             if (res.ok) {
                 Alert.alert("Sucesso", "Diário da área cadastrado!");
-                // Remove a área da lista após o fechamento bem-sucedido
-                setResumoPorArea(prevResumo => 
+                setResumoPorArea(prevResumo =>
                     prevResumo.filter(area => area.idArea !== idArea)
                 );
             } else {
@@ -127,33 +119,28 @@ export default function ResumoDiario({ navigation }) {
         }
     };
 
-    // Variável para checar se há dados para exibir
     const hasData = resumoPorArea.length > 0 || quarteiroes.length > 0;
-    
-    // Define o estilo do contentContainerStyle do ScrollView
-    const scrollContentStyle = hasData || loading 
-        ? styles.containerWithData 
+
+    const scrollContentStyle = hasData || loading
+        ? styles.containerWithData
         : styles.containerEmpty;
 
     return (
         <View style={styles.fullScreenContainer}>
-             <Cabecalho navigation={navigation} />
-             
+            <Cabecalho navigation={navigation} />
+
             <ScrollView contentContainerStyle={scrollContentStyle}>
-                <View style={styles.contentWrapper}> 
+                <View style={styles.contentWrapper}>
                     <Text style={styles.titulo}>Resumo Diário</Text>
 
                     {loading ? (
                         <ActivityIndicator size="large" color="#2CA856" style={styles.loadingIndicator} />
                     ) : !hasData ? (
-                        // ⚠️ Container para a mensagem de "vazio"
                         <View style={styles.emptyMessageContainer}>
                             <Text style={styles.textBase}>Nenhum dado disponível para hoje.</Text>
                         </View>
                     ) : (
-                        // ⚠️ Conteúdo normal, só é exibido se houver dados
                         <>
-                            {/* 🔹 Totais Gerais */}
                             <View style={styles.box}>
                                 <Text style={styles.subtitulo}>Totais do dia:</Text>
                                 <Text style={styles.textBase}>Total de visitas: {totais.totalVisitas || 0}</Text>
@@ -162,19 +149,15 @@ export default function ResumoDiario({ navigation }) {
                                 </Text>
                             </View>
 
-                            {/* 🔹 Resumo por Área - Implementação de Expansão/Colapso */}
                             {resumoPorArea.map((area) => (
-                                <View key={area.idArea}> 
-                                    
-                                    {/* 1. Área Clicável para o Nome e Expansão/Colapso (Section Header) */}
+                                <View key={area.idArea}>
+
                                     <TouchableOpacity
-                                        style={styles.sectionHeaderContainer} 
+                                        style={styles.sectionHeaderContainer}
                                         onPress={() => toggleArea(area.idArea)}
                                     >
-                                        {/* Nome da Área alinhado à esquerda */}
                                         <Text style={styles.sectionTitle}>{area.nomeArea}</Text>
 
-                                        {/* 🆕 Ícone de seta alinhado à direita */}
                                         <Icon
                                             name={expandedAreaId === area.idArea ? 'chevron-down' : 'chevron-forward'}
                                             size={font(3)}
@@ -184,7 +167,6 @@ export default function ResumoDiario({ navigation }) {
 
                                     </TouchableOpacity>
 
-                                    {/* 2. Conteúdo Condicional: Mostra se o expandedAreaId for igual ao idArea atual */}
                                     {expandedAreaId === area.idArea && (
                                         <View>
                                             <View style={styles.box}>
@@ -259,7 +241,6 @@ export default function ResumoDiario({ navigation }) {
                                         </View>
                                     )}
 
-                                    {/* 3. Botão Fechar Diário (Visível sempre) */}
                                     <TouchableOpacity
                                         style={styles.botaoFechar}
                                         onPress={() => {
@@ -328,125 +309,106 @@ export default function ResumoDiario({ navigation }) {
     );
 }
 
-// ----------------------------------------------------------------------------------
-// ESTILOS RESPONSIVOS
-// ----------------------------------------------------------------------------------
 const styles = StyleSheet.create({
-    // ⚠️ NOVO: Container principal com flex: 1 para ocupar toda a tela
     fullScreenContainer: {
         flex: 1,
         backgroundColor: "#f5f5f5",
     },
-    
-    // ⚠️ NOVO: Estilo para o contentContainerStyle quando há dados ou está carregando
+
     containerWithData: {
-        flexGrow: 1, // Permite que o ScrollView cresça
-        paddingHorizontal: width(2), 
-        paddingVertical: height(2), 
-    },
-    
-    // ⚠️ NOVO: Estilo para o contentContainerStyle quando está vazio (centralizado)
-    containerEmpty: {
-        flexGrow: 1, // Ocupa todo o espaço vertical
-        justifyContent: 'center', // Centraliza o conteúdo verticalmente
-        alignItems: 'center', // Centraliza o conteúdo horizontalmente
-    },
-    
-    // ⚠️ NOVO: Wrapper para o conteúdo interno, só aplica o padding para o conteúdo com dados
-    contentWrapper: {
-        flex: 1,
-        // O paddingHorizontal/Vertical está no containerWithData/containerEmpty
-    },
-    
-    // ⚠️ NOVO: Estilo para o ActivityIndicator (Centralizado)
-    loadingIndicator: {
-        marginTop: height(10), // Adiciona um espaçamento para não ficar grudado no título
+        flexGrow: 1,
+        paddingHorizontal: width(2),
+        paddingVertical: height(2),
     },
 
-    // --- Título Principal ---
+    containerEmpty: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    contentWrapper: {
+        flex: 1,
+    },
+
+    loadingIndicator: {
+        marginTop: height(10),
+    },
+
     titulo: {
-        fontSize: font(3.8), 
+        fontSize: font(3.8),
         fontWeight: "bold",
         color: '#05419A',
-        paddingBottom: height(2), 
+        paddingBottom: height(2),
         alignSelf: "center",
         marginTop: height(1)
     },
 
-    // --- Card de Resumo (Box) ---
     box: {
-        padding: height(2.5), 
+        padding: height(2.5),
         backgroundColor: "#e0e0e0",
-        borderRadius: width(2), 
-        marginBottom: height(0.25), 
+        borderRadius: width(2),
+        marginBottom: height(0.25),
     },
-    
-    // --- Subtítulos dentro do Box ---
-    subtitulo: { 
-        fontWeight: "600", 
-        fontSize: font(2.25), 
-        marginBottom: height(0.5), 
+
+    subtitulo: {
+        fontWeight: "600",
+        fontSize: font(2.25),
+        marginBottom: height(0.5),
         color: '#333'
     },
 
-    // --- Estilo de Texto Base para todos os dados ---
     textBase: {
-        fontSize: font(2.25), 
-        marginBottom: height(0.25), 
+        fontSize: font(2.25),
+        marginBottom: height(0.25),
         color: '#333',
     },
-    
-    // ⚠️ NOVO: Container para a mensagem de vazio (Centralizada)
+
     emptyMessageContainer: {
         flex: 1,
-        justifyContent: 'center', // Centraliza a mensagem verticalmente
-        alignItems: 'center', // Centraliza a mensagem horizontalmente
+        justifyContent: 'center',
+        alignItems: 'center',
         paddingHorizontal: width(5),
     },
-    
-    // CONTAINER DO CABEÇALHO DA SEÇÃO (TouchableOpacity)
+
     sectionHeaderContainer: {
         backgroundColor: "#05419A",
-        borderRadius: width(1.5), 
+        borderRadius: width(1.5),
         marginBottom: height(0.25),
-        
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        paddingHorizontal: width(4), 
-        paddingVertical: height(2), 
+
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: width(4),
+        paddingVertical: height(2),
     },
 
-    // NOME DA ÁREA (Alinhado à esquerda)
     sectionTitle: {
         fontWeight: "bold",
-        fontSize: font(3), 
+        fontSize: font(3),
         color: '#eee',
-        flexShrink: 1, 
+        flexShrink: 1,
     },
 
-    // 🆕 ESTILO para o ÍCONE de seta (garante o alinhamento e o espaçamento)
     arrowIcon: {
-        marginLeft: width(2), 
+        marginLeft: width(2),
     },
 
-    // --- Botão Fechar Diário ---
     botaoFechar: {
         backgroundColor: "#2CA856",
-        padding: height(2), 
-        borderRadius: width(2), 
+        padding: height(2),
+        borderRadius: width(2),
         alignItems: "center",
-        marginBottom: height(2), 
+        marginBottom: height(2),
         elevation: 2,
     },
-    textoBotao: { 
-        color: "#fff", 
+    textoBotao: {
+        color: "#fff",
         fontWeight: "bold",
-        fontSize: font(2.25), 
+        fontSize: font(2.25),
         textTransform: 'uppercase',
     },
 
-    // --- Modal ---
     modalFundo: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.5)",
@@ -455,40 +417,36 @@ const styles = StyleSheet.create({
     },
     modalBox: {
         backgroundColor: "#fff",
-        width: width(80), 
-        borderRadius: width(2.5), 
-        padding: width(5), 
+        width: width(80),
+        borderRadius: width(2.5),
+        padding: width(5),
     },
-    modalTitulo: { 
-        fontWeight: "bold", 
-        fontSize: font(2.5), 
-        marginBottom: height(1), 
+    modalTitulo: {
+        fontWeight: "bold",
+        fontSize: font(2.5),
+        marginBottom: height(1),
         color: '#05419A',
-        alignSelf:"center",
+        alignSelf: "center",
     },
-    
-    // --- Input do Modal ---
     input: {
         borderWidth: 1,
         borderColor: "#ccc",
-        borderRadius: width(2), 
-        padding: height(2.), 
-        marginTop: height(1), 
+        borderRadius: width(2),
+        padding: height(2.),
+        marginTop: height(1),
         fontSize: font(2.5),
         color: '#333',
     },
-
-    // --- Botões do Modal ---
-    modalBotoesContainer: { 
-        flexDirection: "row", 
+    modalBotoesContainer: {
+        flexDirection: "row",
         justifyContent: "space-around",
         marginTop: height(1),
     },
     modalBotao: {
         flex: 1,
-        marginHorizontal: width(1.25), 
-        padding: height(1.25), 
-        borderRadius: width(2), 
+        marginHorizontal: width(1.25),
+        padding: height(1.25),
+        borderRadius: width(2),
         alignItems: "center",
     },
 });

@@ -5,7 +5,7 @@ import { existeToken } from "../../utils/tokenStorage";
 export default function Splash({ navigation }) {
   useEffect(() => {
     const verificarToken = async () => {
-      const temToken = await existeToken(); // chama a função
+      const temToken = await existeToken();
 
       const timer = setTimeout(() => {
         if (temToken) {

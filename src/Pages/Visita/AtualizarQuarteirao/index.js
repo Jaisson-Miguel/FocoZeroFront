@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
 import { getId, getNome } from "../../../utils/tokenStorage.js";
-import Cabecalho from "../../../Components/Cabecalho.js"; 
-import { height, width, font } from "../../../utils/responsive.js"; 
+import Cabecalho from "../../../Components/Cabecalho.js";
+import { height, width, font } from "../../../utils/responsive.js";
 
 export default function AtualizarQuarteiroes({ navigation }) {
     const [quarteiroes, setQuarteiroes] = useState([]);
@@ -25,7 +25,6 @@ export default function AtualizarQuarteiroes({ navigation }) {
                 const id = await getId();
                 setUsuarioId(id);
 
-                // 🔹 Busca quarteirões do usuário direto do backend
                 const res = await fetch(
                     `${API_URL}/baixarQuarteiroesResponsavel/${id}`
                 );
@@ -78,7 +77,7 @@ export default function AtualizarQuarteiroes({ navigation }) {
                             });
 
                             if (res.ok) {
-                                navigation.replace("ResumoDiario"); 
+                                navigation.replace("ResumoDiario");
                             } else {
                                 const data = await res.json();
                                 Alert.alert(
@@ -104,7 +103,6 @@ export default function AtualizarQuarteiroes({ navigation }) {
         );
     }
 
-    // 🔹 Agrupa quarteirões por área 
     const sections = quarteiroes.reduce((acc, q) => {
         const title = q.nomeArea || q.idArea?.nome || "Sem Área";
         let sec = acc.find((s) => s.title === title);
@@ -118,10 +116,9 @@ export default function AtualizarQuarteiroes({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <Cabecalho navigation={navigation} /> 
+            <Cabecalho navigation={navigation} />
 
-            {/* Título da tela, usando o mesmo estilo do ListarVisitas para um cabeçalho secundário */}
-            <View style={styles.simpleTitleContainer}> 
+            <View style={styles.simpleTitleContainer}>
                 <Text style={styles.simpleTitle}>
                     ATUALIZAR QUARTEIRÕES
                 </Text>
@@ -168,7 +165,7 @@ export default function AtualizarQuarteiroes({ navigation }) {
                     }}
                 />
             )}
-            
+
             <View style={styles.footer}>
                 <TouchableOpacity
                     style={[styles.botao, styles.botaoConfirmar]}
@@ -204,20 +201,18 @@ const styles = StyleSheet.create({
     },
     simpleTitleContainer: {
         paddingHorizontal: width(3.75),
-        alignItems:"center",
-        paddingVertical: height(2.5), 
+        alignItems: "center",
+        paddingVertical: height(2.5),
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
     },
     simpleTitle: {
-        fontSize: font(3.5), 
+        fontSize: font(3.5),
         fontWeight: "bold",
         color: "#05419A",
         textTransform: 'uppercase',
     },
-    // --- Fim dos Estilos do Título da Tela ---
-    
     emptyContainer: {
         flex: 1,
         alignItems: "center",
@@ -226,29 +221,25 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         color: "gray",
-        fontSize: font(2.5), 
+        fontSize: font(2.5),
     },
-
-    // --- Header da Seção (Área) ---
     sectionHeader: {
         fontWeight: "bold",
-        fontSize: font(3.5), 
+        fontSize: font(3.5),
         backgroundColor: "#05419A",
         color: "white",
-        paddingVertical: height(2),   
-        paddingHorizontal: width(3), 
+        paddingVertical: height(2),
+        paddingHorizontal: width(3),
     },
-
-    // --- Item do Quarteirão ---
     itemContainer: {
-        paddingVertical: height(1), 
+        paddingVertical: height(1),
         paddingHorizontal: width(4.75),
         borderBottomWidth: 1,
         borderColor: "#ddd",
         backgroundColor: "#fff",
     },
     itemSelected: {
-        backgroundColor: "#c8e6c9", 
+        backgroundColor: "#c8e6c9",
         borderBottomWidth: 1,
         borderColor: "#4CAF50",
     },
@@ -258,7 +249,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     itemText: {
-        fontSize: font(2.5), 
+        fontSize: font(2.5),
         color: "#333",
     },
     itemSubtitle: {
@@ -267,34 +258,31 @@ const styles = StyleSheet.create({
         marginTop: height(0.5)
     },
     itemCheck: {
-        fontSize: font(4), 
+        fontSize: font(4),
         fontWeight: 'bold',
         color: '#4CAF50',
     },
-
-    // --- Container dos Botões na parte inferior ---
     footer: {
         paddingHorizontal: width(3),
         paddingTop: height(5),
+        marginBottom: height(3),
     },
-    
-    // --- Botões ---
     botao: {
-        padding: height(2.25), 
+        padding: height(2.25),
         borderRadius: width(2.25),
         alignItems: "center",
-        marginBottom: height(2), 
+        marginBottom: height(2),
         elevation: 2,
     },
     textoBotao: {
         color: "#fff",
         fontWeight: "bold",
-        fontSize: font(2.25), 
+        fontSize: font(2.25),
     },
     botaoConfirmar: {
-        backgroundColor: "#4CAF50", 
+        backgroundColor: "#4CAF50",
     },
     botaoVoltar: {
-        backgroundColor: "#2196F3", 
+        backgroundColor: "#2196F3",
     },
 });

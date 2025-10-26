@@ -2,270 +2,323 @@ import React, { useState } from "react";
 import {
     View,
     Text,
-    TextInput,
-    StyleSheet,
     TouchableOpacity,
-    Alert,
+    ActivityIndicator,
+    StyleSheet,
     ScrollView,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
+    Dimensions
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
-import { Picker } from "@react-native-picker/picker";
-// Funções Responsivas importadas
-import { height, width, font } from "../../../utils/responsive.js"; 
+import { useFocusEffect } from "@react-navigation/native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { height, width, font } from "../../../utils/responsive.js";
 
-export default function EditarImovelOffline({ route, navigation }) {
-    const { imovel } = route.params;
-
-    const [form, setForm] = useState({
-        logradouro: imovel.logradouro || "",
-        numero: String(imovel.numero || ""),
-        tipo: imovel.tipo || "r",
-        qtdHabitantes: String(imovel.qtdHabitantes || ""),
-        qtdCachorros: String(imovel.qtdCachorros || ""),
-        qtdGatos: String(imovel.qtdGatos || ""),
-        // Se for "Nenhuma observação.", inicia como string vazia para usar placeholder
-        observacao: imovel.observacao === "Nenhuma observação." ? "" : imovel.observacao || "", 
-        status: imovel.status || "Pendente",
-    });
-
-    const handleChange = (field, value) => {
-        setForm({ ...form, [field]: value });
+const mapearTipoImovel = (tipoAbreviado) => {
+    const tipos = {
+        r: "Residência",
+        c: "Comércio",
+        tb: "Terreno Baldio",
+        pe: "Ponto Estratégico",
+        out: "Outros",
     };
+    const chave = tipoAbreviado ? String(tipoAbreviado).toLowerCase().trim() : "";
+    return tipos[chave] || (tipoAbreviado ? String(tipoAbreviado).toUpperCase() : "NÃO ESPECIFICADO");
+};
 
-    const handleSave = async () => {
-        try {
-            const raw = await AsyncStorage.getItem("dadosImoveis");
-            let imoveis = raw ? JSON.parse(raw) : [];
-            
-            // Tratamento final: se a observação estiver vazia ao salvar, use "Nenhuma observação."
-            const observacaoFinal = form.observacao.trim() === "" ? "Nenhuma observação." : form.observacao;
+const screenWidth = Dimensions.get('window').width;
 
-            const index = imoveis.findIndex(
-                (i) => String(i._id) === String(imovel._id)
-            );
+export default function ImovelOffline({ route, navigation }) {
+    const { quarteirao } = route.params;
 
-            if (index !== -1) {
-                imoveis[index] = { ...imoveis[index], ...form, observacao: observacaoFinal, editadoOffline: true };
-            } else {
-                imoveis.push({ ...imovel, ...form, observacao: observacaoFinal, editadoOffline: true });
+    const [imoveis, setImoveis] = useState({});
+    const [loading, setLoading] = useState(true);
+    const offline = true;
+
+    const agruparImoveisPorRua = (imoveisArray) => {
+        return imoveisArray.reduce((acc, imovel) => {
+            const rua = imovel.logradouro;
+            if (!acc[rua]) {
+                acc[rua] = [];
             }
-
-            await AsyncStorage.setItem("dadosImoveis", JSON.stringify(imoveis));
-
-            Alert.alert("Sucesso", "Imóvel atualizado offline!");
-            navigation.goBack();
-        } catch (err) {
-            console.error("Erro ao salvar imóvel offline:", err);
-            Alert.alert("Erro", "Não foi possível salvar o imóvel.");
-        }
+            acc[rua].push(imovel);
+            return acc;
+        }, {});
     };
 
-    const camposTexto = [
-        { field: "logradouro", placeholder: "Logradouro (Rua, Av.)", keyboardType: "default" },
-        { field: "numero", placeholder: "Número", keyboardType: "numeric" },
-        { field: "qtdHabitantes", placeholder: "Qtd. Habitantes", keyboardType: "numeric" },
-        { field: "qtdCachorros", placeholder: "Qtd. Cães", keyboardType: "numeric" },
-        { field: "qtdGatos", placeholder: "Qtd. Gatos", keyboardType: "numeric" },
-    ];
-    
-    const tipoOpcoes = [
-        { label: "Residencial", value: "r" },
-        { label: "Comércio", value: "c" },
-        { label: "Ponto Estratégico", value: "pe" },
-        { label: "Outro", value: "out" },
-        { label: "Terreno Baldio", value: "tb" },
-    ];
+    useFocusEffect(
+        React.useCallback(() => {
+            let isActive = true;
 
+            const carregarImoveis = async () => {
+                setLoading(true);
+                try {
+                    const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
+                    let todos = rawImoveis ? JSON.parse(rawImoveis) : [];
+
+                    const filtrados = todos.filter(
+                        (i) => i.idQuarteirao === quarteirao._id
+                    );
+
+                    const agrupados = agruparImoveisPorRua(filtrados);
+
+                    if (isActive) setImoveis(agrupados);
+                } catch (err) {
+                    console.log("Erro ao carregar imóveis offline:", err);
+                    if (isActive) setImoveis({});
+                } finally {
+                    if (isActive) setLoading(false);
+                }
+            };
+
+            carregarImoveis();
+
+            return () => {
+                isActive = false;
+            };
+        }, [quarteirao])
+    );
+
+    if (loading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#2CA856" />
+            </View>
+        );
+    }
+
+    const ruas = Object.keys(imoveis);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
             <Cabecalho navigation={navigation} />
-            <KeyboardAvoidingView
-                style={styles.keyboardAvoidingContainer}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
             >
-                <ScrollView contentContainerStyle={styles.containerScrollContent}>
-                    
-                    {/* Título Padronizado */}
-                    <View style={styles.headerSection}>
-                        <Text style={styles.title}>Editar Imóvel (Offline)</Text>
-                        <Text style={styles.subtitle}>Quarteirão: {imovel.numeroQuarteirao || 'N/A'}</Text>
-                    </View>
+                <View style={styles.simpleTitleContainer}>
 
-                    {/* Formulário */}
-                    <View style={styles.formSection}>
-                        
-                        {/* Tipo (Picker) */}
-                        <Text style={styles.inputLabel}>Tipo de Imóvel</Text>
-                        <View style={styles.pickerWrapper}>
-                            <Picker
-                                selectedValue={form.tipo}
-                                style={styles.picker}
-                                // Usamos itemStyle para iOS e o estilo do Picker para Android
-                                itemStyle={styles.pickerItem} 
-                                onValueChange={(v) => handleChange("tipo", v)}
-                                dropdownIconColor="#05419A"
-                            >
-                                {tipoOpcoes.map((item) => (
-                                    <Picker.Item key={item.value} label={item.label} value={item.value} />
-                                ))}
-                            </Picker>
+                    <Text style={styles.simpleTitle}>
+                        {quarteirao.nomeArea} - {quarteirao.numero}
+                    </Text>
+                    <Text style={styles.simpleSubtitle}>
+                        Código {quarteirao.codigoArea} - Zona {quarteirao.zonaArea}
+                    </Text>
+                </View>
+
+                {ruas.length === 0 ? (
+                    <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
+                ) : (
+                    ruas.map((rua) => (
+                        <View key={rua}>
+                            <Text style={styles.streetHeader}>{rua}</Text>
+                            {imoveis[rua].map((imovel) => {
+                                const jaVisitado = imovel.status === "visitado";
+                                const mostrarRecusa = imovel.status === "recusa";
+                                const fechado = imovel.status === "fechado";
+                                const isDisabled = jaVisitado;
+
+                                const tipoDoImovel = imovel.complemento || imovel.tipo;
+                                const tipoMapeado = mapearTipoImovel(tipoDoImovel);
+
+                                return (
+                                    <View key={imovel._id} style={styles.imovelItem}>
+                                        <View style={styles.imovelLeft}>
+                                            <View
+                                                style={[
+                                                    styles.checkbox,
+                                                    jaVisitado && styles.checkboxChecked,
+                                                ]}
+                                            >
+                                                {jaVisitado && (
+                                                    <MaterialCommunityIcons
+                                                        name="check"
+                                                        size={font(2)}
+                                                        color="#fff"
+                                                    />
+                                                )}
+                                            </View>
+                                            <View style={styles.imovelTextContainer}>
+                                                <Text style={styles.imovelText}>
+                                                    Nº {imovel.numero} - {tipoMapeado}
+                                                </Text>
+                                                {mostrarRecusa && (
+                                                    <Text style={styles.recusaText}>Recusa</Text>
+                                                )}
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.imovelRight}>
+                                            <TouchableOpacity
+                                                style={styles.editButton}
+                                                onPress={() =>
+                                                    navigation.navigate("EditarImovelOffline", {
+                                                        imovel,
+                                                        offline,
+                                                    })
+                                                }
+                                            >
+                                                <Text style={styles.editText}>Editar</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={[
+                                                    styles.visitButton,
+                                                    isDisabled && styles.visitButtonDisabled,
+                                                ]}
+                                                onPress={() =>
+                                                    !isDisabled &&
+                                                    navigation.navigate("Visita", {
+                                                        imovel,
+                                                        idArea: quarteirao.idArea,
+                                                        nomeArea: quarteirao.nomeArea,
+                                                        quarteirao,
+                                                    })
+                                                }
+                                                disabled={isDisabled}
+                                                activeOpacity={isDisabled ? 1 : 0.7}
+                                            >
+                                                <Text style={styles.visitText}>Visita</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                );
+                            })}
                         </View>
-                        
-                        {/* Inputs de Texto */}
-                        {camposTexto.map(({ field, placeholder, keyboardType }) => (
-                            <View key={field}>
-                                <Text style={styles.inputLabel}>{placeholder.replace('Qtd.', 'Quantidade').replace(' ', ' de ')}</Text>
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder={placeholder}
-                                    keyboardType={keyboardType}
-                                    value={form[field]}
-                                    onChangeText={(v) => handleChange(field, v)}
-                                    placeholderTextColor="#999"
-                                />
-                            </View>
-                        ))}
-                        
-                        {/* Observação (Multiline) */}
-                        <Text style={styles.inputLabel}>Observação</Text>
-                        <TextInput
-                            style={[styles.textInput, styles.multilineInput]}
-                            placeholder={form.observacao === "" ? "Adicione observações importantes..." : undefined} 
-                            multiline
-                            value={form.observacao}
-                            onChangeText={(v) => handleChange("observacao", v)}
-                            textAlignVertical="top"
-                            placeholderTextColor="#999"
-                        />
-
-                    </View>
-                    
-                    {/* Espaço para o botão */}
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                            <Text style={styles.buttonText}>SALVAR ALTERAÇÕES</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+                    ))
+                )}
+            </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    container: {
         flex: 1,
         backgroundColor: "#fff",
     },
-    keyboardAvoidingContainer: {
+    scrollView: {
         flex: 1,
     },
-    containerScrollContent: {
+    scrollContent: {
         flexGrow: 1,
-        backgroundColor: "#fff",
-        paddingBottom: height(3), // Usando height()
+        paddingBottom: height(3),
     },
-    
-    // --- Header / Títulos Padronizados (com font()) ---
-    headerSection: {
-        paddingHorizontal: width(5), // Usando width()
-        paddingVertical: height(2), // Usando height()
-        backgroundColor: '#f5f5f5',
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        alignItems: 'center',
-    },
-    title: {
-        fontSize: font(3), 
+
+    mainTitle: {
+        fontSize: font(3.5),
         fontWeight: "bold",
         color: "#05419A",
-        textTransform: 'uppercase',
+        margin: width(2.5),
+        marginVertical: height(2.5),
+        paddingHorizontal: width(1.25),
     },
-    subtitle: {
-        fontSize: font(2.25), 
-        color: "#666",
-        marginTop: height(0.5), // Usando height()
-    },
-    
-    // --- Seção do Formulário ---
-    formSection: {
-        padding: width(5), // Usando width()
-    },
-    
-    inputLabel: {
-        fontSize: font(2.25), 
-        fontWeight: 'bold',
-        color: '#05419A',
-        marginBottom: height(0.5), // Usando height()
-        marginTop: height(2), // Usando height()
-        textTransform: 'uppercase',
-    },
-
-    // --- Estilo Padronizado de Input de Texto (com font() e height()) ---
-    textInput: {
-        backgroundColor: "#E0E0E0",
-        paddingHorizontal: width(3.5), // Usando width()
-        paddingVertical: Platform.OS === 'ios' ? height(1.5) : height(1), // Usando height()
-        borderRadius: 5,
-        marginBottom: height(1.5), // Usando height()
-        fontSize: font(2.25), 
-        color: "#05419A", 
-        borderWidth: 1,
-        borderColor: "#ccc",
-    },
-    multilineInput: {
-        height: height(12), // Altura responsiva (aprox. 100)
-    },
-
-    // --- Estilo Padronizado de Picker (com font() e height()) ---
-    pickerWrapper: {
-        backgroundColor: "#E0E0E0",
-        borderRadius: 5,
-        marginBottom: height(1.5), // Usando height()
-        borderWidth: 1,
-        borderColor: "#ccc",
-        overflow: 'hidden',
-        height: height(6), // Altura responsiva para o wrapper
-        justifyContent: 'center',
-    },
-    picker: {
-        width: '100%',
-        color: "#05419A",
-        height: height(6), // Altura responsiva para o Picker
-    },
-    // Estilo EXCLUSIVO para o texto do Picker (necessário para iOS e para aumentar o texto)
-    pickerItem: {
-        fontSize: font(3.2), // Fonte AUMENTADA para as opções
-        height: height(6), // Garante que o item caiba na altura do Picker
-    },
-
-    // --- Botão Salvar Padronizado (com font() e width()) ---
-    buttonContainer: {
-        paddingHorizontal: width(5), // Usando width()
-        marginTop: height(1), // Usando height()
-    },
-    saveButton: {
+    streetHeader: {
+        fontSize: font(2.5),
+        fontWeight: "bold",
         backgroundColor: "#05419A",
-        padding: height(2), // Usando height()
-        borderRadius: 5,
-        alignItems: "center",
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
+        color: "white",
+        paddingVertical: height(1.5),
+        paddingHorizontal: width(3.75),
+        marginBottom: 0,
     },
-    buttonText: {
+    imovelItem: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: height(1.25),
+        paddingHorizontal: width(3.75),
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
+    },
+    imovelLeft: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+    },
+    checkbox: {
+        width: width(5),
+        height: width(5),
+        borderWidth: 1,
+        borderColor: "#000",
+        marginRight: width(2.5),
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 3,
+    },
+    checkboxChecked: {
+        backgroundColor: "#05419A",
+        borderColor: "#05419A",
+    },
+    imovelTextContainer: {
+        flexShrink: 1,
+    },
+    imovelText: {
+        fontSize: font(1.9),
+        color: "#000",
+    },
+    recusaText: {
+        color: "red",
+        fontSize: font(1.5),
+    },
+    imovelRight: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginLeft: width(2.5),
+    },
+    editButton: {
+        backgroundColor: "#2CA856",
+        paddingVertical: height(0.75),
+        paddingHorizontal: width(3),
+        borderRadius: 5,
+        marginRight: width(2),
+    },
+    editText: {
         color: "#fff",
         fontWeight: "bold",
-        fontSize: font(2.5),
+        fontSize: font(1.6),
+    },
+    visitButton: {
+        backgroundColor: "#05419A",
+        paddingVertical: height(0.75),
+        paddingHorizontal: width(3),
+        borderRadius: 5,
+    },
+    visitButtonDisabled: {
+        backgroundColor: "#A9A9A9",
+    },
+    visitText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: font(1.6),
+    },
+    emptyText: {
+        textAlign: "center",
+        marginTop: height(2.5),
+        color: "gray",
+        fontSize: font(2),
+    },
+    simpleTitleContainer: {
+        paddingHorizontal: width(3.75),
+        alignItems: "center",
+        paddingVertical: height(1.25),
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    simpleTitle: {
+        fontSize: font(3.5),
+        fontWeight: "bold",
+        color: "#05419A",
+        textTransform: 'uppercase',
+    },
+    simpleSubtitle: {
+        fontSize: font(2.25),
+        color: "#666",
         textTransform: 'uppercase',
     },
 });

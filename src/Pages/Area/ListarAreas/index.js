@@ -11,15 +11,12 @@ import {
 import { API_URL } from "../../../config/config.js";
 import Icon from "react-native-vector-icons/FontAwesome";
 
-// IMPORT CORRIGIDO: Agora importa de 'react-native-safe-area-context'
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
-
-// ... (Funções getIdString e groupAreas sem alteração) ...
 
 const getIdString = (id) => {
   if (typeof id === "string") {
@@ -41,7 +38,7 @@ const groupAreas = (areasList) => {
       type: "item",
       data: area,
       key: getIdString(area._id),
-    }); // Adicionei a key aqui
+    });
     return acc;
   }, {});
 
@@ -49,7 +46,7 @@ const groupAreas = (areasList) => {
 
   const order = ["bairro", "povoado"];
   const processedKeys = new Set();
-  let headerCounter = 0; // Contador para chaves únicas de cabeçalho
+  let headerCounter = 0;
 
   order.forEach((key) => {
     if (groupedData[key] && groupedData[key].length > 0) {
@@ -206,12 +203,10 @@ export default function ListarArea({ route, navigation }) {
         <FlatList
           data={groupedAreas}
           renderItem={renderItem}
-          // keyExtractor CORRIGIDO para usar a key gerada (seja do cabeçalho ou do item)
           keyExtractor={(item) => item.key}
           contentContainerStyle={styles.listContent}
         />
       </View>
-      {/* BOTÃO FAB (Flutuante) */}
       {funcao === "adm" && (
         <TouchableOpacity
           onPress={() => navigation.navigate("CadastrarArea")}
@@ -220,7 +215,6 @@ export default function ListarArea({ route, navigation }) {
           <Icon name="plus" size={font(5)} color="#fff" />
         </TouchableOpacity>
       )}
-      {/* </SafeAreaView> */}
     </View>
   );
 }
@@ -232,7 +226,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  // ... (restante dos styles sem alteração) ...
   container: {
     flex: 1,
     backgroundColor: "#fff",

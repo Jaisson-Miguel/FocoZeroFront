@@ -6,18 +6,18 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
-    ActivityIndicator, 
+    ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { height, width, font } from "../../../utils/responsive.js"; // Funções responsivas
+import { height, width, font } from "../../../utils/responsive.js";
 
 
 export default function ListarVisitas({ navigation }) {
     const [visitas, setVisitas] = useState([]);
-    const [isSyncing, setIsSyncing] = useState(false); 
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const carregarVisitas = async () => {
         try {
@@ -25,7 +25,7 @@ export default function ListarVisitas({ navigation }) {
             if (visitasSalvas) {
                 setVisitas(JSON.parse(visitasSalvas));
             } else {
-                setVisitas([]); // Garante que o estado é limpo se não houver dados
+                setVisitas([]);
             }
         } catch (error) {
             Alert.alert("Erro", "Não foi possível carregar as visitas.");
@@ -38,7 +38,6 @@ export default function ListarVisitas({ navigation }) {
         return unsubscribe;
     }, [navigation]);
 
-    // Agrupar por área e quarteirão
     const agrupadas = {};
     visitas.forEach((v) => {
         const area = v.nomeArea || "Área Desconhecida";
@@ -78,8 +77,8 @@ export default function ListarVisitas({ navigation }) {
     };
 
     const finalizarDiario = async () => {
-        if (isSyncing) return; 
-        
+        if (isSyncing) return;
+
         try {
             const visitasSalvas = await AsyncStorage.getItem("visitas");
             const listaVisitas = visitasSalvas ? JSON.parse(visitasSalvas) : [];
@@ -89,7 +88,6 @@ export default function ListarVisitas({ navigation }) {
             const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
             const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
 
-            // ⚠️ Se houver algo pendente, bloqueia o acesso
             if (pendentes.length > 0 || imoveisEditados.length > 0) {
                 Alert.alert(
                     "Atenção",
@@ -98,7 +96,6 @@ export default function ListarVisitas({ navigation }) {
                 return;
             }
 
-            // ✅ Tudo sincronizado → perguntar se finalizou algum quarteirão
             Alert.alert(
                 "Finalizar Diário",
                 "Você finalizou algum quarteirão?",
@@ -126,13 +123,10 @@ export default function ListarVisitas({ navigation }) {
         setIsSyncing(true);
 
         try {
-            // Visitas pendentes
             const visitasSalvas = await AsyncStorage.getItem("visitas");
             const listaVisitas = visitasSalvas ? JSON.parse(visitasSalvas) : [];
             const pendentes = listaVisitas.filter((v) => !v.sincronizado);
 
-            // Imóveis editados (Nota: esta leitura do AsyncStorage aqui é assíncrona, mas 
-            // a função não está no useEffect, então a contagem no Header não será reativa)
             const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
             const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
             const imoveisEditados = listaImoveis.filter((i) => i.editadoOffline);
@@ -142,11 +136,10 @@ export default function ListarVisitas({ navigation }) {
                 setIsSyncing(false);
                 return;
             }
-            
+
             let sucessoVisitas = 0;
             let sucessoImoveis = 0;
 
-            // 🔹 Sincroniza visitas
             await Promise.all(
                 pendentes.map(async (v) => {
                     try {
@@ -166,7 +159,6 @@ export default function ListarVisitas({ navigation }) {
                 })
             );
 
-            // 🔹 Sincroniza imóveis
             await Promise.all(
                 imoveisEditados.map(async (i) => {
                     const { editadoOffline, _id, ...dadosParaEnviar } = i;
@@ -186,15 +178,13 @@ export default function ListarVisitas({ navigation }) {
                 })
             );
 
-            // Atualiza AsyncStorage
             await AsyncStorage.setItem("visitas", JSON.stringify(listaVisitas));
             await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
 
-            // Atualiza state
             setVisitas(listaVisitas);
 
             Alert.alert(
-                "Sincronização Concluída", 
+                "Sincronização Concluída",
                 `Sucesso:\n- ${sucessoVisitas} visitas\n- ${sucessoImoveis} imóveis.`
             );
         } catch (err) {
@@ -210,17 +200,15 @@ export default function ListarVisitas({ navigation }) {
     };
 
     const getEditadosCount = () => {
-         // Não reativo, mantido por fidelidade ao código original. Retorna 0 no estado atual.
-         return 0; 
+        return 0;
     }
-    
-    // Variável para checar se há visitas
+
     const hasVisitas = visitas.length > 0;
 
     return (
         <View style={styles.container}>
             <Cabecalho navigation={navigation} />
-            
+
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Visitas Salvas</Text>
                 <Text style={styles.headerSubtitle}>
@@ -228,26 +216,23 @@ export default function ListarVisitas({ navigation }) {
                 </Text>
             </View>
 
-            {/* Ajuste no ScrollView para centralizar o conteúdo quando vazio */}
             <ScrollView contentContainerStyle={!hasVisitas ? styles.scrollViewCentralized : styles.scrollView}>
                 {Object.keys(agrupadas).length === 0 ? (
                     <View style={styles.emptyMessageContainer}>
-                         <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
+                        <Text style={styles.msg}>Nenhuma visita salva ainda.</Text>
                     </View>
                 ) : (
                     <>
                         {Object.keys(agrupadas).map((nomeArea) => (
                             <View key={nomeArea} style={styles.areaBox}>
-                                {/* Título da Área (Fundo Azul) */}
                                 <Text style={styles.areaTitulo}>{nomeArea.toUpperCase()}</Text>
-                                
+
                                 {Object.keys(agrupadas[nomeArea]).map((nomeQuarteirao) => (
                                     <View key={nomeQuarteirao} style={styles.quarteiraoBox}>
-                                        {/* Título do Quarteirão (Subtítulo com cor diferente) */}
                                         <Text style={styles.quarteiraoTitulo}>
                                             Quarteirão: {nomeQuarteirao}
                                         </Text>
-                                        
+
                                         {agrupadas[nomeArea][nomeQuarteirao].map((v, i) => (
                                             <TouchableOpacity
                                                 key={i}
@@ -262,8 +247,7 @@ export default function ListarVisitas({ navigation }) {
                                                         {v.logradouro}, {v.numero} - ({ (v.tipo || 'Tipo não def.').toUpperCase() })
                                                     </Text>
                                                 </View>
-                                                
-                                                {/* Status de Sincronização */}
+
                                                 <View style={styles.syncStatus}>
                                                     {v.sincronizado ? (
                                                         <MaterialCommunityIcons name="check-circle" size={font(2.5)} color="#4CAF50" />
@@ -277,8 +261,7 @@ export default function ListarVisitas({ navigation }) {
                                 ))}
                             </View>
                         ))}
-                        
-                        {/* Botões de Ação - Só aparecem se houver visitas */}
+
                         {hasVisitas && (
                             <>
                                 <TouchableOpacity
@@ -308,8 +291,8 @@ export default function ListarVisitas({ navigation }) {
                                 >
                                     <Text style={styles.textoBotao}>LIMPAR VISITAS</Text>
                                 </TouchableOpacity>
-                                
-                                <View style={{ height: height(4) }} /> 
+
+                                <View style={{ height: height(4) }} />
                             </>
                         )}
                     </>
@@ -319,133 +302,121 @@ export default function ListarVisitas({ navigation }) {
     );
 }
 
-// ----------------------------------------------------------------------------------
-// ESTILOS RESPONSIVOS COM TODAS AS FUNÇÕES (baseado nas proporções anteriores)
-// ----------------------------------------------------------------------------------
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#F5F5F5",
     },
-    // Estilo para o ScrollView quando HÁ conteúdo
     scrollView: {
-        paddingHorizontal: width(3.75), // ~15px base
-        paddingVertical: height(2.5),     // ~10px base
+        paddingHorizontal: width(3.75),
+        paddingVertical: height(2.5),
     },
-    // NOVO: Estilo para o contentContainerStyle quando NÃO HÁ conteúdo
     scrollViewCentralized: {
-        flexGrow: 1, // Permite que o conteúdo ocupe o espaço total
-        justifyContent: 'center', // Centraliza o conteúdo verticalmente
-        alignItems: 'center', // Centraliza o conteúdo horizontalmente
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    
-    // --- Header com contagem de pendentes ---
+
     header: {
-        padding: height(3), // ~15px base
+        padding: height(3),
         backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
     },
     headerTitle: {
-        fontSize: font(4), // ~20px base
+        fontSize: font(4),
         fontWeight: 'bold',
         color: '#05419A',
         textAlign: 'center',
     },
     headerSubtitle: {
-        fontSize: font(2.), // ~14px base
+        fontSize: font(2.),
         color: '#F44336',
         fontWeight: '600',
         textAlign: 'center',
     },
 
-    // --- Agrupamento por Área ---
     areaBox: {
-        marginBottom: height(1), // ~20px base
+        marginBottom: height(1),
     },
     areaTitulo: {
-        fontSize: font(2.75), // ~18px base
+        fontSize: font(2.75),
         fontWeight: "bold",
         backgroundColor: "#05419A",
         color: "white",
-        paddingVertical: height(2),   // ~8px base
-        paddingHorizontal: width(2.5), // ~10px base
-        marginBottom: height(1),    // ~8px base
-        borderRadius: width(1),     // ~4px base
+        paddingVertical: height(2),
+        paddingHorizontal: width(2.5),
+        marginBottom: height(1),
+        borderRadius: width(1),
     },
 
-    // --- Agrupamento por Quarteirão ---
     quarteiraoBox: {
-        paddingLeft: width(1.25), // ~5px base
-        borderLeftWidth: width(0.75), // ~3px base
+        paddingLeft: width(1.25),
+        borderLeftWidth: width(0.75),
         borderLeftColor: '#ccc',
-        marginBottom: height(1), // ~10px base
+        marginBottom: height(1),
     },
     quarteiraoTitulo: {
-        fontSize: font(2.5), // ~16px base
+        fontSize: font(2.5),
         fontWeight: "600",
         color: '#333',
         backgroundColor: '#EAEAEA',
-        paddingVertical: height(1.25),  // ~5px base
-        paddingHorizontal: width(2.5), // ~10px base
-        marginBottom: height(0.25),   // ~5px base
-        borderRadius: width(1),      // ~2px base
+        paddingVertical: height(1.25),
+        paddingHorizontal: width(2.5),
+        marginBottom: height(0.25),
+        borderRadius: width(1),
     },
 
-    // --- Item de Visita ---
     itemContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#fff',
-        paddingVertical: height(1.75),  // ~12px base
-        paddingHorizontal: width(3.75), // ~15px base
+        paddingVertical: height(1.75),
+        paddingHorizontal: width(3.75),
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
-        borderRadius: width(2),      // ~4px base
-        marginBottom: height(0.25),   // ~2px base
+        borderRadius: width(2),
+        marginBottom: height(0.25),
     },
     logradouroContainer: {
         flex: 1,
-        marginRight: width(2.5), // ~10px base
+        marginRight: width(2.5),
     },
     logradouroText: {
-        fontSize: font(2.25), // ~15px base
+        fontSize: font(2.25),
         color: '#333',
     },
     syncStatus: {
-        width: width(5), // ~20px base
+        width: width(5),
         alignItems: 'center',
     },
 
-    // --- Mensagem de Vazio ---
-    // NOVO: Container para a mensagem de vazio
     emptyMessageContainer: {
-        flex: 1, // Ocupa todo o espaço do contentContainerStyle (centralizado)
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: width(5),
     },
     msg: {
         textAlign: "center",
-        fontSize: font(2.5), // Aumentei um pouco o tamanho para dar destaque
+        fontSize: font(2.5),
         color: "#777",
     },
 
-    // --- Botões de Ação ---
     botao: {
-        padding: height(2.25), // ~15px base
+        padding: height(2.25),
         borderRadius: width(2.25),
         alignItems: "center",
-        marginTop: height(2), // ~15px base
+        marginTop: height(2),
         elevation: 2,
     },
     textoBotao: {
         color: "#fff",
         fontWeight: "bold",
-        fontSize: font(2.25), // ~16px base
+        fontSize: font(2.25),
     },
-    
+
     botaoSincronizar: {
         backgroundColor: "#05419A",
     },

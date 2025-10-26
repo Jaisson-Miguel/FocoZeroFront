@@ -10,9 +10,9 @@ import {
   SafeAreaView,
   Platform,
   Dimensions,
-  KeyboardAvoidingView, // <-- Importação adicionada
+  KeyboardAvoidingView,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import { Dropdown } from "react-native-element-dropdown";
 import { getId } from "../../../utils/tokenStorage.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -21,30 +21,76 @@ import { height, width, font } from "../../../utils/responsive.js";
 
 const screenWidth = Dimensions.get("window").width;
 const IS_SMALL_SCREEN = screenWidth < 400;
-const FONT_MULTIPLIER = 1;
-
-const getFontSize = (size) => {
-  if (typeof font === "function") {
-    return font(size);
-  }
-  return size * FONT_MULTIPLIER;
-};
-
-// ... (mapearTipoImovel e ValueBox permanecem inalterados)
 
 const mapearTipoImovel = (tipo) => {
   const tipos = {
-    r: "RESIDÊNCIA",
-    c: "COMÉRCIO",
-    tb: "TERRENO BALDIO",
-    pe: "P. ESTRATÉGICO",
-    out: "OUTROS",
+    r: "R",
+    c: "C",
+    tb: "TB",
+    pe: "P.E",
+    out: "Out",
   };
   const chave = tipo ? String(tipo).toLowerCase().trim() : "";
+  return tipos[chave] || "SELECIONE";
+};
+
+const ElementDropdown = ({
+  value,
+  onValueChange,
+  options,
+  inputBackgroundColor,
+  inputTextColor,
+}) => {
+  const renderItem = (item) => {
+    return (
+      <View style={styles.dropdownItem}>
+        <Text style={styles.dropdownItemText}>
+          {item.label}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderValue = () => {
+    return (
+      <View style={styles.selectedWrapper}>
+        <Text style={[styles.selectedValueDisplayed, { color: inputTextColor }]}>
+          {mapearTipoImovel(value)}
+        </Text>
+      </View>
+    );
+  };
+
   return (
-    tipos[chave] || (tipo ? String(tipo).toUpperCase() : "NÃO ESPECIFICADO")
+    <Dropdown
+      style={[styles.dropdown, { backgroundColor: inputBackgroundColor }]}
+      placeholderStyle={[styles.placeholderStyle, { color: inputTextColor }]}
+      selectedTextStyle={styles.hiddenSelectedTextStyle}
+      iconStyle={styles.iconStyle}
+      data={options}
+      maxHeight={height(25)}
+      labelField="label"
+      valueField="value"
+      value={value}
+      onChange={(item) => {
+        onValueChange(item.value);
+      }}
+      renderItem={renderItem}
+      renderLeftIcon={renderValue}
+      iconColor={inputTextColor}
+      dropdownPosition="bottom"
+      placeholder={value ? "" : "SELECIONE"}
+      flatListProps={{
+        style: {
+          borderWidth: 1,
+          borderColor: '#ccc',
+          borderRadius: font(0.5),
+        },
+      }}
+    />
   );
 };
+
 
 const ValueBox = ({
   label,
@@ -89,43 +135,25 @@ const ValueBox = ({
 
   if (isInput) {
     if (isBlueTheme) {
-      finalInputStyle.push({ borderRadius: 5 });
+      finalInputStyle.push({ borderRadius: font(0.5) });
     } else if (useSpecialStyle) {
       finalInputStyle.push({
-        borderBottomLeftRadius: 5,
-        borderBottomRightRadius: 5,
+        borderBottomLeftRadius: font(0.5),
+        borderBottomRightRadius: font(0.5),
       });
     }
   }
 
   if (isPicker) {
     content = (
-      <View
-        style={[
-          styles.pickerWrapper,
-          isBlueTheme && styles.pickerWrapperRounded,
-          { backgroundColor: inputBackgroundColor },
-        ]}
-      >
-        <Text style={[styles.pickerSelectedValue, { color: inputTextColor }]}>
-          {value.toUpperCase()}
-        </Text>
-        <Picker
-          selectedValue={value}
-          onValueChange={onValueChange}
-          style={styles.picker}
-          dropdownIconColor="#000"
-          mode="dropdown"
-        >
-          {options.map((item) => (
-            <Picker.Item
-              key={item.value}
-              label={item.label}
-              value={item.value}
-            />
-          ))}
-        </Picker>
-      </View>
+      <ElementDropdown
+        value={value}
+        onValueChange={onValueChange}
+        options={options}
+        inputBackgroundColor={inputBackgroundColor}
+        inputTextColor={inputTextColor}
+        isBlueTheme={isBlueTheme}
+      />
     );
   } else if (isInput) {
     content = (
@@ -140,20 +168,35 @@ const ValueBox = ({
     );
   } else {
     content = (
-      <Text style={[styles.valueBoxValue, { color: labelColor }]}>{value}</Text>
+      <View
+        style={[
+          styles.valueBoxValueWrapper,
+          { backgroundColor: inputBackgroundColor },
+        ]}
+      >
+        <Text style={[styles.valueBoxValue, { color: inputTextColor }]}>
+          {value}
+        </Text>
+      </View>
     );
   }
 
   return (
-    <View style={[styles.valueBox, style, { backgroundColor: "transparent" }]}>
+    <View
+      style={[
+        styles.valueBox,
+        style,
+        { backgroundColor: "transparent", height: height(10) },
+      ]}
+    >
       <View
         style={[
           styles.labelWrapper,
           {
             backgroundColor: labelFundo,
             width: "100%",
-            borderTopLeftRadius: useSpecialStyle ? 5 : 0,
-            borderTopRightRadius: useSpecialStyle ? 5 : 0,
+            borderTopLeftRadius: useSpecialStyle ? font(0.5) : 0,
+            borderTopRightRadius: useSpecialStyle ? font(0.5) : 0,
           },
         ]}
       >
@@ -240,7 +283,6 @@ export default function Visita({ route, navigation }) {
   };
 
   const salvarVisita = async (statusAcao) => {
-    // ... (lógica de salvar visita inalterada)
     if (!agenteId) {
       Alert.alert("Erro", "ID do agente não carregado ainda.");
       return;
@@ -575,7 +617,7 @@ export default function Visita({ route, navigation }) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1, // É crucial para que o KeyboardAvoidingView funcione
+    flex: 1,
     backgroundColor: "#fff",
   },
   keyboardAvoidingContainer: {
@@ -588,101 +630,102 @@ const styles = StyleSheet.create({
   },
 
   simpleTitleContainer: {
-    paddingHorizontal: 15,
+    paddingHorizontal: width(4),
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: height(1.2),
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
   },
   simpleTitle: {
-    fontSize: getFontSize(3.5),
+    fontSize: font(4),
     fontWeight: "bold",
     color: "#05419A",
     textTransform: "uppercase",
   },
   simpleSubtitle: {
-    fontSize: getFontSize(2.25),
+    fontSize: font(2.5),
     color: "#666",
     textTransform: "uppercase",
   },
 
   blueInfoSection: {
     backgroundColor: "#05419A",
-    padding: 10,
+    padding: width(2.5),
   },
 
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
-    minHeight: 50,
+    marginBottom: height(1),
+    minHeight: height(6),
   },
 
   streetBox: {
-    width: "50%",
+    width: width(38),
     justifyContent: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: width(1),
   },
   streetHeaderBlueCompact: {
-    fontSize: getFontSize(3.5),
+    fontSize: font(4),
     fontWeight: "bold",
     color: "#fff",
   },
 
   smallBoxCompact: {
-    width: "18%",
-    height: 60,
-    paddingVertical: 5,
-    paddingHorizontal: 3,
+    width: width(18),
+    height: height(10),
+    paddingVertical: height(0.5),
+    paddingHorizontal: width(0.5),
   },
 
   mediumBoxCompact: {
-    width: "30%",
-    height: 60,
-    padding: 5,
+    width: width(35),
+    height: height(10),
+    padding: width(1.25),
   },
 
   contentSections: {
-    paddingHorizontal: 10,
+    paddingHorizontal: width(2.5),
   },
 
   infoRow: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 10,
-    gap: 5,
+    justifyContent: "space-between",
+    marginBottom: height(1),
+    gap: width(1.5),
   },
 
   infoRowCampos: {
     flexDirection: "row",
-    marginBottom: 10,
-    gap: 20,
+    justifyContent: "flex-start",
+    marginBottom: height(1),
+    gap: width(5),
   },
 
   smallBox: {
-    width: "30%",
-    borderRadius: 5,
-    paddingVertical: 5,
-    paddingHorizontal: 3,
+    width: width(28),
+    borderRadius: font(0.5),
+    paddingVertical: height(0.5),
+    paddingHorizontal: width(0.5),
   },
   mediumBox: {
-    width: "65%",
-    borderRadius: 5,
-    padding: 5,
+    width: width(60),
+    borderRadius: font(0.5),
+    padding: width(1.25),
   },
 
   halfWidthSpecial: {
-    width: "35%",
-    minHeight: 80,
-    borderRadius: 5,
+    width: width(40),
+    minHeight: height(12),
+    borderRadius: font(0.5),
     overflow: "hidden",
   },
   fullWidthSpecial: {
-    width: "48%",
-    minHeight: 80,
-    borderRadius: 5,
+    width: width(48),
+    minHeight: height(12),
+    borderRadius: font(0.5),
     overflow: "hidden",
   },
 
@@ -690,112 +733,148 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     alignItems: "center",
     borderTopColor: "#05419A",
-    paddingTop: 10,
-    marginBottom: 10,
+    paddingTop: height(1),
+    marginBottom: height(1),
   },
   sectionTitle: {
-    fontSize: getFontSize(2.5),
+    fontSize: font(3),
     fontWeight: "bold",
     color: "#05419A",
-    marginBottom: 10,
+    marginBottom: height(1),
   },
 
   depositosRow: {
     flexDirection: "row",
-    gap: 15,
+    gap: width(2),
     justifyContent: IS_SMALL_SCREEN ? "space-around" : "space-between",
     flexWrap: IS_SMALL_SCREEN ? "nowrap" : "nowrap",
-    marginBottom: IS_SMALL_SCREEN ? 5 : 10,
+    marginBottom: IS_SMALL_SCREEN ? height(0.5) : height(1),
   },
   depositosRowSecond: {
     flexDirection: "row",
     justifyContent: "space-around",
     flexWrap: "nowrap",
-    gap: 15,
-    marginBottom: 10,
+    gap: width(3),
+    marginBottom: height(1),
   },
   depositoBoxSmall: {
-    width: "18%",
-    minHeight: 80,
-    borderRadius: 5,
-    marginBottom: 5,
+    width: width(18),
+    minHeight: height(12),
+    borderRadius: font(0.5),
+    marginBottom: height(0.5),
     overflow: "hidden",
-    marginHorizontal: IS_SMALL_SCREEN ? 2 : 0,
+    marginHorizontal: IS_SMALL_SCREEN ? width(0.5) : 0,
   },
   depositoBoxLarge: {
-    width: `${100 / 7 - 1}%`,
-    minHeight: 80,
-    borderRadius: 5,
-    marginBottom: 5,
+    width: width(7),
+    minHeight: height(12),
+    borderRadius: font(0.5),
+    marginBottom: height(0.5),
     overflow: "hidden",
+    paddingHorizontal: width(1),
   },
 
   valueBox: {
     alignItems: "center",
     justifyContent: "center",
-    height: 60,
-    minWidth: 50,
+    minHeight: height(10),
+    minWidth: width(12),
   },
   labelWrapper: {
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    paddingVertical: height(0.5),
+    paddingHorizontal: width(1),
     alignItems: "center",
     justifyContent: "center",
   },
   valueBoxLabel: {
-    fontSize: 12,
+    fontSize: font(1.8),
     fontWeight: "bold",
     textAlign: "center",
+    lineHeight: font(2.2),
   },
   depositoValueBoxLabel: {
-    fontSize: getFontSize(2.0),
+    fontSize: font(2.0),
     fontWeight: "bold",
+    height: height(3),
     textAlign: "center",
+    textAlignVertical: "center",
+    lineHeight: height(3),
   },
   valueBoxInput: {
     width: "100%",
-    height: 30,
+    height: height(5),
     borderRadius: 0,
-    fontSize: 18,
+    fontSize: font(2.5),
     fontWeight: "bold",
     padding: 0,
     textAlign: "center",
   },
-
-  pickerWrapper: {
+  valueBoxValueWrapper: {
     width: "100%",
-    height: 30,
-    borderRadius: 5,
+    height: height(5),
     justifyContent: "center",
-    overflow: "hidden",
+    alignItems: "center",
   },
-  pickerWrapperRounded: {
-    borderRadius: 5,
-  },
-  pickerSelectedValue: {
-    fontSize: 18,
+  valueBoxValue: {
+    fontSize: font(2.5),
     fontWeight: "bold",
     textAlign: "center",
-    zIndex: 2,
   },
-  picker: {
+
+  dropdown: {
+    height: height(5),
     width: "100%",
-    height: 30,
-    opacity: Platform.OS === "ios" ? 0.01 : 1,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    ...(Platform.OS === "android" && {
-      color: "transparent",
-      transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }],
-      top: -5,
-    }),
+    borderRadius: font(0.5),
+    paddingHorizontal: width(1),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderStyle: {
+    fontSize: font(2.5),
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#05419A",
+  },
+  hiddenSelectedTextStyle: {
+    width: 0,
+    height: 0,
+    opacity: 0,
+  },
+  selectedWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+    paddingHorizontal: width(1),
+  },
+  selectedValueDisplayed: {
+    fontSize: font(2.5),
+    fontWeight: "bold",
+    textAlign: "center",
+    width: '100%',
+  },
+  iconStyle: {
+    width: font(3),
+    height: font(3),
+    marginRight: width(2),
+  },
+  dropdownItem: {
+    padding: height(1.5),
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dropdownItemText: {
+    fontSize: font(2.25),
+    color: "#05419A",
+    fontWeight: 'bold',
   },
 
   bottomBar: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: 10,
+    paddingVertical: height(1),
     borderTopWidth: 1,
     borderTopColor: "#05419A",
     backgroundColor: "#fff",
@@ -806,16 +885,16 @@ const styles = StyleSheet.create({
     paddingBottom: height(5),
   },
   bottomButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    width: "30%",
+    paddingVertical: height(1),
+    paddingHorizontal: width(3),
+    borderRadius: font(0.5),
+    width: width(30),
     alignItems: "center",
   },
   buttonText: {
     fontWeight: "bold",
     color: "#fff",
-    fontSize: 12,
+    fontSize: font(1.8),
   },
   buttonFechada: {
     backgroundColor: "#96bc25ff",

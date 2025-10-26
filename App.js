@@ -3,16 +3,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View } from "react-native";
-
-// Importações do Expo para gerenciar fontes e splash screen
 import * as SplashScreen from 'expo-splash-screen'; 
 import * as Font from 'expo-font';
-import { FontAwesome } from '@expo/vector-icons'; // Importa a referência da fonte FontAwesome
-
-// ⚠️ IMPORTANTE: Certifique-se de que estes pacotes estão instalados:
-// npx expo install expo-splash-screen expo-font @expo/vector-icons
-
-// Importações de Páginas (mantidas como estavam)
+import { FontAwesome } from '@expo/vector-icons'; 
 import Splash from "./src/Pages/Splash";
 import Home from "./src/Pages/Home";
 import Login from "./src/Pages/Login";
@@ -36,9 +29,6 @@ import EditarImovelOffline from "./src/Pages/Visita/EditarImovelOffline";
 import ResumoCiclo from "./src/Pages/Fiscal/ResumoCiclo";
 import AtualizarQuarteirao from "./src/Pages/Visita/AtualizarQuarteirao";
 
-// --- CONFIGURAÇÃO DA SPLASH SCREEN E FONTES ---
-
-// 1. Mantém a tela de splash visível até que o aplicativo esteja pronto para renderizar.
 SplashScreen.preventAutoHideAsync();
 
 const Stack = createNativeStackNavigator();
@@ -49,37 +39,28 @@ export default function App() {
     useEffect(() => {
         async function prepare() {
             try {
-                // 2. Carrega as fontes do FontAwesome (necessário para os ícones)
                 await Font.loadAsync({
-                    // 'FontAwesome' é o nome da fonte que a biblioteca precisa
                     'FontAwesome': FontAwesome.font, 
                 });
-                
-                // (Aqui você adicionaria qualquer outra lógica de carregamento inicial, se houver)
-
             } catch (e) {
                 console.warn(e);
             } finally {
-                // 3. Define que o app está pronto para renderizar
                 setAppIsReady(true);
             }
         }
         prepare();
     }, []);
 
-    // 4. Callback para esconder a tela de splash quando a view principal for renderizada.
     const onLayoutRootView = useCallback(async () => {
         if (appIsReady) {
             await SplashScreen.hideAsync();
         }
     }, [appIsReady]);
 
-    // 5. Enquanto o app não estiver pronto, retorna null (a splash screen continua visível)
     if (!appIsReady) {
         return null;
     }
 
-    // 6. O App principal é renderizado dentro de uma View que chama onLayoutRootView
     return (
         <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
             <NavigationContainer>

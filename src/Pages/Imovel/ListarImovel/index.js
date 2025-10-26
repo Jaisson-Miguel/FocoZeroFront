@@ -3,25 +3,21 @@ import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, ScrollView
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
-// MaterialCommunityIcons foi removido, pois o checkbox foi retirado.
-// import { MaterialCommunityIcons } from "@expo/vector-icons"; 
-import { height, width, font } from "../../../utils/responsive.js"; // Mantido se você usa estas utilities
+import { height, width, font } from "../../../utils/responsive.js";
 
 const mapearTipoImovel = (tipoAbreviado) => {
     const tipos = {
-        'c': 'Comércio', 
-        'r': 'Residência', 
-        'tb': 'Terreno Baldio', 
+        'c': 'Comércio',
+        'r': 'Residência',
+        'tb': 'Terreno Baldio',
         'pe': 'P. Estratégico',
-        'out': 'Outros', 
+        'out': 'Outros',
     };
-    
-    // Tenta mapear diretamente. Se não, tenta mapear por algumas strings comuns.
+
     const getTipo = (valor) => {
         if (!valor) return "NÃO ESPECIFICADO";
         const v = String(valor).toLowerCase().trim();
-        
-        // Mapeamento por substring ou valor direto (ajuste conforme a real lógica da API)
+
         if (v.includes('comércio') || v.includes('c')) return 'Comércio';
         if (v.includes('residência') || v.includes('r')) return 'Residência';
         if (v.includes('terreno') || v.includes('tb')) return 'Terreno Baldio';
@@ -38,15 +34,14 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function ImovelOffline({ route, navigation }) {
     const { quarteirao } = route.params;
-    const { idArea, nomeArea } = route.params; // <-- Exemplo de como obter
+    const { idArea, nomeArea } = route.params;
     const [imoveis, setImoveis] = useState({});
     const [loading, setLoading] = useState(true);
     const offline = true;
 
     const agruparImoveisPorRua = (imoveisArray) => {
         return imoveisArray.reduce((acc, imovel) => {
-            // A imagem mostra a rua com o nome completo
-            const rua = imovel.logradouro || "Rua Desconhecida"; 
+            const rua = imovel.logradouro || "Rua Desconhecida";
             if (!acc[rua]) {
                 acc[rua] = [];
             }
@@ -107,39 +102,36 @@ export default function ImovelOffline({ route, navigation }) {
 
     return (
         <View style={styles.container}>
-            <Cabecalho navigation={navigation} /> 
+            <Cabecalho navigation={navigation} />
 
-            <ScrollView style={styles.scrollView}>
-                {/* Cabeçalho da Área: Agora puxado dos dados do quarteirão */}
-            <View style={styles.simpleTitleContainer}>
-              
-              <Text style={styles.simpleTitle}>
-                {quarteirao.nomeArea} - {quarteirao.numero}
-              </Text>
-              <Text style={styles.simpleSubtitle}>
-                Código {quarteirao.codigoArea} - Zona {quarteirao.zonaArea}
-              </Text>
-            </View>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} >
+                <View style={styles.simpleTitleContainer}>
+
+                    <Text style={styles.simpleTitle}>
+                        {quarteirao.nomeArea} - {quarteirao.numero}
+                    </Text>
+                    <Text style={styles.simpleSubtitle}>
+                        Código {quarteirao.codigoArea} - Zona {quarteirao.zonaArea}
+                    </Text>
+                </View>
 
                 {ruas.length === 0 ? (
-                        <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
+                    <Text style={styles.emptyText}>Nenhum imóvel encontrado.</Text>
                 ) : (
                     ruas.map((rua) => (
                         <View key={rua}>
-                            {/* Cabeçalho de Rua (Rua Alves Brito, Rua G) */}
-                            <Text style={styles.streetHeader}>{rua}</Text> 
-                            
+                            <Text style={styles.streetHeader}>{rua}</Text>
+
                             {imoveis[rua].map((imovel) => {
-                                // Lógica de status
-                                const isDisabled = imovel.status === "visitado"; 
+                                const isDisabled = imovel.status === "visitado";
                                 const tipoDoImovel = imovel.complemento || imovel.tipo;
-                                const tipoMapeado = mapearTipoImovel(tipoDoImovel); 
+                                const tipoMapeado = mapearTipoImovel(tipoDoImovel);
                                 const contentText = `Nº ${imovel.numero} - ${tipoMapeado}`;
 
                                 return (
                                     <View key={imovel._id} style={styles.imovelItem}>
                                         <View style={styles.imovelLeft}>
-                                            <TouchableOpacity 
+                                            <TouchableOpacity
                                                 style={styles.imovelTextTouchable}
                                                 onPress={() =>
                                                     navigation.navigate("Visita", {
@@ -154,12 +146,9 @@ export default function ImovelOffline({ route, navigation }) {
                                                 <Text style={[styles.imovelText, isDisabled && styles.imovelTextVisited]}>
                                                     {contentText}
                                                 </Text>
-                                                {/* Se houver recusa, pode ser exibido aqui */}
-                                                {/* {imovel.status === "recusa" && <Text style={styles.recusaText}>Recusa</Text>} */}
                                             </TouchableOpacity>
                                         </View>
 
-                                        {/* Botão Editar (na direita, como na imagem) */}
                                         <TouchableOpacity
                                             style={styles.editButton}
                                             onPress={() =>
@@ -191,54 +180,56 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: "#F5F5F5", // Fundo levemente cinza
+        backgroundColor: "#F5F5F5",
     },
     scrollView: {
         flex: 1,
     },
-    
-    // --- Estilos do Cabeçalho da Área (Título Dinâmico) ---
-    areaHeaderContainer: {
-        paddingVertical: 10,
-        backgroundColor: 'white',
-        alignItems: 'center',
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: height(3),
+    },
+
+    simpleTitleContainer: {
+        paddingHorizontal: width(3.75),
+        alignItems: "center",
+        paddingVertical: height(2),
+        backgroundColor: '#fff',
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
     },
-    areaTitle: {
-        fontSize: 18, 
+    simpleTitle: {
+        fontSize: font(4),
         fontWeight: "bold",
-        color: "#05419A", // Azul escuro
+        color: "#05419A",
         textTransform: 'uppercase',
     },
-    areaSubtitle: {
-        fontSize: 12, 
+    simpleSubtitle: {
+        fontSize: font(2.5),
         color: "#666",
         textTransform: 'uppercase',
-        marginTop: 2,
+        marginTop: height(0.25),
     },
 
-    // --- Estilos do Cabeçalho de Rua (Rua Alves Brito) ---
     streetHeader: {
-        fontSize: 16,
+        fontSize: font(3),
         fontWeight: "bold",
-        color: "white", // Letra branca
-        backgroundColor: "#05419A", // Fundo azul
-        paddingVertical: 10,
-        paddingHorizontal: 15,
+        color: "white",
+        backgroundColor: "#05419A",
+        paddingVertical: height(1.5),
+        paddingHorizontal: width(3.75),
     },
 
-    // --- Estilos da Linha de Imóvel ---
     imovelItem: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 8, 
-        paddingHorizontal: 15,
+        paddingVertical: height(1.25),
+        paddingHorizontal: width(3.75),
         backgroundColor: "#fff",
         borderBottomWidth: 1,
         borderBottomColor: "#eee",
-        paddingLeft: 30, // Recuo de 15px para a direita (ajuste conforme necessário)
+        paddingLeft: width(5),
     },
     imovelLeft: {
         flexDirection: "row",
@@ -246,55 +237,35 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     imovelTextTouchable: {
-        flex: 1, // Permite que o texto ocupe o espaço
-        paddingVertical: 5, // Ajusta a área de toque
+        flex: 1,
+        paddingVertical: height(1),
     },
-    
-    // --- Estilos do Texto do Imóvel (Nº 01 - Comércio) ---
+
     imovelText: {
-        fontSize: 15, 
-        color: "#333", 
+        fontSize: font(2.5),
+        color: "#333",
     },
     imovelTextVisited: {
-        color: 'gray', // Exemplo de estilo para indicar visitado sem checkbox
+        color: '#188a1bff',
     },
-    
-    // --- Estilos do Botão Editar ---
+
     editButton: {
-        backgroundColor: "#4CAF50", // Verde vibrante da imagem
-        paddingVertical: 8,
-        paddingHorizontal: 15,
+        backgroundColor: "#4CAF50",
+        paddingVertical: height(1),
+        paddingHorizontal: width(3.5),
         borderRadius: 5,
-        marginLeft: 10,
+        marginLeft: width(2.5),
     },
     editText: {
         color: "#fff",
         fontWeight: "bold",
-        fontSize: 14, 
+        fontSize: font(2.25),
     },
-    
-    // --- Outros ---
+
     emptyText: {
         textAlign: "center",
         color: "gray",
+        fontSize: font(2.5),
+        marginTop: height(2.5),
     },
-    simpleTitleContainer: {
-            paddingHorizontal: 15,
-            alignItems:"center",
-            paddingVertical: 10,
-            backgroundColor: '#fff',
-            borderBottomWidth: 1,
-            borderBottomColor: '#ccc',
-        },
-        simpleTitle: {
-            fontSize: font(3.5),
-            fontWeight: "bold",
-            color: "#05419A",
-            textTransform: 'uppercase',
-        },
-        simpleSubtitle: {
-            fontSize: font(2.25),
-            color: "#666",
-            textTransform: 'uppercase',
-        },
 });
