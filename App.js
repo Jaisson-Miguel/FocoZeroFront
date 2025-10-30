@@ -12,7 +12,6 @@ import Login from "./src/Pages/Login";
 import Register from "./src/Pages/Register";
 import CadastrarArea from "./src/Pages/Area/CadastrarArea";
 import ListarAreas from "./src/Pages/Area/ListarAreas";
-import CadastrarQuarteirao from "./src/Pages/Quarteirao/CadastrarQuarteirao";
 import ListarQuarteirao from "./src/Pages/Quarteirao/ListarQuarteirao";
 import CadastrarImovel from "./src/Pages/Imovel/CadastrarImovel";
 import ListarImovel from "./src/Pages/Imovel/ListarImovel";
@@ -103,11 +102,6 @@ export default function App() {
                     <Stack.Screen
                         name="CadastrarArea"
                         component={CadastrarArea}
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="CadastrarQuarteirao"
-                        component={CadastrarQuarteirao}
                         options={{ headerShown: false }}
                     />
                     <Stack.Screen
