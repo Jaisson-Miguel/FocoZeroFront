@@ -12,6 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
 import { height, width, font } from "../../../utils/responsive.js";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -43,7 +44,7 @@ const mapearTipoImovel = (tipoAbreviado) => {
 
 const screenWidth = Dimensions.get("window").width;
 
-export default function ImovelOffline({ route, navigation }) {
+export default function ListarImovel({ route, navigation }) {
   const { quarteirao, idArea, nomeArea, modoI } = route.params;
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
@@ -189,6 +190,22 @@ export default function ImovelOffline({ route, navigation }) {
           ))
         )}
       </ScrollView>
+
+      {/* ➕ Botão flutuante para cadastrar novo imóvel */}
+      {modoI !== "Visualizar" && (
+        <TouchableOpacity
+          style={styles.fabButton}
+          onPress={() =>
+            navigation.navigate("CadastrarImovel", {
+              quarteirao,
+              idArea,
+              nomeArea,
+            })
+          }
+        >
+          <Icon name="plus" size={font(5)} color="#fff" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -291,5 +308,26 @@ const styles = StyleSheet.create({
     color: "gray",
     fontSize: font(2.5),
     marginTop: height(2.5),
+  },
+
+  // ➕ Estilo do botão flutuante igual ao do Quarteirão
+  fabButton: {
+    position: "absolute",
+    width: height(8),
+    height: height(8),
+    alignItems: "center",
+    justifyContent: "center",
+    right: width(6),
+    bottom: height(4),
+    backgroundColor: "#05419A",
+    borderRadius: height(8) / 2,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: "#fff",
   },
 });
