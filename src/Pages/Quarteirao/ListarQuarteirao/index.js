@@ -6,6 +6,9 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     StyleSheet,
+    Modal,
+    TextInput,
+    Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { API_URL } from "./../../../config/config.js";
@@ -109,41 +112,127 @@ function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
     );
 }
 
+function CadastrarQuarteiraoModal({ visible, onClose, idArea, nomeArea, onCadastroSucesso }) {
+    const [numero, setNumero] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    async function handleCadastrar() {
+        if (!numero) {
+            Alert.alert("Erro", "Digite o número do quarteirão.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/cadastrarQuarteirao`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idArea, numero: Number(numero) }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                Alert.alert("Erro", data.message || "Não foi possível cadastrar.");
+            } else {
+                Alert.alert(
+                    "Sucesso",
+                    `Quarteirão cadastrado: ${data.quarteirao.numero}`
+                );
+                setNumero("");
+                onCadastroSucesso();
+                onClose();
+            }
+        } catch (err) {
+            console.error(err);
+            Alert.alert("Erro", "Erro ao cadastrar quarteirão.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={visible}
+            onRequestClose={onClose}
+        >
+            <View style={modalStyles.centeredView}>
+                <View style={modalStyles.modalView}>
+                    <Text style={modalStyles.title}>Cadastrar Quarteirão</Text>
+                    {nomeArea && <Text style={modalStyles.subtitle}>Área: {nomeArea}</Text>}
+
+                    <TextInput
+                        style={modalStyles.input}
+                        placeholder="Número do Quarteirão"
+                        placeholderTextColor="#666"
+                        keyboardType="numeric"
+                        value={numero}
+                        onChangeText={setNumero}
+                    />
+
+                    <View style={modalStyles.buttonContainer}>
+                        <TouchableOpacity
+                            style={modalStyles.cancelButton}
+                            onPress={onClose}
+                            disabled={loading}
+                        >
+                            <Text style={modalStyles.cancelButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[modalStyles.cadastrarButton, loading && modalStyles.buttonDisabled]}
+                            onPress={handleCadastrar}
+                            disabled={loading}
+                        >
+                            <Text style={modalStyles.cadastrarButtonText}>
+                                {loading ? <ActivityIndicator color="#fff" /> : "Cadastrar"}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
+    );
+}
+
 export default function Quarteiroes({ route, navigation }) {
     const { idArea, mapaUrl, nomeArea, funcao, modoI } = route.params;
     const [quarteiroes, setQuarteiroes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [visible, setVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const fetchQuarteiroes = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `${API_URL}/listarQuarteiroes/${idArea}`
+            );
+            const data = await response.json();
+
+            if (response.status === 404) {
+                setQuarteiroes([]);
+            } else if (!response.ok) {
+                throw new Error(data.message || "Erro ao buscar quarteirões");
+            } else {
+                setQuarteiroes(data);
+            }
+            setError(null);
+        } catch (err) {
+            console.error(err);
+            setError("Não foi possível carregar os quarteirões.");
+        } finally {
+            setLoading(false);
+        }
+    }, [idArea]);
 
     useFocusEffect(
         useCallback(() => {
-            const fetchQuarteiroes = async () => {
-                setLoading(true);
-                try {
-                    const response = await fetch(
-                        `${API_URL}/listarQuarteiroes/${idArea}`
-                    );
-                    const data = await response.json();
-
-                    if (response.status === 404) {
-                        setQuarteiroes([]);
-                    } else if (!response.ok) {
-                        throw new Error(data.message || "Erro ao buscar quarteirões");
-                    } else {
-                        setQuarteiroes(data);
-                    }
-                    setError(null);
-                } catch (err) {
-                    console.error(err);
-                    setError("Não foi possível carregar os quarteirões.");
-                } finally {
-                    setLoading(false);
-                }
-            };
-
             fetchQuarteiroes();
-        }, [idArea])
+        }, [fetchQuarteiroes])
     );
 
     if (loading) {
@@ -157,7 +246,7 @@ export default function Quarteiroes({ route, navigation }) {
 
     const listData = [
         { type: "mapa", key: "mapaUrl", data: { mapaUrl: mapaUrl } },
-        ...quarteiroes.map((q) => ({ type: "quarteirao", key: q._id, data: q })),
+        ...quarteiroes.map((q) => ({ type: "quarteirao", key: getIdString(q._id), data: q })),
     ];
 
     const renderListItem = ({ item }) => {
@@ -221,16 +310,18 @@ export default function Quarteiroes({ route, navigation }) {
                 keyExtractor={(item) => item.key}
                 renderItem={renderListItem}
                 contentContainerStyle={styles.flatListContent}
+                ListEmptyComponent={
+                    !loading && !error && (
+                        <Text style={styles.empty}>
+                            Nenhum quarteirão cadastrado para esta área.
+                        </Text>
+                    )
+                }
             />
 
             {funcao === "adm" && (
                 <TouchableOpacity
-                    onPress={() =>
-                        navigation.navigate("CadastrarQuarteirao", {
-                            idArea: idArea,
-                            nomeArea: nomeArea,
-                        })
-                    }
+                    onPress={() => setModalVisible(true)}
                     style={styles.fabButton}
                     accessibilityLabel="Adicionar novo quarteirão"
                 >
@@ -244,9 +335,99 @@ export default function Quarteiroes({ route, navigation }) {
                 visible={visible}
                 onRequestClose={() => setVisible(false)}
             />
+
+            <CadastrarQuarteiraoModal
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                idArea={idArea}
+                nomeArea={nomeArea}
+                onCadastroSucesso={fetchQuarteiroes}
+            />
         </View>
     );
 }
+
+const modalStyles = StyleSheet.create({
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        width: width(85),
+        backgroundColor: "white",
+        borderRadius: width(3),
+        padding: width(6),
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    title: {
+        fontSize: font(3.5),
+        fontWeight: "bold",
+        color: "#05419A",
+        marginBottom: height(1.5),
+        textAlign: "center",
+    },
+    subtitle: {
+        fontSize: font(2.2),
+        color: '#05419A',
+        marginBottom: height(3),
+        textAlign: "center"
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: "#05419A",
+        borderRadius: width(2),
+        paddingHorizontal: width(3),
+        paddingVertical: height(1.5),
+        fontSize: font(2.25),
+        marginBottom: height(3),
+        width: '100%',
+        color: '#000',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    cadastrarButton: {
+        backgroundColor: "#05419A",
+        paddingVertical: height(1.5),
+        borderRadius: width(2),
+        alignItems: "center",
+        flex: 1,
+        marginLeft: width(2),
+    },
+    cadastrarButtonText: {
+        color: "#fff",
+        fontSize: font(2.25),
+        fontWeight: "bold",
+    },
+    cancelButton: {
+        backgroundColor: "#ccc",
+        paddingVertical: height(1.5),
+        borderRadius: width(2),
+        alignItems: "center",
+        flex: 1,
+        marginRight: width(2),
+    },
+    cancelButtonText: {
+        color: "#000",
+        fontSize: font(2.2),
+        fontWeight: "bold",
+    },
+    buttonDisabled: {
+        backgroundColor: '#A9A9A9',
+    },
+});
 
 const styles = StyleSheet.create({
     safeArea: {
@@ -270,6 +451,7 @@ const styles = StyleSheet.create({
         color: "gray",
         textAlign: "center",
         marginTop: height(3),
+        paddingHorizontal: width(5),
     },
 
     areaTitleContainer: {

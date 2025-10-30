@@ -103,12 +103,12 @@ export default function App() {
                     <Stack.Screen
                         name="CadastrarArea"
                         component={CadastrarArea}
-                        options={{ headerShown: true }}
+                        options={{ headerShown: false }}
                     />
                     <Stack.Screen
                         name="CadastrarQuarteirao"
                         component={CadastrarQuarteirao}
-                        options={{ headerShown: true }}
+                        options={{ headerShown: false }}
                     />
                     <Stack.Screen
                         name="CadastrarImovel"
