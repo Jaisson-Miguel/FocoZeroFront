@@ -119,7 +119,7 @@ function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
 }
 
 export default function ListarArea({ route, navigation }) {
-  const { modo, idAgente, nomeAgente, idUsuario, modoI } = route.params;
+  const { modo, idAgente, idUsuario, modoI } = route.params;
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [funcao, setFuncao] = useState(false);
