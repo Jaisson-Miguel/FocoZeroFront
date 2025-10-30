@@ -15,10 +15,8 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "./../../../config/config.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
-// Importações adicionadas para o estilo responsivo
 import { height, width, font } from "../../../utils/responsive.js";
 
-// Função para mapear o tipo de imóvel, se necessário, como no offline
 const mapearTipoImovel = (tipoAbreviado) => {
     const tipos = {
         r: "Residência",
@@ -31,8 +29,14 @@ const mapearTipoImovel = (tipoAbreviado) => {
     return tipos[chave] || (tipoAbreviado ? String(tipoAbreviado).toUpperCase() : "NÃO ESPECIFICADO");
 };
 
+const NENHUMA_OBSERVACAO = "Nenhuma observação.";
+
 export default function EditarImovelOnline({ route, navigation }) {
     const { imovel } = route.params;
+
+    const inicialObservacao = (imovel.observacao && String(imovel.observacao).trim() !== NENHUMA_OBSERVACAO)
+        ? imovel.observacao
+        : "";
 
     const [form, setForm] = useState({
         logradouro: imovel.logradouro || "",
@@ -41,7 +45,7 @@ export default function EditarImovelOnline({ route, navigation }) {
         qtdHabitantes: String(imovel.qtdHabitantes || ""),
         qtdCachorros: String(imovel.qtdCachorros || ""),
         qtdGatos: String(imovel.qtdGatos || ""),
-        observacao: imovel.observacao || "",
+        observacao: inicialObservacao,
         status: imovel.status || "Pendente",
     });
 
@@ -52,18 +56,22 @@ export default function EditarImovelOnline({ route, navigation }) {
     }
 
     async function handleSubmit() {
-        // Validação básica
         if (!form.logradouro || !form.numero || !form.tipo) {
             return Alert.alert("Erro", "Preencha os campos obrigatórios!");
         }
 
         setLoading(true);
 
+        const dadosParaEnviar = {
+            ...form,
+            observacao: form.observacao || NENHUMA_OBSERVACAO,
+        };
+
         try {
             const response = await fetch(`${API_URL}/editarImovel/${imovel._id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(form),
+                body: JSON.stringify(dadosParaEnviar),
             });
 
             const data = await response.json();
@@ -86,11 +94,15 @@ export default function EditarImovelOnline({ route, navigation }) {
         }
     }
 
-    // Informações do Imóvel para o cabeçalho/título
     const tipoMapeado = mapearTipoImovel(imovel.tipo);
     const tipoOuComplemento = imovel.complemento || imovel.tipo;
     const tipoMapeadoDetalhado = mapearTipoImovel(tipoOuComplemento);
 
+    const observacaoStyle = [
+        styles.input, 
+        styles.textArea,
+        form.observacao === "" && { color: '#AAA' }
+    ];
 
     return (
         <View style={styles.container}>
@@ -98,20 +110,18 @@ export default function EditarImovelOnline({ route, navigation }) {
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? height(8) : 0} // Ajuste conforme a altura do seu Cabecalho
+                keyboardVerticalOffset={Platform.OS === "ios" ? height(8) : 0}
             >
                 <ScrollView contentContainerStyle={styles.scrollContent}>
-                    {/* Estilo do título replicado do ImovelOffline */}
                     <View style={styles.simpleTitleContainer}>
                         <Text style={styles.simpleTitle}>
-                            Editar Imóvel (Online)
+                            Editar Imóvel
                         </Text>
                         <Text style={styles.simpleSubtitle}>
-                            Nº **{imovel.numero}** - {tipoMapeadoDetalhado}
+                            Nº {imovel.numero} - {tipoMapeadoDetalhado}
                         </Text>
                     </View>
 
-                    {/* Campo Logradouro */}
                     <Text style={styles.inputLabel}>Logradouro</Text>
                     <TextInput
                         style={styles.input}
@@ -120,7 +130,6 @@ export default function EditarImovelOnline({ route, navigation }) {
                         onChangeText={(v) => handleChange("logradouro", v)}
                     />
 
-                    {/* Campo Número */}
                     <Text style={styles.inputLabel}>Número</Text>
                     <TextInput
                         style={styles.input}
@@ -130,13 +139,13 @@ export default function EditarImovelOnline({ route, navigation }) {
                         onChangeText={(v) => handleChange("numero", v)}
                     />
 
-                    {/* Campo Tipo (Picker) */}
                     <Text style={styles.inputLabel}>Tipo de Imóvel</Text>
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={form.tipo}
                             style={styles.picker}
                             onValueChange={(v) => handleChange("tipo", v)}
+                            itemStyle={Platform.OS === 'ios' ? { height: height(6), lineHeight: height(6) * 1.25, paddingVertical: height(0.5) } : {}}
                         >
                             <Picker.Item label="Selecione o tipo" value="" />
                             <Picker.Item label="Residência" value="r" />
@@ -147,49 +156,43 @@ export default function EditarImovelOnline({ route, navigation }) {
                         </Picker>
                     </View>
 
-
-                    {/* Campo Qtd. Habitantes */}
-                    <Text style={styles.inputLabel}>Qtd. Habitantes</Text>
+                    <Text style={styles.inputLabel}>Habitantes</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Qtd. Habitantes"
+                        placeholder="Digite a quantidade...."
                         keyboardType="numeric"
                         value={form.qtdHabitantes}
                         onChangeText={(v) => handleChange("qtdHabitantes", v)}
                     />
                     
-                    {/* Campo Qtd. Cachorros */}
-                    <Text style={styles.inputLabel}>Qtd. Cachorros</Text>
+                    <Text style={styles.inputLabel}>Cães</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Qtd. Cachorros"
+                        placeholder="Digite a quantidade...."
                         keyboardType="numeric"
                         value={form.qtdCachorros}
                         onChangeText={(v) => handleChange("qtdCachorros", v)}
                     />
 
-                    {/* Campo Qtd. Gatos */}
-                    <Text style={styles.inputLabel}>Qtd. Gatos</Text>
+                    <Text style={styles.inputLabel}>Gatos</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Qtd. Gatos"
+                        placeholder="Digite a quantidade...."
                         keyboardType="numeric"
                         value={form.qtdGatos}
                         onChangeText={(v) => handleChange("qtdGatos", v)}
                     />
 
-                    {/* Campo Observação */}
                     <Text style={styles.inputLabel}>Observação</Text>
                     <TextInput
-                        style={[styles.input, styles.textArea]}
-                        placeholder="Observação"
+                        style={observacaoStyle} 
+                        placeholder={NENHUMA_OBSERVACAO}
                         multiline
                         numberOfLines={4}
                         value={form.observacao}
                         onChangeText={(v) => handleChange("observacao", v)}
                     />
 
-                    {/* Botão de Submissão */}
                     <TouchableOpacity
                         style={styles.button}
                         onPress={handleSubmit}
@@ -211,27 +214,25 @@ export default function EditarImovelOnline({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff", // Fundo branco
+        backgroundColor: "#fff",
     },
     scrollContent: {
         flexGrow: 1,
-        padding: width(3.75), // Padding consistente
+        padding: width(3.75),
         paddingBottom: height(3),
     },
-
-    // Estilos do título e subtítulo (do ImovelOffline)
     simpleTitleContainer: {
         paddingHorizontal: width(3.75),
         alignItems: "center",
         paddingVertical: height(1.25),
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-        marginHorizontal: -width(3.75), // Compensar o padding do scrollContent
+        borderBottomColor: 'rgba(5, 65, 154, 0.6)',
+        marginHorizontal: -width(3.75),
         marginBottom: height(2.5),
     },
     simpleTitle: {
-        fontSize: font(3.5),
+        fontSize: font(4),
         fontWeight: "bold",
         color: "#05419A",
         textTransform: 'uppercase',
@@ -241,45 +242,45 @@ const styles = StyleSheet.create({
         color: "#666",
         textTransform: 'uppercase',
     },
-    // Fim dos estilos do título
 
     inputLabel: {
-        fontSize: font(1.8),
+        fontSize: font(2.25),
         color: '#05419A',
         fontWeight: 'bold',
-        marginBottom: height(0.5),
+        marginBottom: height(0.75),
         marginTop: height(1),
     },
     input: {
         backgroundColor: "#fff",
-        padding: height(1.5), // Padding vertical
-        paddingHorizontal: width(3), // Padding horizontal
-        borderRadius: 5, // Borda mais suave
-        marginBottom: height(1.5),
+        padding: height(1.5),
+        paddingHorizontal: width(3),
+        borderRadius: 5,
+        marginBottom: height(1),
         borderWidth: 1,
-        borderColor: "#ddd",
-        fontSize: font(1.9), // Tamanho da fonte
+        borderColor: "#05419A",
+        fontSize: font(2.25),
         color: '#333',
     },
     textArea: {
-        height: height(10), // Altura maior para observação
-        textAlignVertical: 'top', // Texto começa no topo
+        height: height(10),
+        textAlignVertical: 'top',
     },
     pickerContainer: {
         backgroundColor: "#fff",
         borderRadius: 5,
         borderWidth: 1,
-        borderColor: "#ddd",
-        marginBottom: height(1.5),
-        overflow: 'hidden', // Para garantir que o Picker respeite o borderRadius
+        borderColor: "#05419A",
+        marginBottom: height(1),
+        overflow: 'hidden',
+        height: height(6)
     },
     picker: {
-        height: height(6), // Altura consistente com o input
         width: '100%',
         color: '#333',
+        paddingVertical: 0, 
     },
     button: {
-        backgroundColor: "#2CA856", // Cor do botão de 'Editar' do ImovelOffline
+        backgroundColor: "#05419A",
         padding: height(1.5),
         borderRadius: 5,
         marginTop: height(2),
@@ -290,6 +291,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: "#fff",
         fontWeight: "bold",
-        fontSize: font(2.2), // Fonte um pouco maior para destaque
+        fontSize: font(2.5),
     },
 });
