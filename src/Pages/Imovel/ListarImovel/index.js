@@ -7,12 +7,13 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
 import { height, width, font } from "../../../utils/responsive.js";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { API_URL } from "../../../config/config.js";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -27,19 +28,16 @@ const mapearTipoImovel = (tipoAbreviado) => {
     if (!valor) return "NÃO ESPECIFICADO";
     const v = String(valor).toLowerCase().trim();
 
-    if (v.includes("comércio") || v.includes("c")) return "Comércio";
-    if (v.includes("residência") || v.includes("r")) return "Residência";
-    if (v.includes("terreno") || v.includes("tb")) return "Terreno Baldio";
-    if (v.includes("estratégico") || v.includes("pe")) return "P. Estratégico";
-    if (v.includes("outros") || v.includes("out")) return "Outros";
+    if (v.includes("comércio") || v === "c") return "Comércio";
+    if (v.includes("residência") || v === "r") return "Residência";
+    if (v.includes("terreno") || v === "tb") return "Terreno Baldio";
+    if (v.includes("estratégico") || v === "pe") return "P. Estratégico";
+    if (v.includes("outros") || v === "out") return "Outros";
 
-    return (
-      tipos[v] ||
-      (tipoAbreviado ? String(tipoAbreviado).toUpperCase() : "NÃO ESPECIFICADO")
-    );
+    return tipos[v] || "NÃO ESPECIFICADO";
   };
 
-  return getTipo(tipoAbreviado) || "NÃO ESPECIFICADO";
+  return getTipo(tipoAbreviado);
 };
 
 const screenWidth = Dimensions.get("window").width;
@@ -48,7 +46,6 @@ export default function ListarImovel({ route, navigation }) {
   const { quarteirao, idArea, nomeArea, modoI } = route.params;
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
-  const offline = true;
 
   const agruparImoveisPorRua = (imoveisArray) => {
     return imoveisArray.reduce((acc, imovel) => {
@@ -68,25 +65,33 @@ export default function ListarImovel({ route, navigation }) {
       const carregarImoveis = async () => {
         setLoading(true);
         try {
-          const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
-          let todos = rawImoveis ? JSON.parse(rawImoveis) : [];
-
-          const filtrados = todos.filter(
-            (i) => i.idQuarteirao === quarteirao._id
+          const response = await fetch(
+            `${API_URL}/listarImoveis/${quarteirao._id}`
           );
 
-          filtrados.sort((a, b) => {
+          if (!response.ok) {
+            const erro = await response.json();
+            throw new Error(erro.message || "Erro ao buscar imóveis.");
+          }
+
+          const data = await response.json();
+
+          // Ordena por número
+          data.sort((a, b) => {
             const numA = parseInt(String(a.numero).replace(/[^0-9]/g, "")) || 0;
             const numB = parseInt(String(b.numero).replace(/[^0-9]/g, "")) || 0;
             return numA - numB;
           });
 
-          const agrupados = agruparImoveisPorRua(filtrados);
+          const agrupados = agruparImoveisPorRua(data);
 
           if (isActive) setImoveis(agrupados);
         } catch (err) {
-          console.log("Erro ao carregar imóveis offline:", err);
-          if (isActive) setImoveis({});
+          console.log("Erro ao carregar imóveis da API:", err.message);
+          if (isActive) {
+            Alert.alert("Erro", err.message || "Falha ao buscar imóveis.");
+            setImoveis({});
+          }
         } finally {
           if (isActive) setLoading(false);
         }
@@ -136,8 +141,7 @@ export default function ListarImovel({ route, navigation }) {
 
               {imoveis[rua].map((imovel) => {
                 const isDisabled = imovel.status === "visitado";
-                const tipoDoImovel = imovel.complemento || imovel.tipo;
-                const tipoMapeado = mapearTipoImovel(tipoDoImovel);
+                const tipoMapeado = mapearTipoImovel(imovel.tipo);
                 const contentText = `Nº ${imovel.numero} - ${tipoMapeado}`;
 
                 return (
@@ -176,7 +180,7 @@ export default function ListarImovel({ route, navigation }) {
                         onPress={() =>
                           navigation.navigate("EditarImovel", {
                             imovel,
-                            offline,
+                            offline: false,
                           })
                         }
                       >
@@ -197,9 +201,9 @@ export default function ListarImovel({ route, navigation }) {
           style={styles.fabButton}
           onPress={() =>
             navigation.navigate("CadastrarImovel", {
-              quarteirao,
-              idArea,
-              nomeArea,
+              idQuarteirao: quarteirao._id,
+              numeroQuarteirao: quarteirao.numero,
+              imoveis: Object.values(imoveis).flat(),
             })
           }
         >
@@ -227,7 +231,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: height(3),
   },
-
   simpleTitleContainer: {
     paddingHorizontal: width(3.75),
     alignItems: "center",
@@ -248,7 +251,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginTop: height(0.25),
   },
-
   streetHeader: {
     fontSize: font(3),
     fontWeight: "bold",
@@ -257,7 +259,6 @@ const styles = StyleSheet.create({
     paddingVertical: height(1.5),
     paddingHorizontal: width(3.75),
   },
-
   imovelItem: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -278,7 +279,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: height(1),
   },
-
   imovelText: {
     fontSize: font(2.5),
     color: "#333",
@@ -289,7 +289,6 @@ const styles = StyleSheet.create({
   imovelTextDisabled: {
     color: "black",
   },
-
   editButton: {
     backgroundColor: "#4CAF50",
     paddingVertical: height(1),
@@ -302,15 +301,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: font(2.25),
   },
-
   emptyText: {
     textAlign: "center",
     color: "gray",
     fontSize: font(2.5),
     marginTop: height(2.5),
   },
-
-  // ➕ Estilo do botão flutuante igual ao do Quarteirão
   fabButton: {
     position: "absolute",
     width: height(8),

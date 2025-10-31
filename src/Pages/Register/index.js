@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,18 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker"; // precisa instalar: npm i @react-native-picker/picker
+import { API_URL } from "../../config/config.js";
 
-export default function Cadastro({ navigation }) {
+export default function Cadastro({ navigation, route }) {
+  const { funcaoUsuario } = route.params; // vem da tela anterior
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
-  const [funcao, setFuncao] = useState("");
+  const [funcao, setFuncao] = useState(
+    funcaoUsuario === "fiscal" ? "agente" : ""
+  );
+  const [isEditable, setIsEditable] = useState(funcaoUsuario !== "fiscal");
 
   const handleCadastro = async () => {
     if (!nome || !cpf || !senha) {
@@ -23,9 +29,7 @@ export default function Cadastro({ navigation }) {
     try {
       const response = await fetch(`${API_URL}/cadastrarUsuario`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome,
           cpf,
@@ -42,7 +46,7 @@ export default function Cadastro({ navigation }) {
       }
 
       Alert.alert("Sucesso", "Usuário cadastrado com sucesso!");
-      navigation.navigate("Login");
+      navigation.goBack();
     } catch (error) {
       Alert.alert("Erro", "Não foi possível conectar ao servidor");
       console.error(error);
@@ -51,28 +55,21 @@ export default function Cadastro({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Home")}
-        style={{ backgroundColor: "blue" }}
-      >
-        <Text style={{ color: "white" }}>Home</Text>
-      </TouchableOpacity>
       <Text style={styles.title}>Cadastro</Text>
 
+      {/* Outros campos de Nome, CPF e Senha */}
       <TextInput
         placeholder="Nome"
         value={nome}
         onChangeText={setNome}
         style={styles.input}
       />
-
       <TextInput
         placeholder="CPF"
         value={cpf}
         onChangeText={setCpf}
         style={styles.input}
       />
-
       <TextInput
         placeholder="Senha"
         value={senha}
@@ -81,12 +78,23 @@ export default function Cadastro({ navigation }) {
         style={styles.input}
       />
 
-      <TextInput
-        placeholder="Função (opcional)"
-        value={funcao}
-        onChangeText={setFuncao}
-        style={styles.input}
-      />
+      {/* Picker para função */}
+      <View
+        style={[
+          styles.pickerContainer,
+          !isEditable && { backgroundColor: "#eee" },
+        ]}
+      >
+        <Picker
+          selectedValue={funcao}
+          enabled={isEditable}
+          onValueChange={(itemValue) => setFuncao(itemValue)}
+        >
+          <Picker.Item label="Agente" value="agente" />
+          <Picker.Item label="Fiscal" value="fiscal" />
+          <Picker.Item label="Administrador" value="adm" />
+        </Picker>
+      </View>
 
       <TouchableOpacity onPress={handleCadastro} style={styles.button}>
         <Text style={styles.buttonText}>Cadastrar</Text>
@@ -119,20 +127,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
   button: {
     backgroundColor: "green",
     padding: 15,
     borderRadius: 5,
     marginTop: 10,
   },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  link: {
-    textAlign: "center",
-    marginTop: 15,
-    color: "blue",
-  },
+  buttonText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
+  link: { textAlign: "center", marginTop: 15, color: "blue" },
 });

@@ -6,12 +6,12 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  Image,
   TouchableOpacity,
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
 
-export default function ListarAgentes({ navigation }) {
+export default function ListarAgentes({ navigation, route }) {
+  const { funcao } = route.params;
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,10 +79,31 @@ export default function ListarAgentes({ navigation }) {
     <View style={styles.container}>
       <TouchableOpacity
         onPress={confirmarReset}
-        style={{ backgroundColor: "red" }}
+        style={{
+          backgroundColor: "red",
+          marginBottom: 10,
+          padding: 10,
+          borderRadius: 5,
+        }}
       >
         <Text style={styles.btnText}>Resetar Responsáveis</Text>
       </TouchableOpacity>
+
+      {/* Botão Cadastrar Agente */}
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate("Register", { funcaoUsuario: funcao })
+        }
+        style={{
+          backgroundColor: "#05419A",
+          marginBottom: 20,
+          padding: 10,
+          borderRadius: 5,
+        }}
+      >
+        <Text style={styles.btnText}>Cadastrar Agente</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>Agentes</Text>
 
       <FlatList
@@ -105,7 +126,7 @@ function Item({ agente, navigation }) {
           modo: "atribuir",
         })
       }
-      style={styles.container}
+      style={styles.card}
     >
       <View style={styles.containerInfo}>
         <Text style={styles.title}>{agente.nome}</Text>
@@ -140,40 +161,18 @@ const styles = StyleSheet.create({
     elevation: 3,
     flex: 1,
   },
-  nome: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  mapa: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginTop: 10,
-  },
-
-  img: {
-    width: 100,
-    height: 100,
-  },
   containerInfo: {
     paddingVertical: 10,
     paddingHorizontal: 5,
     flex: 1,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
   description: {
     fontSize: 14,
-    fontWeight: 300,
+    fontWeight: "300",
   },
-  btnCadastrar: {
-    margin: 10,
-    backgroundColor: "green",
-    padding: 10,
-    borderRadius: 5,
+  btnText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
   },
-  btnText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
 });

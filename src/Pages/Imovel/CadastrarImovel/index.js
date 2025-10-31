@@ -39,10 +39,18 @@ export default function CadastrarImovel({ route, navigation }) {
 
   async function handleSubmit() {
     try {
+      const formData = {
+        ...form,
+        posicao: Number(form.posicao), // 🔹 garante que seja número
+        qtdHabitantes: Number(form.qtdHabitantes) || 0,
+        qtdCachorros: Number(form.qtdCachorros) || 0,
+        qtdGatos: Number(form.qtdGatos) || 0,
+      };
+
       const response = await fetch(`${API_URL}/cadastrarImovel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
