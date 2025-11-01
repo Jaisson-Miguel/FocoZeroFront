@@ -76,12 +76,8 @@ export default function ListarImovel({ route, navigation }) {
 
           const data = await response.json();
 
-          // Ordena por número
-          data.sort((a, b) => {
-            const numA = parseInt(String(a.numero).replace(/[^0-9]/g, "")) || 0;
-            const numB = parseInt(String(b.numero).replace(/[^0-9]/g, "")) || 0;
-            return numA - numB;
-          });
+          // Ordena por posição
+          data.sort((a, b) => a.posicao - b.posicao);
 
           const agrupados = agruparImoveisPorRua(data);
 

@@ -90,9 +90,14 @@ export default function CadastrarImovel({ route, navigation }) {
 
           <Text style={styles.selectedPosition}>
             {posicao !== null
-              ? posicao === "Primeiro"
+              ? posicao === 0
                 ? `Primeiro da lista`
-                : `${imoveis[posicao].logradouro}, ${imoveis[posicao].numero}`
+                : `${
+                    imoveis.find((i) => i.posicao === posicao - 1)
+                      ?.logradouro || ""
+                  }, ${
+                    imoveis.find((i) => i.posicao === posicao - 1)?.numero || ""
+                  }`
               : "Nenhuma posição escolhida ainda"}
           </Text>
 
@@ -111,7 +116,7 @@ export default function CadastrarImovel({ route, navigation }) {
                 <TouchableOpacity
                   style={styles.modalItem}
                   onPress={() => {
-                    setPosicao("Primeiro");
+                    setPosicao(0);
                     setForm({ ...form, posicao: 0 });
                     setModalVisible(false);
                   }}
@@ -121,21 +126,26 @@ export default function CadastrarImovel({ route, navigation }) {
 
                 <FlatList
                   data={imoveis}
-                  keyExtractor={(item, index) => String(item._id || index)}
-                  renderItem={({ item, index }) => (
-                    <TouchableOpacity
-                      style={styles.modalItem}
-                      onPress={() => {
-                        setPosicao(index);
-                        setForm({ ...form, posicao: index + 1 });
-                        setModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.modalItemText}>
-                        {item.logradouro}, {item.numero}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                  keyExtractor={(item) => String(item._id)}
+                  renderItem={({ item }) => {
+                    const novaPosicao = (item.posicao || 0) + 1;
+                    return (
+                      <TouchableOpacity
+                        style={styles.modalItem}
+                        onPress={() => {
+                          setPosicao(novaPosicao);
+                          setForm({ ...form, posicao: novaPosicao });
+                          // console.log("Imóvel selecionado:", item);
+                          console.log("Nova posição:", novaPosicao);
+                          setModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.modalItemText}>
+                          {item.logradouro}, {item.numero}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }}
                 />
 
                 <Button
@@ -232,10 +242,7 @@ export default function CadastrarImovel({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
+  mainContainer: { flex: 1, backgroundColor: "#fff" },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: width(5),
@@ -249,16 +256,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: height(3),
   },
-  label: {
-    fontSize: font(2.25),
-    color: "#05419A",
-    fontWeight: "600",
-  },
-  value: {
-    fontSize: font(2),
-    color: "#333",
-    marginBottom: height(1.5),
-  },
+  label: { fontSize: font(2.25), color: "#05419A", fontWeight: "600" },
+  value: { fontSize: font(2), color: "#333", marginBottom: height(1.5) },
   selectPositionButton: {
     backgroundColor: "#05419A",
     paddingVertical: height(1.2),
@@ -266,11 +265,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: height(1.5),
   },
-  selectPositionText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: font(2),
-  },
+  selectPositionText: { color: "#fff", fontWeight: "bold", fontSize: font(2) },
   selectedPosition: {
     color: "#333",
     fontSize: font(2),
@@ -300,10 +295,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-  modalItemText: {
-    fontSize: font(2),
-    color: "#333",
-  },
+  modalItemText: { fontSize: font(2), color: "#333" },
   input: {
     borderWidth: 1,
     borderColor: "#05419A",
@@ -325,11 +317,7 @@ const styles = StyleSheet.create({
   pickerStyle: {
     height: height(6.5),
     width: "100%",
-    ...Platform.select({
-      android: {
-        paddingHorizontal: width(2),
-      },
-    }),
+    ...Platform.select({ android: { paddingHorizontal: width(2) } }),
   },
   button: {
     backgroundColor: "#05419A",
@@ -338,9 +326,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: height(2),
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: font(2.5),
-    fontWeight: "bold",
-  },
+  buttonText: { color: "#fff", fontSize: font(2.5), fontWeight: "bold" },
 });

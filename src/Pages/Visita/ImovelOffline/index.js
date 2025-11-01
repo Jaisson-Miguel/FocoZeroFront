@@ -59,18 +59,32 @@ export default function ImovelOffline({ route, navigation }) {
           const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
           let todos = rawImoveis ? JSON.parse(rawImoveis) : [];
 
+          // Filtra apenas imóveis do quarteirão atual
           const filtrados = todos.filter(
             (i) => i.idQuarteirao === quarteirao._id
           );
 
-          const agrupados = agruparImoveisPorRua(filtrados);
+          // Agrupa por rua, preservando os editados e visitados
+          const agrupados = filtrados.reduce((acc, imovel) => {
+            if (!acc[imovel.logradouro]) acc[imovel.logradouro] = [];
 
-          if (isActive) setImoveis(agrupados);
+            // Mantém imóvel editado ou visitado sem sobrescrever
+            if (imovel.editado || imovel.status === "visitado") {
+              acc[imovel.logradouro].push(imovel);
+            } else {
+              // Adiciona normalmente
+              acc[imovel.logradouro].push(imovel);
+            }
+
+            return acc;
+          }, {});
+
+          setImoveis(agrupados);
         } catch (err) {
           console.log("Erro ao carregar imóveis offline:", err);
-          if (isActive) setImoveis({});
+          setImoveis({});
         } finally {
-          if (isActive) setLoading(false);
+          setLoading(false);
         }
       };
 

@@ -69,17 +69,19 @@ export default function EditarImovelOffline({ route, navigation }) {
       const raw = await AsyncStorage.getItem("dadosImoveis");
       let todos = raw ? JSON.parse(raw) : [];
 
-      // Atualiza o imóvel correspondente
+      // ⚡ Atualiza o imóvel correspondente e adiciona o campo "editado"
       const atualizados = todos.map((item) => {
         if (item._id === imovel._id) {
           return {
             ...item,
             ...form,
             observacao: form.observacao || NENHUMA_OBSERVACAO,
+            editado: true, // marca que o imóvel foi editado
           };
         }
         return item;
       });
+      console.log(atualizados);
 
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(atualizados));
 

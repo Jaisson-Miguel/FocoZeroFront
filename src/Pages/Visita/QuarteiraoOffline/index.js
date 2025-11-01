@@ -42,38 +42,30 @@ export default function QuarteiraoOffline({ navigation }) {
     try {
       const idUsuario = await getId();
 
+      // Baixa quarteirões
       const resQ = await fetch(
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`
       );
-      let quarteiroesArray = [];
-      if (resQ.ok) {
-        const jsonQ = await resQ.json();
-        quarteiroesArray = Array.isArray(jsonQ) ? jsonQ : [];
-      } else {
-        console.warn("Resposta inválida ao baixar quarteirões:", resQ.status);
-      }
+      const quarteiroesArray = resQ.ok ? await resQ.json() : [];
 
+      // Baixa imóveis
       const resI = await fetch(
         `${API_URL}/baixarImoveisResponsavel/${idUsuario}`
       );
-      let imoveisArray = [];
-      if (resI.ok) {
-        const jsonI = await resI.json();
-        imoveisArray = Array.isArray(jsonI) ? jsonI : [];
-      } else {
-        console.warn("Resposta inválida ao baixar imóveis:", resI.status);
-      }
+      const imoveisArray = resI.ok ? await resI.json() : [];
 
+      // Recupera dados locais
       const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
-      const locais = rawImoveis ? JSON.parse(rawImoveis) : [];
-      const locaisArr = Array.isArray(locais) ? locais : [];
+      const locaisArr = rawImoveis ? JSON.parse(rawImoveis) : [];
 
+      // Mescla dados: mantém editados, atualiza os não editados
+      // Mescla dados: mantém editados e visitados, atualiza os demais
       const mesclados = imoveisArray.map((i) => {
         const local = locaisArr.find((l) => l._id === i._id);
-        if (local && (local.status === "visitado" || local.editadoOffline)) {
-          return local;
+        if (local && (local.editado || local.status === "visitado")) {
+          return local; // Mantém imóvel local se foi editado ou visitado
         }
-        return i;
+        return i; // Caso contrário, atualiza com dados do servidor
       });
 
       await AsyncStorage.setItem(
