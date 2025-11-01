@@ -11,11 +11,12 @@ import {
   Button,
   FlatList,
   KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { API_URL } from "./../../../config/config.js";
 import { Picker } from "@react-native-picker/picker";
 import Cabecalho from "../../../Components/Cabecalho.js";
-import { height, width } from "../../../utils/responsive.js";
+import { API_URL } from "../../../config/config.js";
+import { height, width, font } from "../../../utils/responsive.js";
 
 export default function CadastrarImovel({ route, navigation }) {
   const { idQuarteirao, numeroQuarteirao, imoveis } = route.params;
@@ -41,7 +42,7 @@ export default function CadastrarImovel({ route, navigation }) {
     try {
       const formData = {
         ...form,
-        posicao: Number(form.posicao), // 🔹 garante que seja número
+        posicao: Number(form.posicao),
         qtdHabitantes: Number(form.qtdHabitantes) || 0,
         qtdCachorros: Number(form.qtdCachorros) || 0,
         qtdGatos: Number(form.qtdGatos) || 0,
@@ -71,200 +72,275 @@ export default function CadastrarImovel({ route, navigation }) {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f5f5f5", alignItems: "center" }}>
+    <View style={styles.mainContainer}>
       <Cabecalho navigation={navigation} />
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-          width: width(100),
-        }}
-        behavior="height"
-        // keyboardVerticalOffset={2}
-      >
-        <ScrollView contentContainerStyle={styles.container}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title}>Cadastrar Imóvel</Text>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>Cadastrar Imóvel</Text>
 
-            <Text>Quarteirão: {numeroQuarteirao}</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <Text>Depois de...</Text>
-            </TouchableOpacity>
+          <Text style={styles.label}>Quarteirão:</Text>
+          <Text style={styles.value}>{numeroQuarteirao}</Text>
 
-            <Text>
-              {posicao !== null
-                ? posicao === "Primeiro"
-                  ? `Primeiro da Lista`
-                  : `${imoveis[posicao].logradouro}, ${imoveis[posicao].numero}`
-                : "Nenhuma posição escolhida ainda"}
-            </Text>
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            style={styles.selectPositionButton}
+          >
+            <Text style={styles.selectPositionText}>Selecionar posição</Text>
+          </TouchableOpacity>
 
-            <Modal
-              visible={modalVisible}
-              animationType="slide"
-              transparent={true}
-            >
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  backgroundColor: "rgba(0,0,0,0.5)",
-                }}
-              >
-                <View
-                  style={{
-                    margin: 20,
-                    backgroundColor: "white",
-                    borderRadius: 10,
-                    padding: 15,
+          <Text style={styles.selectedPosition}>
+            {posicao !== null
+              ? posicao === "Primeiro"
+                ? `Primeiro da lista`
+                : `${imoveis[posicao].logradouro}, ${imoveis[posicao].numero}`
+              : "Nenhuma posição escolhida ainda"}
+          </Text>
+
+          {/* Modal de seleção */}
+          <Modal
+            visible={modalVisible}
+            animationType="slide"
+            transparent={true}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <Text style={styles.modalTitle}>
+                  Escolha depois de qual imóvel adicionar:
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setPosicao("Primeiro");
+                    setForm({ ...form, posicao: 0 });
+                    setModalVisible(false);
                   }}
                 >
-                  <Text style={{ fontSize: 18, marginBottom: 10 }}>
-                    Escolha depois de qual imóvel adicionar:
-                  </Text>
+                  <Text style={styles.modalItemText}>Primeiro da lista</Text>
+                </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={{
-                      padding: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#ccc",
-                    }}
-                    onPress={() => {
-                      setPosicao("Primeiro");
-                      setForm({ ...form, posicao: 0 });
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text>Primeiro</Text>
-                  </TouchableOpacity>
-                  <FlatList
-                    data={imoveis}
-                    keyExtractor={(item, index) => String(item._id || index)}
-                    renderItem={({ item, index }) => (
-                      <TouchableOpacity
-                        style={{
-                          padding: 10,
-                          borderBottomWidth: 1,
-                          borderBottomColor: "#ccc",
-                        }}
-                        onPress={() => {
-                          setPosicao(index);
-                          setForm({ ...form, posicao: index + 1 });
-                          setModalVisible(false);
-                        }}
-                      >
-                        <Text>
-                          {item.logradouro}, {item.numero}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  />
+                <FlatList
+                  data={imoveis}
+                  keyExtractor={(item, index) => String(item._id || index)}
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity
+                      style={styles.modalItem}
+                      onPress={() => {
+                        setPosicao(index);
+                        setForm({ ...form, posicao: index + 1 });
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.modalItemText}>
+                        {item.logradouro}, {item.numero}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
 
-                  <Button
-                    title="Cancelar"
-                    onPress={() => setModalVisible(false)}
-                  />
-                </View>
+                <Button
+                  title="Cancelar"
+                  onPress={() => setModalVisible(false)}
+                />
               </View>
-            </Modal>
+            </View>
+          </Modal>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Logradouro"
-              value={form.logradouro}
-              onChangeText={(v) => handleChange("logradouro", v)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Número"
-              keyboardType="numeric"
-              value={form.numero}
-              onChangeText={(v) => handleChange("numero", v)}
-            />
+          <TextInput
+            style={styles.input}
+            placeholder="Logradouro"
+            placeholderTextColor="#666"
+            value={form.logradouro}
+            onChangeText={(v) => handleChange("logradouro", v)}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Número"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+            value={form.numero}
+            onChangeText={(v) => handleChange("numero", v)}
+          />
+
+          <View
+            style={[
+              styles.dropdownContainer,
+              form.tipo === "" && styles.dropdownPlaceholder,
+            ]}
+          >
             <Picker
               selectedValue={form.tipo}
-              style={styles.input}
+              style={styles.pickerStyle}
               onValueChange={(v) => handleChange("tipo", v)}
+              mode="dropdown"
             >
-              <Picker.Item label="Selecione o tipo" value="" />
+              <Picker.Item
+                label="Selecione o tipo"
+                value=""
+                color={form.tipo ? "#000" : "#666"}
+              />
               <Picker.Item label="Residencial" value="r" />
               <Picker.Item label="Comércio" value="c" />
               <Picker.Item label="Terreno baldio" value="tb" />
               <Picker.Item label="Ponto estratégico" value="pe" />
               <Picker.Item label="Outro" value="out" />
             </Picker>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Qtd. Habitantes"
-              keyboardType="numeric"
-              value={form.qtdHabitantes}
-              onChangeText={(v) => handleChange("qtdHabitantes", v)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Qtd. Cachorros"
-              keyboardType="numeric"
-              value={form.qtdCachorros}
-              onChangeText={(v) => handleChange("qtdCachorros", v)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Qtd. Gatos"
-              keyboardType="numeric"
-              value={form.qtdGatos}
-              onChangeText={(v) => handleChange("qtdGatos", v)}
-            />
-
-            <TextInput
-              style={[styles.input, { height: 80 }]}
-              placeholder="Observação"
-              multiline
-              value={form.observacao}
-              onChangeText={(v) => handleChange("observacao", v)}
-            />
           </View>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Habitantes"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+            value={form.qtdHabitantes}
+            onChangeText={(v) => handleChange("qtdHabitantes", v)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Cachorros"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+            value={form.qtdCachorros}
+            onChangeText={(v) => handleChange("qtdCachorros", v)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Qtd. Gatos"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+            value={form.qtdGatos}
+            onChangeText={(v) => handleChange("qtdGatos", v)}
+          />
+
+          <TextInput
+            style={[styles.input, { height: height(10) }]}
+            placeholder="Observação"
+            placeholderTextColor="#666"
+            multiline
+            value={form.observacao}
+            onChangeText={(v) => handleChange("observacao", v)}
+          />
+
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Salvar Imóvel</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Salvar</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    backgroundColor: "#f5f5f5",
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContent: {
     flexGrow: 1,
+    paddingHorizontal: width(5),
+    paddingVertical: height(2),
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 22,
+    fontSize: font(4),
     fontWeight: "bold",
     color: "#05419A",
-    marginBottom: 20,
+    textAlign: "center",
+    marginBottom: height(3),
+  },
+  label: {
+    fontSize: font(2.25),
+    color: "#05419A",
+    fontWeight: "600",
+  },
+  value: {
+    fontSize: font(2),
+    color: "#333",
+    marginBottom: height(1.5),
+  },
+  selectPositionButton: {
+    backgroundColor: "#05419A",
+    paddingVertical: height(1.2),
+    borderRadius: width(2),
+    alignItems: "center",
+    marginBottom: height(1.5),
+  },
+  selectPositionText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: font(2),
+  },
+  selectedPosition: {
+    color: "#333",
+    fontSize: font(2),
+    marginBottom: height(2),
     textAlign: "center",
   },
-  input: {
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 10,
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: width(3),
+    padding: 15,
+  },
+  modalTitle: {
+    fontSize: font(2.5),
+    fontWeight: "bold",
     marginBottom: 10,
+    color: "#05419A",
+    textAlign: "center",
+  },
+  modalItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+  },
+  modalItemText: {
+    fontSize: font(2),
+    color: "#333",
+  },
+  input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#05419A",
+    borderRadius: width(2),
+    paddingHorizontal: width(3),
+    paddingVertical: height(1.5),
+    fontSize: font(2.25),
+    marginBottom: height(2),
+    color: "#000",
+  },
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#05419A",
+    borderRadius: width(2),
+    marginBottom: height(2),
+    justifyContent: "center",
+    height: height(6.5),
+  },
+  pickerStyle: {
+    height: height(6.5),
+    width: "100%",
+    ...Platform.select({
+      android: {
+        paddingHorizontal: width(2),
+      },
+    }),
   },
   button: {
     backgroundColor: "#05419A",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: height(5),
+    paddingVertical: height(2),
+    borderRadius: width(2),
     alignItems: "center",
-    width: width(90),
+    marginTop: height(2),
   },
   buttonText: {
     color: "#fff",
+    fontSize: font(2.5),
     fontWeight: "bold",
-    fontSize: 16,
   },
 });

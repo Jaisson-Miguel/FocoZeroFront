@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
+import { useFocusEffect } from "@react-navigation/native";
+import Cabecalho from "../../../Components/Cabecalho.js";
 
 export default function ListarAgentes({ navigation, route }) {
   const { funcao } = route.params;
@@ -43,28 +45,34 @@ export default function ListarAgentes({ navigation, route }) {
     );
   }
 
-  useEffect(() => {
-    const fetchAgentes = async () => {
-      try {
-        const response = await fetch(`${API_URL}/listarUsuarios?funcao=agente`);
-        const data = await response.json();
+  // 🔁 Atualiza a lista sempre que a tela voltar a ficar em foco
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAgentes = async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${API_URL}/listarUsuarios?funcao=agente`
+          );
+          const data = await response.json();
 
-        if (!response.ok) {
-          Alert.alert("Erro", data.message || "Falha ao carregar agentes");
-          return;
+          if (!response.ok) {
+            Alert.alert("Erro", data.message || "Falha ao carregar agentes");
+            return;
+          }
+
+          setAgentes(data);
+        } catch (error) {
+          Alert.alert("Erro", "Não foi possível conectar ao servidor");
+          console.error(error);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        setAgentes(data);
-      } catch (error) {
-        Alert.alert("Erro", "Não foi possível conectar ao servidor");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAgentes();
-  }, []);
+      fetchAgentes();
+    }, [])
+  );
 
   if (loading) {
     return (
@@ -77,41 +85,45 @@ export default function ListarAgentes({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        onPress={confirmarReset}
-        style={{
-          backgroundColor: "red",
-          marginBottom: 10,
-          padding: 10,
-          borderRadius: 5,
-        }}
-      >
-        <Text style={styles.btnText}>Resetar Responsáveis</Text>
-      </TouchableOpacity>
+      <Cabecalho navigation={navigation} />
+      <View style={styles.containerMenor}>
+        <TouchableOpacity
+          onPress={confirmarReset}
+          style={{
+            backgroundColor: "red",
+            marginBottom: 10,
+            padding: 10,
+            borderRadius: 5,
+          }}
+        >
+          <Text style={styles.btnText}>Resetar Responsáveis</Text>
+        </TouchableOpacity>
 
-      {/* Botão Cadastrar Agente */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("Register", { funcaoUsuario: funcao })
-        }
-        style={{
-          backgroundColor: "#05419A",
-          marginBottom: 20,
-          padding: 10,
-          borderRadius: 5,
-        }}
-      >
-        <Text style={styles.btnText}>Cadastrar Agente</Text>
-      </TouchableOpacity>
+        {/* Botão Cadastrar Agente */}
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate("Register", { funcaoUsuario: funcao })
+          }
+          style={{
+            backgroundColor: "#05419A",
+            marginBottom: 20,
+            padding: 10,
+            borderRadius: 5,
+          }}
+        >
+          <Text style={styles.btnText}>Cadastrar Agente</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.title}>Agentes</Text>
+        <Text style={styles.title}>Agentes</Text>
 
-      <FlatList
-        data={agentes}
-        renderItem={({ item }) => (
-          <Item agente={item} navigation={navigation} />
-        )}
-      />
+        <FlatList
+          data={agentes}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <Item agente={item} navigation={navigation} />
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -138,6 +150,10 @@ function Item({ agente, navigation }) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  containerMenor: {
     flex: 1,
     backgroundColor: "#f5f5f5",
     padding: 20,

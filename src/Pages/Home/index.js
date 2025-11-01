@@ -82,7 +82,7 @@ export default function Home({ navigation }) {
           onPress: () =>
             navigation.navigate("ListarAreas", {
               modo: "visualizar",
-              modoI: "Editar",
+              modoI: funcao === "fiscal" ? "detalhes" : "Editar",
             }),
           bgColor: "#CEC931",
           iconName: "map-outline",
@@ -97,7 +97,7 @@ export default function Home({ navigation }) {
         },
         {
           text: "DEFINIR QUARTEIRÕES",
-          onPress: () => navigation.navigate("ListarAgentes"),
+          onPress: () => navigation.navigate("ListarAgentes", { funcao }),
           bgColor: "#2CA856",
           iconName: "grid-outline",
           iconColor: "#333",

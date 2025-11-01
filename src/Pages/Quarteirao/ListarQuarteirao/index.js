@@ -209,7 +209,7 @@ function CadastrarQuarteiraoModal({
 }
 
 export default function Quarteiroes({ route, navigation }) {
-  const { idArea, mapaUrl, nomeArea, funcao, modoI } = route.params;
+  const { idArea, mapaUrl, nomeArea, funcao, modoI, modo } = route.params;
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -290,6 +290,8 @@ export default function Quarteiroes({ route, navigation }) {
               idArea,
               nomeArea,
               modoI,
+              funcao,
+              modo,
             })
           }
         >

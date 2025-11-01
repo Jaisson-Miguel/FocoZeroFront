@@ -43,7 +43,7 @@ const mapearTipoImovel = (tipoAbreviado) => {
 const screenWidth = Dimensions.get("window").width;
 
 export default function ListarImovel({ route, navigation }) {
-  const { quarteirao, idArea, nomeArea, modoI } = route.params;
+  const { quarteirao, idArea, nomeArea, modoI, funcao, modo } = route.params;
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -151,7 +151,13 @@ export default function ListarImovel({ route, navigation }) {
                         style={styles.imovelTextTouchable}
                         disabled={modoI === "Visualizar"}
                         onPress={() => {
-                          if (modoI !== "Visualizar") {
+                          if (modoI === "detalhes" || modoI === "Editar") {
+                            navigation.navigate("EditarImovel", {
+                              imovel,
+                              offline: false,
+                              funcao,
+                            });
+                          } else if (modoI !== "Visualizar") {
                             navigation.navigate("Visita", {
                               imovel,
                               idArea: quarteirao.idArea,
@@ -174,13 +180,14 @@ export default function ListarImovel({ route, navigation }) {
                       </TouchableOpacity>
                     </View>
 
-                    {modoI !== "Visualizar" && (
+                    {modoI !== "Visualizar" && funcao !== "fiscal" && (
                       <TouchableOpacity
                         style={styles.editButton}
                         onPress={() =>
                           navigation.navigate("EditarImovel", {
                             imovel,
                             offline: false,
+                            funcao,
                           })
                         }
                       >

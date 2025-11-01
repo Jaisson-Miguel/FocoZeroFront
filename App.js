@@ -132,7 +132,7 @@ export default function App() {
           <Stack.Screen
             name="ListarAgentes"
             component={ListarAgentes}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="AtribuirQuarteirao"
