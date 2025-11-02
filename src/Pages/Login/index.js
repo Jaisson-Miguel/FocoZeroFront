@@ -106,9 +106,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#fff",
-    width: width(100),
+    // width: width(100), // Removido: flex: 1 já cobre a largura total
   },
-  logo: {},
+  logo: {
+    // Adicionado um tamanho padrão para a logo se ela não estiver definida em outro lugar
+    // Exemplo: 60% da largura e 60% da altura do containerLogo
+    width: width(70),
+    height: height(22), // Ajustado para ser responsivo dentro do containerLogo de 40% da altura
+  },
   containerLogo: {
     width: width(100),
     justifyContent: "center",
@@ -123,38 +128,41 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: "center",
     flex: 1,
-    justifyContent: "flex-end",
-    height: height(60),
+    justifyContent: "flex-end", // Com ScrollView, talvez 'flex-start' seja mais adequado, mas mantive o original.
+    // height: height(60), // Removido: flex: 1 + KeyboardAvoidingView já definem a altura
   },
   title: {
-    fontSize: 50,
+    fontSize: font(5), // Converte 50 para font(5) - Exemplo: 10 * 5 = 50
     fontWeight: "bold",
-    margin: 25,
+    margin: height(2), // Converte 25 para altura responsiva
     color: "#05419A",
-    justifyContent: "center",
+    alignSelf: "center",
   },
   containerInput: {
     width: width(90),
-    gap: 20,
+    gap: height(2), // Converte 20 para altura responsiva
   },
   label: {
     borderWidth: 2,
+    borderColor: "#05419A",
     borderRadius: 15,
-    fontSize: 28,
-    padding: 20,
-    height: 80,
+    fontSize: font(4), // Converte 28 para font(2.5) - Exemplo: 10 * 2.5 = 25 (ajuste fino pode ser necessário)
+    padding: height(2), // Converte 20 para altura responsiva
+    height: height(10), // Converte 80 para altura responsiva - Exemplo: 8% da altura da tela
+    marginBottom: height(0.5)
   },
   buttonLogin: {
     width: width(90),
     backgroundColor: "#05419A",
-    height: 65,
+    height: height(10), // Converte 65 para altura responsiva - Exemplo: 6.5% da altura da tela
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 15,
-    marginTop: 10,
+    // marginTop: height(1), // Converte 10 para altura responsiva
   },
   textButtonLogin: {
     color: "white",
-    fontSize: 28,
+    fontWeight: "bold",
+    fontSize: font(4), // Converte 28 para font(2.5) - Usando o tamanho padrão
   },
 });

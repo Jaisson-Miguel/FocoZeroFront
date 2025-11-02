@@ -15,41 +15,9 @@ import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js"; 
 
 // --- Componente principal ---
-export default function AgenteQuarteirao({ navigation, route }) {
-  // A função do usuário (ex: 'administrador')
-  const { funcao } = route.params; 
+export default function ListarAgentes({ navigation, route }) {
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Constantes de cores padronizadas
-
-  function confirmarReset() {
-    Alert.alert(
-      "Atenção",
-      "Você tem certeza que quer resetar todos os responsáveis dos quarteirões?",
-      [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
-        {
-          text: "Sim, resetar",
-          onPress: async () => {
-            try {
-              const response = await fetch(`${API_URL}/resetarResponsaveis`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-              });
-              const data = await response.json();
-              Alert.alert("Sucesso", data.message);
-            } catch (error) {
-              Alert.alert("Erro", "Não foi possível resetar os responsáveis.");
-            }
-          },
-        },
-      ]
-    );
-  }
 
   // 🔁 Atualiza a lista sempre que a tela voltar a ficar em foco
   useFocusEffect(
@@ -57,6 +25,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
       const fetchAgentes = async () => {
         setLoading(true);
         try {
+          // Busca apenas agentes
           const response = await fetch(
             `${API_URL}/listarUsuarios?funcao=agente`
           );
@@ -84,7 +53,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={"#05419A"} />
-        <Text style={styles.loadingText}>Carregando agentes...</Text>
+        <Text style={styles.loadingText}>Carregando agentes para atribuição...</Text>
       </View>
     );
   }
@@ -93,37 +62,20 @@ export default function AgenteQuarteirao({ navigation, route }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
       <View style={styles.containerMenor}>
-        
-        {/* Botão Resetar Responsáveis */}
-        <TouchableOpacity
-          onPress={confirmarReset}
-          style={[styles.button, { backgroundColor: "red", marginBottom: height(1.2) }]}
-        >
-          <Text style={styles.buttonText}>Resetar Responsáveis</Text>
-        </TouchableOpacity>
-
-        {/* Botão Cadastrar Agente */}
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("Register", { funcaoUsuario: funcao })
-          }
-          style={[styles.button, { backgroundColor: "#05419A", marginBottom: height(2.5) }]}
-        >
-          <Text style={styles.buttonText}>Cadastrar Agente</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.listTitle}>Lista de Agentes</Text>
+        <Text style={styles.listTitle}>
+          Selecione um Agente
+        </Text>
 
         <FlatList
           data={agentes}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            // Ação: Card apenas lista, não navega
-            <ItemAgenteGerenciar agente={item} /> 
+            // Ação: Ao clicar, navega para a lista de áreas para atribuir
+            <ItemAgenteAtribuir agente={item} navigation={navigation} />
           )}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
-            <Text style={styles.emptyListText}>Nenhum agente cadastrado.</Text>
+            <Text style={styles.emptyListText}>Nenhum agente encontrado.</Text>
           )}
         />
       </View>
@@ -131,20 +83,29 @@ export default function AgenteQuarteirao({ navigation, route }) {
   );
 }
 
-// --- Componente de Item da Lista (APENAS VISUALIZAÇÃO) ---
-function ItemAgenteGerenciar({ agente }) {
-  // Use um View em vez de TouchableOpacity para remover a função de clique
+// --- Componente de Item da Lista (Clicável para Atribuição) ---
+function ItemAgenteAtribuir({ agente, navigation }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate("ListarAreas", {
+          idAgente: agente._id,
+          nomeAgente: agente.nome,
+          modo: "atribuir",
+        })
+      }
+      style={styles.card}
+    >
       <View style={styles.containerInfo}>
         <Text style={styles.cardTitle}>{agente.nome}</Text>
         <Text style={styles.cardDescription}>Código: {agente.cpf}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
-// --- Estilos Padronizados (Reutilizados e Ajustados) ---
+
+// --- Estilos Padronizados (Mantidos, mas simplificados) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -168,9 +129,9 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   listTitle: {
-    fontSize: font(3.5),
+    fontSize: font(4),
     fontWeight: "bold",
-    marginBottom: height(2),
+    marginBottom: height(3),
     color: "#05419A",
     textAlign: 'center',
   },
@@ -178,15 +139,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: height(1.5),
     borderRadius: 8,
-    marginBottom: height(1.8),
+    marginBottom: height(1.25),
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: height(0.2) },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-  },
-  containerInfo: {
-    // Estilos de container
   },
   cardTitle: {
     fontSize: font(2.5),
@@ -199,18 +157,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: "#666",
   },
-  button: {
-    padding: height(1.5),
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-    fontSize: font(2.25),
-  },
   emptyListText: {
     textAlign: 'center',
     marginTop: height(5),
@@ -218,3 +164,8 @@ const styles = StyleSheet.create({
     color: '#666',
   }
 });
+
+
+
+
+

@@ -97,7 +97,7 @@ export default function Home({ navigation }) {
         },
         {
           text: "DEFINIR QUARTEIRÕES",
-          onPress: () => navigation.navigate("ListarAgentes", { funcao }),
+          onPress: () => navigation.navigate("AgenteQuarteirao", { funcao }),
           bgColor: "#2CA856",
           iconName: "grid-outline",
           iconColor: "#333",

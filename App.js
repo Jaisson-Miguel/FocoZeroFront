@@ -20,6 +20,7 @@ import Visita from "./src/Pages/Visita/CadastrarVisita";
 import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
 import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
 import ListarAgentes from "./src/Pages/Usuario/ListarAgentes";
+import AgenteQuarteirao from "./src/Pages/Usuario/AgenteQuarteirao"
 import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 import QuarteiraoOffline from "./src/Pages/Visita/QuarteiraoOffline";
@@ -82,7 +83,7 @@ export default function App() {
           <Stack.Screen
             name="Register"
             component={Register}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ListarAreas"
@@ -132,6 +133,11 @@ export default function App() {
           <Stack.Screen
             name="ListarAgentes"
             component={ListarAgentes}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AgenteQuarteirao"
+            component={AgenteQuarteirao}
             options={{ headerShown: false }}
           />
           <Stack.Screen
