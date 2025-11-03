@@ -28,6 +28,8 @@ import ImovelOffline from "./src/Pages/Visita/ImovelOffline";
 import EditarImovelOffline from "./src/Pages/Visita/EditarImovelOffline";
 import ResumoCiclo from "./src/Pages/Fiscal/ResumoCiclo";
 import AtualizarQuarteirao from "./src/Pages/Visita/AtualizarQuarteirao";
+import DiariosScreen from "./src/Pages/Diario/ListarDiario";
+import DetalheDiarioHistorico from "./src/Pages/Diario/DetalheDiario";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -173,6 +175,16 @@ export default function App() {
           <Stack.Screen
             name="AtualizarQuarteirao"
             component={AtualizarQuarteirao}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ListarDiario"
+            component={DiariosScreen}
+            options={{ headerShown: true }}
+          />
+          <Stack.Screen
+            name="DetalheDiario"
+            component={DetalheDiarioHistorico}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

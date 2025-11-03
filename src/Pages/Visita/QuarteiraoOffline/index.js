@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
+  SafeAreaView, // 👈 Adicionado para garantir que o botão não seja cortado
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
@@ -19,6 +20,11 @@ export default function QuarteiraoOffline({ navigation }) {
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);
+
+  // Função para navegar para a tela ListarVisitas (Diários)
+  const fecharDiario = () => {
+    navigation.navigate("ListarVisitas", { modo: "visualizar" });
+  };
 
   // 🔹 timeout p/ evitar travamento offline
   const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
@@ -177,95 +183,108 @@ export default function QuarteiraoOffline({ navigation }) {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Cabecalho navigation={navigation} />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Cabecalho navigation={navigation} />
 
-      {syncMessage && (
-        <View
-          style={[
-            styles.syncMessageContainer,
-            syncMessage.type === "error"
-              ? styles.syncError
-              : styles.syncSuccess,
-          ]}
-        >
-          <Text style={styles.syncMessageText}>{syncMessage.text}</Text>
+        {syncMessage && (
+          <View
+            style={[
+              styles.syncMessageContainer,
+              syncMessage.type === "error"
+                ? styles.syncError
+                : styles.syncSuccess,
+            ]}
+          >
+            <Text style={styles.syncMessageText}>{syncMessage.text}</Text>
+          </View>
+        )}
+
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>QUARTEIRÕES DO DIA</Text>
         </View>
-      )}
 
-      <View style={styles.headerTitleContainer}>
-        <Text style={styles.headerTitle}>QUARTEIRÕES DO DIA</Text>
+        {sections.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Nenhum quarteirão atribuído a este agente.
+            </Text>
+          </View>
+        ) : (
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => String(item._id)}
+            renderItem={({ item }) => {
+              try {
+                const areaNome = (
+                  item?.nomeArea || "NOME INDEFINIDO"
+                ).toUpperCase();
+                const numero =
+                  item?.numero !== undefined && item?.numero !== null
+                    ? String(item.numero).padStart(2, "0")
+                    : "00";
+                const textoFinal = `${areaNome} - QUARTEIRÃO ${numero}`;
+
+                const imoveisDoQuarteirao = iList.filter(
+                  (i) => i.idQuarteirao === item._id
+                );
+                const totalImoveis = imoveisDoQuarteirao.length;
+                const imoveisVisitados = imoveisDoQuarteirao.filter(
+                  (i) => i.status === "visitado"
+                ).length;
+
+                let backgroundColor = styles.listItemWrapper.backgroundColor;
+                if (imoveisVisitados > 0) backgroundColor = "#fbfde6ff";
+                if (imoveisVisitados === totalImoveis && totalImoveis > 0)
+                  backgroundColor = "#d9f1dfff";
+
+                return (
+                  <TouchableOpacity
+                    style={[styles.listItemWrapper, { backgroundColor }]}
+                    onPress={() =>
+                      navigation.navigate("ImovelOffline", {
+                        quarteirao: item,
+                        uriMapaLocal: item.uriMapaLocal, // 🔸 envia o caminho do mapa pro ImovelOffline
+                      })
+                    }
+                  >
+                    <Text style={styles.listItemText}>{textoFinal}</Text>
+                    <Text style={styles.listItemSubtitle}>
+                      {imoveisVisitados} de {totalImoveis} imóveis visitados
+                    </Text>
+                  </TouchableOpacity>
+                );
+              } catch (e) {
+                console.log("Erro ao renderizar item:", e);
+                return null;
+              }
+            }}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={styles.sectionHeaderContainer}>
+                <Text style={styles.sectionHeaderTitle}>
+                  {title.toUpperCase()}
+                </Text>
+              </View>
+            )}
+            contentContainerStyle={styles.listContent} // 👈 Garante espaço no final para o botão
+          />
+        )}
       </View>
 
-      {sections.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            Nenhum quarteirão atribuído a este agente.
-          </Text>
-        </View>
-      ) : (
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => String(item._id)}
-          renderItem={({ item }) => {
-            try {
-              const areaNome = (
-                item?.nomeArea || "NOME INDEFINIDO"
-              ).toUpperCase();
-              const numero =
-                item?.numero !== undefined && item?.numero !== null
-                  ? String(item.numero).padStart(2, "0")
-                  : "00";
-              const textoFinal = `${areaNome} - QUARTEIRÃO ${numero}`;
-
-              const imoveisDoQuarteirao = iList.filter(
-                (i) => i.idQuarteirao === item._id
-              );
-              const totalImoveis = imoveisDoQuarteirao.length;
-              const imoveisVisitados = imoveisDoQuarteirao.filter(
-                (i) => i.status === "visitado"
-              ).length;
-
-              let backgroundColor = styles.listItemWrapper.backgroundColor;
-              if (imoveisVisitados > 0) backgroundColor = "#fbfde6ff";
-              if (imoveisVisitados === totalImoveis && totalImoveis > 0)
-                backgroundColor = "#d9f1dfff";
-
-              return (
-                <TouchableOpacity
-                  style={[styles.listItemWrapper, { backgroundColor }]}
-                  onPress={() =>
-                    navigation.navigate("ImovelOffline", {
-                      quarteirao: item,
-                      uriMapaLocal: item.uriMapaLocal, // 🔸 envia o caminho do mapa pro ImovelOffline
-                    })
-                  }
-                >
-                  <Text style={styles.listItemText}>{textoFinal}</Text>
-                  <Text style={styles.listItemSubtitle}>
-                    {imoveisVisitados} de {totalImoveis} imóveis visitados
-                  </Text>
-                </TouchableOpacity>
-              );
-            } catch (e) {
-              console.log("Erro ao renderizar item:", e);
-              return null;
-            }
-          }}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeaderContainer}>
-              <Text style={styles.sectionHeaderTitle}>
-                {title.toUpperCase()}
-              </Text>
-            </View>
-          )}
-        />
-      )}
-    </View>
+      {/* BOTÃO FIXO FECHAR DIÁRIO */}
+      <TouchableOpacity
+        style={styles.closeDiaryButton}
+        onPress={fecharDiario}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.closeDiaryButtonText}>FECHAR DIÁRIO</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#fff" }, // Ocupa toda a tela
   container: { flex: 1, backgroundColor: "#fff" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   headerTitleContainer: {
@@ -338,5 +357,40 @@ const styles = StyleSheet.create({
     color: "#333",
     fontWeight: "600",
     textAlign: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: width(10),
+  },
+  emptyText: {
+    fontSize: font(2.5),
+    color: '#666',
+    textAlign: 'center',
+  },
+  listContent: {
+    paddingBottom: height(5), // Espaço no final da lista para o botão não sobrepor
+  },
+  closeDiaryButton: {
+    position: "absolute",
+    bottom: height(2), // Distância do fundo da tela (ajustável)
+    left: width(5),
+    right: width(5),
+    backgroundColor: "#05419A", // Cor do navigation original
+    paddingVertical: height(2),
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
+  },
+  closeDiaryButtonText: {
+    color: "#fff", 
+    fontSize: font(2.5),
+    fontWeight: "bold",
   },
 });

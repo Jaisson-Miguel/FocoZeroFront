@@ -67,7 +67,7 @@ export default function Home({ navigation }) {
         {
           text: "DIÁRIOS",
           onPress: () =>
-            navigation.navigate("ListarVisitas", { modo: "visualizar" }),
+            navigation.navigate("ListarDiario", { modo: "visualizar", idAgente: idUsuario }),
           bgColor: "#8ABDE0",
           iconName: "timer-outline",
           iconColor: "#333",
