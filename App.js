@@ -130,7 +130,7 @@ export default function App() {
           <Stack.Screen
             name="DetalhesVisita"
             component={DetalhesVisita}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="ListarAgentes"

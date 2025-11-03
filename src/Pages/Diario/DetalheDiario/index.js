@@ -9,17 +9,14 @@ import {
     Alert,
 } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
-// Certifique-se de que estes caminhos existem no seu projeto
 import { API_URL } from "../../../config/config.js";
 import { height, width, font } from "../../../utils/responsive.js";
 import Cabecalho from "../../../Components/Cabecalho";
 
-// Função auxiliar para criar um objeto Date no fuso horário local a partir da string AAAA-MM-DD
 const createLocalDate = (dateString) => {
     if (!dateString) return null;
     try {
-        const dateParts = dateString.split('-'); // Ex: ['2025', '11', '03']
-        // Cria a data no fuso horário local (Ex: 03/11 00:00:00 GMT-3)
+        const dateParts = dateString.split('-'); 
         return new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     } catch (e) {
         console.error("Erro ao criar data local:", e);
@@ -29,23 +26,18 @@ const createLocalDate = (dateString) => {
 
 export default function DetalheDiarioHistorico({ navigation, route }) {
     
-    // Parâmetros: 'nomeArea' da rota será tratado como um fallback (ex: 'Área ID')
     const { diarioId, nomeArea: nomeAreaFallback, dataDiario } = route.params;
 
-    // Estados da Tela
     const [loading, setLoading] = useState(true);
     const [diarioData, setDiarioData] = useState(null);
     const [expandedSection, setExpandedSection] = useState(null);
     const [visitasDetalhes, setVisitasDetalhes] = useState(null);
     const [loadingVisitas, setLoadingVisitas] = useState(false);
     
-    // Estado para armazenar o nome da área real (inicia com o fallback)
     const [nomeArea, setNomeArea] = useState(nomeAreaFallback);
 
-    // dataFormatadaUrl (para a API) é a string bruta 'YYYY-MM-DD' que veio da tela anterior.
-    const dataFormatadaUrl = dataDiario;
+    const dataFormatadaUrl = dataDiario; 
 
-    // Data formatada para exibição no título (DD/MM/AAAA)
     let dataFormatadaExibicao = 'Data Desconhecida';
     const displayDate = createLocalDate(dataDiario);
     if (displayDate) {
@@ -64,14 +56,11 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         pe: "Ponto Estratégico",
     };
 
-    // --- FUNÇÃO: BUSCA O NOME DA ÁREA ---
     const fetchNomeArea = useCallback(async (idArea) => {
         if (!idArea) return;
 
         try {
-            // Requisição ao endpoint da sua API de Áreas
             const url = `${API_URL}/areas/${idArea}`;
-            
             const res = await fetch(url);
             
             if (!res.ok) {
@@ -80,7 +69,6 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
             }
             
             const data = await res.json();
-            // Tenta 'nome', depois 'nomeArea', para flexibilidade
             const nomeEncontrado = data.nome || data.nomeArea;
 
             if (nomeEncontrado) {
@@ -88,11 +76,9 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
             }
         } catch (err) {
             console.error("ERROR Erro ao buscar nome da área:", err.message);
-            // Mantém o nome/ID do fallback
         }
     }, []);
 
-    // --- FUNÇÃO: BUSCA O DIÁRIO (INICIAL) ---
     useEffect(() => {
         const fetchDiario = async () => {
             if (!diarioId) {
@@ -115,7 +101,6 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                 }
                 setDiarioData(data);
                 
-                // ✅ ACIONA A BUSCA DO NOME DA ÁREA
                 if (data.idArea) {
                     fetchNomeArea(data.idArea);
                 }
@@ -131,27 +116,20 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         fetchDiario();
     }, [diarioId, fetchNomeArea]);
 
-    // --- FUNÇÃO: BUSCA DE DETALHES DAS VISITAS ---
     const fetchVisitas = useCallback(async () => {
-        const idAgente = diarioData?.idAgente;
         
-        if (loadingVisitas) return;
+        if (loadingVisitas || !diarioId) return;
 
-        if (!idAgente || !dataFormatadaUrl) {
-              Alert.alert("Erro", "ID do Agente ou Data da visita não encontrados no diário.");
-              return;
+        if (!diarioId) {
+             Alert.alert("Erro", "ID do Diário não encontrado para buscar as visitas.");
+             return;
         }
 
         try {
             setLoadingVisitas(true);
             
-            const dataUrl = dataFormatadaUrl; // Passa apenas AAAA-MM-DD
+            const url = `${API_URL}/visitas/detalhes/diario/${diarioId}`;
             
-            // Endpoint para buscar visitas por Agente e Data (AAAA-MM-DD)
-            const url = `${API_URL}/visitas/detalhes?idAgente=${idAgente}&data=${dataUrl}`;
-            
-            console.log("LOG Buscando detalhes das visitas - URL enviada:", url);
-
             const res = await fetch(url);
             
             if (!res.ok) {
@@ -170,7 +148,7 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         } finally {
             setLoadingVisitas(false);
         }
-    }, [diarioData, dataFormatadaUrl, loadingVisitas]);
+    }, [diarioId, loadingVisitas]);
 
     
     const resumo = diarioData?.resumo;
@@ -205,11 +183,7 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
             return <ActivityIndicator size="small" color="#2CA856" style={styles.loadingVisitas} />;
         }
         
-        if (!visitasDetalhes) {
-            return null;
-        }
-
-        if (visitasDetalhes.length === 0) {
+        if (!visitasDetalhes || visitasDetalhes.length === 0) {
             return (
                 <View style={styles.box}>
                     <Text style={styles.textBase}>Nenhuma visita detalhada encontrada para este dia.</Text>
@@ -217,24 +191,35 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
             );
         }
 
-        return visitasDetalhes.map(quarteirao => (
-            <View key={quarteirao._id} style={styles.quarteiraoGroup}>
-                <Text style={styles.quarteiraoTitle}>
-                    Quarteirão {quarteirao.numeroQuarteirao} ({quarteirao.nomeArea})
-                </Text>
-                {quarteirao.visitas.map(visita => (
-                    <View key={visita._id} style={styles.visitaItem}>
-                        <Text style={styles.textBase}>
-                            <Text style={styles.textBold}>{visita.rua}, {visita.numeroImovel}</Text>
-                        </Text>
-                        <Text style={styles.textBaseTipo}>
-                            Tipo: {tiposMap[visita.tipoImovel] || visita.tipoImovel}
-                        </Text>
+        return visitasDetalhes.map(quarteirao => {
+            
+            const visitasOrdenadas = [...quarteirao.visitas].sort((a, b) => {
+                const posA = a.posicaoImovel || Infinity;
+                const posB = b.posicaoImovel || Infinity;
 
-                    </View>
-                ))}
-            </View>
-        ));
+                return posA - posB;
+            });
+
+            return (
+                <View key={quarteirao._id} style={styles.quarteiraoGroup}>
+                    <Text style={styles.quarteiraoTitle}>
+                        Quarteirão {quarteirao.numeroQuarteirao} ({quarteirao.nomeArea})
+                    </Text>
+                    
+                    {visitasOrdenadas.map(visita => (
+                        <View key={visita._id} style={styles.visitaItem}>
+                            <Text style={styles.textBase}>
+                                <Text style={styles.textBold}>{visita.rua}, {visita.numeroImovel}</Text>
+                            </Text>
+                            <Text style={styles.textBaseTipo}>
+                                Tipo: {tiposMap[visita.tipoImovel] || visita.tipoImovel}
+                            </Text>
+
+                        </View>
+                    ))}
+                </View>
+            );
+        });
     };
 
     if (loading) {
@@ -272,13 +257,13 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                     ), 'gerais')}
 
                     {hasData && renderSection("Imóveis por Tipo", (
-                                     <>
-                                         {Object.entries(resumo.totalVisitasTipo || {}).map(([tipo, qtd]) => (
-                                             <Text key={tipo} style={styles.textBase}>
-                                                 {tiposMap[tipo] || tipo}: {qtd || 0}
-                                             </Text>
-                                         ))}
-                                     </>
+                                                <>
+                                                    {Object.entries(resumo.totalVisitasTipo || {}).map(([tipo, qtd]) => (
+                                                        <Text key={tipo} style={styles.textBase}>
+                                                            {tiposMap[tipo] || tipo}: {qtd || 0}
+                                                        </Text>
+                                                    ))}
+                                                </>
                     ), 'tiposImovel')}
 
                     {hasData && renderSection("Depósitos e Tratamento", (
@@ -361,7 +346,6 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
     );
 }
 
-// Estilos
 const styles = StyleSheet.create({
     fullScreenContainer: {
         flex: 1,
@@ -369,7 +353,7 @@ const styles = StyleSheet.create({
     },
     containerWithData: {
         flexGrow: 1,
-        paddingHorizontal: width(4), // Padronizado para width(4)
+        paddingHorizontal: width(4), 
         paddingVertical: height(2),
     },
     containerEmpty: {
@@ -384,7 +368,7 @@ const styles = StyleSheet.create({
         marginTop: height(10),
     },
     titulo: {
-        fontSize: font(5), // Mantido
+        fontSize: font(5), 
         fontWeight: "bold",
         color: '#05419A',
         paddingBottom: height(0.5),
@@ -392,31 +376,30 @@ const styles = StyleSheet.create({
         marginTop: height(1)
     },
     subTituloInfo: {
-        fontSize: font(2.5), // Mantido
+        fontSize: font(2.5), 
         color: '#333',
-        marginBottom: height(1.5), // Mantido
+        marginBottom: height(1.5), 
         alignSelf: "center",
         textAlign: 'center',
     },
     textBold: {
         fontWeight: 'bold',
     },
-    // BOX DE CONTEÚDO (dentro da section)
     box: {
-        padding: height(2.5), // Ajustado para altura
+        padding: height(2.5), 
         backgroundColor: "#e0e0e0",
-        borderRadius: width(2), // Mantido
+        borderRadius: width(2), 
         marginBottom: height(0.5),
     },
     subtitulo: {
         fontWeight: "600",
-        fontSize: font(2.5), // Padronizado para font(2.5) como no exemplo
+        fontSize: font(2.5), 
         marginBottom: height(0.5),
         color: '#333'
     },
     textBase: {
-        fontSize: font(2.25), // Mantido
-        marginBottom: height(0.5), // Ajustado para height(0.5) para mais espaçamento
+        fontSize: font(2.25), 
+        marginBottom: height(0.5), 
         color: '#333',
     },
     emptyMessageContainer: {
@@ -425,20 +408,19 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: width(5),
     },
-    // HEADER DA SECTION
     sectionHeaderContainer: {
         backgroundColor: "#05419A",
-        borderRadius: width(1.5), // Mantido
+        borderRadius: width(1.5), 
         marginBottom: height(0.5),
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: width(4), // Mantido
-        paddingVertical: height(2), // Mantido
+        paddingHorizontal: width(4), 
+        paddingVertical: height(2), 
     },
     sectionTitle: {
         fontWeight: "bold",
-        fontSize: font(3), // Mantido
+        fontSize: font(3), 
         color: '#eee',
         flexShrink: 1,
     },
@@ -448,17 +430,15 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: '#ccc',
-        marginVertical: height(1), // Aumentado o espaçamento
+        marginVertical: height(1), 
     },
-    // BOTÃO DETALHES DAS VISITAS
     loadVisitasButton: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#2CA856', // Cor verde do exemplo
+        backgroundColor: '#2CA856', 
         padding: height(2),
         borderRadius: width(2),
-        // marginTop: height(1.5),
     },
     loadVisitasButtonText: {
         color: '#fff',
@@ -467,14 +447,13 @@ const styles = StyleSheet.create({
         marginRight: width(2),
     },
     visitasContainer: {
-        // Estilos para o contêiner dos detalhes das visitas
         marginBottom: height(2),
         marginTop: height(0.5),
     },
     quarteiraoGroup: {
         backgroundColor: '#f9f9f9',
-        borderRadius: width(2), // Aumentado para width(2)
-        padding: width(4), // Aumentado para width(4)
+        borderRadius: width(2), 
+        padding: width(4), 
         marginBottom: height(0.5),
         borderWidth: 1,
         borderColor: '#ddd',
@@ -485,26 +464,20 @@ const styles = StyleSheet.create({
         color: '#05419A',
         marginBottom: height(1),
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc', // Alterado para #ccc para ser mais sutil
+        borderBottomColor: '#ccc', 
         paddingBottom: height(1),
     },
     visitaItem: {
         backgroundColor: '#fff',
-        padding: width(4), // Aumentado para width(4)
-        borderRadius: width(1.5), // Aumentado
-        marginBottom: height(0.5), // Aumentado
-        borderLeftWidth: width(1), // Usando width
+        padding: width(4), 
+        borderRadius: width(1.5), 
+        marginBottom: height(0.5), 
+        borderLeftWidth: width(1), 
         borderLeftColor: '#2CA856',
     },
     textBaseTipo: {
-        fontSize: font(2.25), // Padronizado
+        fontSize: font(2.25), 
         color: '#666',
-        marginTop: height(0.25),
-    },
-    textBaseData: {
-        fontSize: font(2.25), // Padronizado
-        color: '#666',
-        fontStyle: 'italic',
         marginTop: height(0.25),
     },
 });
