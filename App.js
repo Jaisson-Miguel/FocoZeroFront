@@ -180,7 +180,7 @@ export default function App() {
           <Stack.Screen
             name="ListarDiario"
             component={DiariosScreen}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="DetalheDiario"
