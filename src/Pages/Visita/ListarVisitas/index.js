@@ -130,44 +130,51 @@ export default function ListarVisitas({ navigation }) {
       let sucessoVisitas = 0;
       let sucessoImoveis = 0;
 
+      // ✅ Sincroniza visitas
       await Promise.all(
-        pendentes.map(async (v) => {
-          try {
-            const { sincronizado, ...dadosParaEnviar } = v;
-            const res = await fetch(`${API_URL}/cadastrarVisita`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(dadosParaEnviar),
-            });
-            if (res.ok) {
-              v.sincronizado = true;
-              sucessoVisitas++;
+        pendentes.map((v) =>
+          (async () => {
+            try {
+              const { sincronizado, ...dadosParaEnviar } = v;
+              const res = await fetch(`${API_URL}/cadastrarVisita`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosParaEnviar),
+              });
+              if (res.ok) {
+                v.sincronizado = true;
+                sucessoVisitas++;
+              }
+            } catch (err) {
+              console.error("Erro ao sincronizar visita:", err);
             }
-          } catch (err) {
-            console.error("Erro ao sincronizar visita:", err);
-          }
-        })
+          })()
+        )
       );
 
+      // ✅ Sincroniza imóveis editados
       await Promise.all(
-        imoveisEditados.map(async (i) => {
-          const { editado, _id, ...dadosParaEnviar } = i;
-          try {
-            const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(dadosParaEnviar),
-            });
-            if (res.ok) {
-              i.editado = false;
-              sucessoImoveis++;
+        imoveisEditados.map((i) =>
+          (async () => {
+            const { editado, _id, ...dadosParaEnviar } = i;
+            try {
+              const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosParaEnviar),
+              });
+              if (res.ok) {
+                i.editado = false;
+                sucessoImoveis++;
+              }
+            } catch (err) {
+              console.error("Erro ao sincronizar imóvel:", err);
             }
-          } catch (err) {
-            console.error("Erro rede imóvel:", err);
-          }
-        })
+          })()
+        )
       );
 
+      // Salva alterações no AsyncStorage
       await AsyncStorage.setItem("visitas", JSON.stringify(listaVisitas));
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
 
