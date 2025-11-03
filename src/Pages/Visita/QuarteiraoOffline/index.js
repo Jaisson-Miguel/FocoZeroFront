@@ -12,11 +12,23 @@ import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { downloadMapForOffline } from "../../../utils/mapaUtils.js";
 
 export default function QuarteiraoOffline({ navigation }) {
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [syncMessage, setSyncMessage] = useState(null);
+
+  // 🔹 timeout p/ evitar travamento offline
+  const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
+    return Promise.race([
+      fetch(url, options),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), timeout)
+      ),
+    ]);
+  };
 
   const carregarOffline = async () => {
     try {
@@ -39,33 +51,58 @@ export default function QuarteiraoOffline({ navigation }) {
 
   const baixarDados = async () => {
     setLoading(true);
+    let failedDownloads = 0;
+    setSyncMessage(null);
+
     try {
       const idUsuario = await getId();
 
-      // Baixa quarteirões
-      const resQ = await fetch(
-        `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`
+      // 🔹 baixa quarteirões com timeout
+      const resQ = await fetchWithTimeout(
+        `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`,
+        {},
+        5000
       );
-      const quarteiroesArray = resQ.ok ? await resQ.json() : [];
+      const quarteiroesArrayOriginal = resQ.ok ? await resQ.json() : [];
 
-      // Baixa imóveis
-      const resI = await fetch(
-        `${API_URL}/baixarImoveisResponsavel/${idUsuario}`
+      const quarteiroesArray = [];
+
+      for (const q of quarteiroesArrayOriginal) {
+        let uriMapaLocal = null;
+        if (q.mapaUrl) {
+          try {
+            uriMapaLocal = await downloadMapForOffline(q.mapaUrl);
+          } catch (error) {
+            console.warn(
+              `[Download Mapa] Falha ao baixar mapa do quarteirão ${q._id}: ${error.message}`
+            );
+            failedDownloads++;
+          }
+        }
+
+        quarteiroesArray.push({
+          ...q,
+          uriMapaLocal: uriMapaLocal, // 🔸 mantém aqui pra enviar depois
+        });
+      }
+
+      // 🔹 baixa imóveis com timeout
+      const resI = await fetchWithTimeout(
+        `${API_URL}/baixarImoveisResponsavel/${idUsuario}`,
+        {},
+        5000
       );
       const imoveisArray = resI.ok ? await resI.json() : [];
 
-      // Recupera dados locais
       const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
       const locaisArr = rawImoveis ? JSON.parse(rawImoveis) : [];
 
-      // Mescla dados: mantém editados, atualiza os não editados
-      // Mescla dados: mantém editados e visitados, atualiza os demais
       const mesclados = imoveisArray.map((i) => {
         const local = locaisArr.find((l) => l._id === i._id);
         if (local && (local.editado || local.status === "visitado")) {
-          return local; // Mantém imóvel local se foi editado ou visitado
+          return local;
         }
-        return i; // Caso contrário, atualiza com dados do servidor
+        return i;
       });
 
       await AsyncStorage.setItem(
@@ -76,8 +113,24 @@ export default function QuarteiraoOffline({ navigation }) {
 
       setQuarteiroes(Array.isArray(quarteiroesArray) ? quarteiroesArray : []);
       setImoveis(Array.isArray(mesclados) ? mesclados : []);
+
+      if (failedDownloads > 0) {
+        setSyncMessage({
+          text: `Sincronização concluída, mas falhou ao baixar ${failedDownloads} mapa(s).`,
+          type: "error",
+        });
+      } else {
+        setSyncMessage({
+          text: "Dados e mapas atualizados com sucesso para uso offline!",
+          type: "success",
+        });
+      }
     } catch (error) {
-      console.log("Erro ao baixar:", error);
+      console.log("Erro ao baixar:", error.message);
+      setSyncMessage({
+        text: "Sem conexão. Usando dados offline.",
+        type: "error",
+      });
       await carregarOffline();
     } finally {
       setLoading(false);
@@ -87,9 +140,18 @@ export default function QuarteiraoOffline({ navigation }) {
   useEffect(() => {
     (async () => {
       await carregarOffline();
-      await baixarDados();
+      baixarDados(); // 🔹 tenta sincronizar, mas sem travar a tela
     })();
   }, []);
+
+  useEffect(() => {
+    if (syncMessage) {
+      const timer = setTimeout(() => {
+        setSyncMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [syncMessage]);
 
   if (loading) {
     return (
@@ -118,6 +180,19 @@ export default function QuarteiraoOffline({ navigation }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
 
+      {syncMessage && (
+        <View
+          style={[
+            styles.syncMessageContainer,
+            syncMessage.type === "error"
+              ? styles.syncError
+              : styles.syncSuccess,
+          ]}
+        >
+          <Text style={styles.syncMessageText}>{syncMessage.text}</Text>
+        </View>
+      )}
+
       <View style={styles.headerTitleContainer}>
         <Text style={styles.headerTitle}>QUARTEIRÕES DO DIA</Text>
       </View>
@@ -141,7 +216,6 @@ export default function QuarteiraoOffline({ navigation }) {
                 item?.numero !== undefined && item?.numero !== null
                   ? String(item.numero).padStart(2, "0")
                   : "00";
-
               const textoFinal = `${areaNome} - QUARTEIRÃO ${numero}`;
 
               const imoveisDoQuarteirao = iList.filter(
@@ -152,27 +226,25 @@ export default function QuarteiraoOffline({ navigation }) {
                 (i) => i.status === "visitado"
               ).length;
 
-              let backgroundColor = styles.listItemContainer.backgroundColor;
-              if (imoveisVisitados > 0) {
-                backgroundColor = "#fbfde6ff";
-              }
-              if (imoveisVisitados === totalImoveis && totalImoveis > 0) {
+              let backgroundColor = styles.listItemWrapper.backgroundColor;
+              if (imoveisVisitados > 0) backgroundColor = "#fbfde6ff";
+              if (imoveisVisitados === totalImoveis && totalImoveis > 0)
                 backgroundColor = "#d9f1dfff";
-              }
 
               return (
                 <TouchableOpacity
-                  style={[styles.listItemContainer, { backgroundColor }]}
+                  style={[styles.listItemWrapper, { backgroundColor }]}
                   onPress={() =>
-                    navigation.navigate("ImovelOffline", { quarteirao: item })
+                    navigation.navigate("ImovelOffline", {
+                      quarteirao: item,
+                      uriMapaLocal: item.uriMapaLocal, // 🔸 envia o caminho do mapa pro ImovelOffline
+                    })
                   }
                 >
-                  <View style={styles.listItemTextWrapper}>
-                    <Text style={styles.listItemText}>{textoFinal}</Text>
-                    <Text style={styles.listItemSubtitle}>
-                      {imoveisVisitados} de {totalImoveis} imóveis visitados
-                    </Text>
-                  </View>
+                  <Text style={styles.listItemText}>{textoFinal}</Text>
+                  <Text style={styles.listItemSubtitle}>
+                    {imoveisVisitados} de {totalImoveis} imóveis visitados
+                  </Text>
                 </TouchableOpacity>
               );
             } catch (e) {
@@ -187,14 +259,6 @@ export default function QuarteiraoOffline({ navigation }) {
               </Text>
             </View>
           )}
-          ListEmptyComponent={() => (
-            <View style={styles.listEmptyContainer}>
-              <Text style={styles.listEmptyText}>
-                Nenhum quarteirão encontrado.
-              </Text>
-            </View>
-          )}
-          contentContainerStyle={sections.length === 0 && { flex: 1 }}
         />
       )}
     </View>
@@ -202,16 +266,8 @@ export default function QuarteiraoOffline({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
+  container: { flex: 1, backgroundColor: "#fff" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   headerTitleContainer: {
     paddingVertical: height(2),
     paddingHorizontal: width(5),
@@ -225,7 +281,6 @@ const styles = StyleSheet.create({
     color: "#05419A",
     textAlign: "center",
   },
-
   sectionHeaderContainer: {
     paddingHorizontal: width(5),
     paddingVertical: height(1),
@@ -239,53 +294,49 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
-
-  listItemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingVertical: height(2),
+  listItemWrapper: {
     paddingHorizontal: width(5),
-    backgroundColor: "#fff",
+    paddingVertical: height(2),
     borderBottomWidth: 1,
     borderBottomColor: "#CDCDCD",
     width: width(100),
-  },
-  listItemTextWrapper: {
-    flex: 1,
   },
   listItemText: {
     fontSize: font(2.5),
     color: "#333333",
     fontWeight: "bold",
-    includeFontPadding: false,
-    textAlignVertical: "center",
   },
   listItemSubtitle: {
     fontSize: font(2),
     color: "#666",
     marginTop: height(0.5),
   },
-
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: width(10),
+  syncMessageContainer: {
+    padding: height(2),
+    marginHorizontal: width(3),
+    borderRadius: 8,
+    marginTop: height(1),
+    marginBottom: height(1),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  emptyText: {
-    fontSize: font(2.5),
-    color: "gray",
+  syncSuccess: {
+    backgroundColor: "#d9f1dfff",
+    borderColor: "#2CA856",
+    borderWidth: 1,
+  },
+  syncError: {
+    backgroundColor: "#ffe0e0",
+    borderColor: "#E53935",
+    borderWidth: 1,
+  },
+  syncMessageText: {
+    fontSize: font(2),
+    color: "#333",
+    fontWeight: "600",
     textAlign: "center",
-  },
-  listEmptyContainer: {
-    padding: height(2.5),
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
-  },
-  listEmptyText: {
-    color: "gray",
-    fontSize: font(2.2),
   },
 });

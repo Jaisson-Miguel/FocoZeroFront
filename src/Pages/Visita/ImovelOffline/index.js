@@ -13,6 +13,7 @@ import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { height, width, font } from "../../../utils/responsive.js";
+import ImageViewing from "react-native-image-viewing";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -36,6 +37,7 @@ export default function ImovelOffline({ route, navigation }) {
 
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
+  const [mapaVisivel, setMapaVisivel] = useState(false);
   const offline = true;
 
   const agruparImoveisPorRua = (imoveisArray) => {
@@ -59,23 +61,13 @@ export default function ImovelOffline({ route, navigation }) {
           const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
           let todos = rawImoveis ? JSON.parse(rawImoveis) : [];
 
-          // Filtra apenas imóveis do quarteirão atual
           const filtrados = todos.filter(
             (i) => i.idQuarteirao === quarteirao._id
           );
 
-          // Agrupa por rua, preservando os editados e visitados
           const agrupados = filtrados.reduce((acc, imovel) => {
             if (!acc[imovel.logradouro]) acc[imovel.logradouro] = [];
-
-            // Mantém imóvel editado ou visitado sem sobrescrever
-            if (imovel.editado || imovel.status === "visitado") {
-              acc[imovel.logradouro].push(imovel);
-            } else {
-              // Adiciona normalmente
-              acc[imovel.logradouro].push(imovel);
-            }
-
+            acc[imovel.logradouro].push(imovel);
             return acc;
           }, {});
 
@@ -109,6 +101,41 @@ export default function ImovelOffline({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
+
+      {/* Botão de mapa da área */}
+      {quarteirao?.uriMapaLocal ? (
+        <TouchableOpacity
+          style={styles.mapaButton}
+          onPress={() => setMapaVisivel(true)}
+        >
+          <MaterialCommunityIcons
+            name="map"
+            size={font(2.5)}
+            color="#fff"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.mapaButtonText}>Mapa da Área</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.mapaButtonDisabled}>
+          <MaterialCommunityIcons
+            name="map-off"
+            size={font(2.5)}
+            color="#fff"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={styles.mapaButtonText}>Mapa não disponível</Text>
+        </View>
+      )}
+
+      {/* Modal de visualização do mapa */}
+      <ImageViewing
+        images={[{ uri: quarteirao.uriMapaLocal }]}
+        imageIndex={0}
+        visible={mapaVisivel}
+        onRequestClose={() => setMapaVisivel(false)}
+      />
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -131,7 +158,6 @@ export default function ImovelOffline({ route, navigation }) {
               {imoveis[rua].map((imovel) => {
                 const jaVisitado = imovel.status === "visitado";
                 const mostrarRecusa = imovel.status === "recusa";
-                const fechado = imovel.status === "fechado";
                 const isDisabled = jaVisitado;
 
                 const tipoDoImovel = imovel.complemento || imovel.tipo;
@@ -225,14 +251,50 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: height(3),
   },
-
-  mainTitle: {
+  mapaButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#05419A",
+    paddingVertical: height(1.25),
+    marginHorizontal: width(3.75),
+    borderRadius: 8,
+    marginTop: height(1.25),
+  },
+  mapaButtonDisabled: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#A9A9A9",
+    paddingVertical: height(1.25),
+    marginHorizontal: width(3.75),
+    borderRadius: 8,
+    marginTop: height(1.25),
+  },
+  mapaButtonText: {
+    color: "#fff",
+    fontSize: font(2),
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
+  simpleTitleContainer: {
+    paddingHorizontal: width(3.75),
+    alignItems: "center",
+    paddingVertical: height(1.25),
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  simpleTitle: {
     fontSize: font(3.5),
     fontWeight: "bold",
     color: "#05419A",
-    margin: width(2.5),
-    marginVertical: height(2.5),
-    paddingHorizontal: width(1.25),
+    textTransform: "uppercase",
+  },
+  simpleSubtitle: {
+    fontSize: font(2.25),
+    color: "#666",
+    textTransform: "uppercase",
   },
   streetHeader: {
     fontSize: font(2.5),
@@ -318,24 +380,5 @@ const styles = StyleSheet.create({
     marginTop: height(2.5),
     color: "gray",
     fontSize: font(2),
-  },
-  simpleTitleContainer: {
-    paddingHorizontal: width(3.75),
-    alignItems: "center",
-    paddingVertical: height(1.25),
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  simpleTitle: {
-    fontSize: font(3.5),
-    fontWeight: "bold",
-    color: "#05419A",
-    textTransform: "uppercase",
-  },
-  simpleSubtitle: {
-    fontSize: font(2.25),
-    color: "#666",
-    textTransform: "uppercase",
   },
 });
