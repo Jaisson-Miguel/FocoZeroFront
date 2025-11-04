@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Alert, ScrollView } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; 
-import Cabecalho from '../../../Components/Cabecalho'; 
+import Icon from 'react-native-vector-icons/Ionicons';
+import Cabecalho from '../../../Components/Cabecalho';
 import { API_URL } from "../../../config/config";
 import { height, width, font } from "../../../utils/responsive";
 
-// --- Substituição Customizada para CheckBox (Resolve o erro nativo) ---
 const CustomCheckBox = ({ value, onValueChange, disabled }) => (
     <TouchableOpacity
         onPress={onValueChange}
@@ -16,35 +15,29 @@ const CustomCheckBox = ({ value, onValueChange, disabled }) => (
             disabled && customStyles.checkboxDisabled
         ]}
     >
-        {/* Usando o ícone de marca de verificação do Ionicons */}
-        {value && <Icon name="checkmark" size={font(3)} color="#fff" />} 
+        {value && <Icon name="checkmark" size={font(2.5)} color="#fff" />}
     </TouchableOpacity>
 );
 
-// --- COMPONENTE FECHAR SEMANAL ---
-
 export default function FecharSemanalScreen({ navigation, route }) {
-    // Parâmetros passados da tela anterior
-    const { idAgente, semana } = route.params; 
+    const { idAgente, semana } = route.params;
 
     const [areasPendentes, setAreasPendentes] = useState([]);
-    const [areasSelecionadas, setAreasSelecionadas] = useState([]); // Array de IDs de Área (string)
+    const [areasSelecionadas, setAreasSelecionadas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isClosing, setIsClosing] = useState(false);
     const [mensagemStatus, setMensagemStatus] = useState('');
-    
+
     const semanaAtual = semana;
 
-    // 1. Busca as áreas pendentes para fechamento
     const fetchAreasPendentes = useCallback(async () => {
         setLoading(true);
         setMensagemStatus('');
         try {
             const url = `${API_URL}/diariosPendentesFechamento/${idAgente}/${semanaAtual}`;
             const response = await fetch(url);
-            
+
             if (response.status === 404) {
-                // Caso a rota retorne 404 conforme a lógica do backend (sem diários ou todos fechados)
                 const data = await response.json();
                 setMensagemStatus(data.message);
                 setAreasPendentes([]);
@@ -58,15 +51,13 @@ export default function FecharSemanalScreen({ navigation, route }) {
 
             const data = await response.json();
             setAreasPendentes(data);
-            
-            // Pré-selecionar todas as áreas pendentes
+
             const ids = data.map(area => area.idArea.toString());
             setAreasSelecionadas(ids);
-            
+
         } catch (error) {
             console.error("ERRO ao buscar áreas pendentes:", error.message);
             setMensagemStatus(`Erro ao carregar a lista de áreas: ${error.message}`);
-            // Alert.alert("Erro", "Não foi possível carregar as áreas pendentes para o fechamento.");
         } finally {
             setLoading(false);
         }
@@ -80,22 +71,18 @@ export default function FecharSemanalScreen({ navigation, route }) {
             Alert.alert("Erro de Parâmetro", "ID do Agente ou Número da Semana não foi passado corretamente.");
         }
     }, [idAgente, semanaAtual, fetchAreasPendentes]);
-    
-    // 2. Lógica para marcar/desmarcar uma área
+
     const toggleSelecaoArea = (idArea) => {
         const idString = idArea.toString();
         setAreasSelecionadas(prevIds => {
             if (prevIds.includes(idString)) {
-                // Desmarca
-                return prevIds.filter(id => id !== idString); 
+                return prevIds.filter(id => id !== idString);
             } else {
-                // Marca
-                return [...prevIds, idString]; 
+                return [...prevIds, idString];
             }
         });
     };
 
-    // 3. Função principal para fechar o semanal
     const handleFecharSemanal = async () => {
         if (areasSelecionadas.length === 0) {
             Alert.alert("Atenção", "Selecione pelo menos uma área para fechar o relatório semanal.");
@@ -106,8 +93,7 @@ export default function FecharSemanalScreen({ navigation, route }) {
         setMensagemStatus('');
         let sucessoCount = 0;
         let falhaCount = 0;
-        
-        // Loop para cadastrar o Semanal para CADA área selecionada
+
         for (const idArea of areasSelecionadas) {
             try {
                 const response = await fetch(`${API_URL}/cadastrarSemanal`, {
@@ -117,7 +103,7 @@ export default function FecharSemanalScreen({ navigation, route }) {
                         idAgente: idAgente,
                         idArea: idArea,
                         semana: semanaAtual,
-                        atividade: 4 // Atividade padrão
+                        atividade: 4
                     })
                 });
 
@@ -135,9 +121,9 @@ export default function FecharSemanalScreen({ navigation, route }) {
         }
 
         setIsClosing(false);
-        
+
         if (falhaCount === 0) {
-             Alert.alert("Sucesso", `✅ Relatórios semanais de ${sucessoCount} área(s) fechados!`, [
+            Alert.alert("Sucesso", `✅ Relatórios semanais de ${sucessoCount} área(s) fechados!`, [
                 { text: "OK", onPress: () => navigation.goBack() }
             ]);
         } else {
@@ -146,16 +132,14 @@ export default function FecharSemanalScreen({ navigation, route }) {
                 `Fechamento finalizado: ${sucessoCount} área(s) fechada(s) com sucesso. ${falhaCount} área(s) falharam no processo.`
             );
         }
-        
-        // Recarrega a lista para remover as áreas recém-fechadas
-        fetchAreasPendentes(); 
+
+        fetchAreasPendentes();
     };
-    
-    // 4. Componente de item da lista
+
     const renderAreaItem = ({ item }) => {
         const isSelected = areasSelecionadas.includes(item.idArea.toString());
         return (
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={[styles.areaItem, isSelected && styles.areaItemSelected]}
                 onPress={() => toggleSelecaoArea(item.idArea)}
                 activeOpacity={0.7}
@@ -167,7 +151,6 @@ export default function FecharSemanalScreen({ navigation, route }) {
                         Diários: {item.diariosCount} | Dias Trabalhados: {item.qtdDiasTrabalhados}
                     </Text>
                 </View>
-                {/* Usa o CustomCheckBox em vez do componente nativo */}
                 <CustomCheckBox
                     value={isSelected}
                     onValueChange={() => toggleSelecaoArea(item.idArea)}
@@ -177,7 +160,6 @@ export default function FecharSemanalScreen({ navigation, route }) {
         );
     };
 
-    // 5. Renderização
     if (loading) {
         return (
             <View style={styles.loadingContainer}>
@@ -186,35 +168,34 @@ export default function FecharSemanalScreen({ navigation, route }) {
             </View>
         );
     }
-    
+
     return (
         <View style={styles.safeArea}>
             <Cabecalho navigation={navigation} />
             <View style={styles.container}>
                 <View style={styles.screenTitleContainer}>
-                    <Text style={styles.screenTitle}>FECHAR SEMANAL - SEMANA {semanaAtual}</Text>
+                    <Text style={styles.screenTitle}>FECHAR SEMANAL - {semanaAtual}</Text>
                 </View>
-                
+
                 <ScrollView contentContainerStyle={styles.scrollContent}>
-                    {/* Mensagem de Status */}
                     {mensagemStatus ? (
-                         <View style={styles.statusBox}>
-                            <Text style={styles.statusText}>{mensagemStatus}</Text>
-                         </View>
+                           <View style={styles.statusBox}>
+                               <Text style={styles.statusText}>{mensagemStatus}</Text>
+                           </View>
                     ) : (
                         <>
                             <Text style={styles.instructionText}>
-                                Selecione as áreas que deseja fechar o relatório semanal (o sistema irá agregar automaticamente todos os diários desta semana para as áreas selecionadas).
+                                Selecione as áreas que deseja fechar o relatório semanal.
                             </Text>
 
                             <FlatList
                                 data={areasPendentes}
                                 renderItem={renderAreaItem}
                                 keyExtractor={item => item.idArea.toString()}
-                                scrollEnabled={false} 
+                                scrollEnabled={false}
                                 ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma área com diário pendente de fechamento semanal.</Text>}
                             />
-                        
+
                             {areasPendentes.length > 0 && (
                                 <Text style={styles.selectionCount}>
                                     {areasSelecionadas.length} área(s) selecionada(s) de {areasPendentes.length}
@@ -223,12 +204,11 @@ export default function FecharSemanalScreen({ navigation, route }) {
                         </>
                     )}
                 </ScrollView>
-                
-                {/* Botão de Fechamento */}
+
                 {areasPendentes.length > 0 && (
                     <TouchableOpacity
                         style={[
-                            styles.closeButton, 
+                            styles.closeButton,
                             (areasSelecionadas.length === 0 || isClosing) && styles.closeButtonDisabled
                         ]}
                         onPress={handleFecharSemanal}
@@ -239,7 +219,7 @@ export default function FecharSemanalScreen({ navigation, route }) {
                             <ActivityIndicator color="#fff" />
                         ) : (
                             <Text style={styles.closeButtonText}>
-                                CONFIRMAR FECHAMENTO SEMANAL
+                                FECHAR SEMANAL
                             </Text>
                         )}
                     </TouchableOpacity>
@@ -249,7 +229,6 @@ export default function FecharSemanalScreen({ navigation, route }) {
     );
 }
 
-// --- Styles do Custom CheckBox ---
 const customStyles = StyleSheet.create({
     checkboxBase: {
         width: width(6),
@@ -259,20 +238,19 @@ const customStyles = StyleSheet.create({
         borderRadius: 4,
         borderWidth: 2,
         borderColor: '#666',
-        marginRight: width(2),
+        marginRight: width(1),
+        fontSize: font(1)
     },
     checkboxChecked: {
         backgroundColor: '#28a745',
         borderColor: '#28a745',
     },
     checkboxDisabled: {
-         backgroundColor: '#ccc',
-         borderColor: '#999',
+          backgroundColor: '#ccc',
+          borderColor: '#999',
     }
 });
 
-
-// --- Styles da Tela de Fechamento ---
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -297,7 +275,7 @@ const styles = StyleSheet.create({
     },
     screenTitle: {
         color: "#05419A",
-        fontSize: font(3.5),
+        fontSize: font(4),
         fontWeight: 'bold',
         textAlign: 'center',
     },
@@ -309,7 +287,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         flexGrow: 1,
-        paddingBottom: height(12), // Espaço para o botão flutuante
+        paddingBottom: height(12),
     },
     areaItem: {
         flexDirection: 'row',
@@ -355,10 +333,10 @@ const styles = StyleSheet.create({
     },
     closeButton: {
         position: "absolute",
-        bottom: height(2), 
+        bottom: height(2),
         left: width(5),
         right: width(5),
-        backgroundColor: "#28a745", // Verde para Ação Principal
+        backgroundColor: "#05419A",
         paddingVertical: height(2),
         borderRadius: 8,
         alignItems: "center",
@@ -373,7 +351,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#ccc",
     },
     closeButtonText: {
-        color: "#fff", 
+        color: "#fff",
         fontSize: font(2.5),
         fontWeight: "bold",
     },

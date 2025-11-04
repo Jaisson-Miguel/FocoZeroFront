@@ -5,8 +5,6 @@ import Cabecalho from '../../../Components/Cabecalho';
 import { API_URL } from "../../../config/config";
 import { height, width, font } from "../../../utils/responsive";
 
-// --- Funções de Utilidade ---
-
 const formatarDataUTC = (dateString) => {
     if (!dateString) return 'Data Desconhecida';
     
@@ -24,35 +22,21 @@ const extrairDataParaAPI = (dateString) => {
     return dateString.split('T')[0];
 };
 
-/**
- * Calcula o número da semana ISO (1 a 52/53) para a data de hoje.
- * Este é um cálculo comum, mas você deve garantir que corresponde ao seu backend.
- */
 const getSemanaAtual = () => {
     const dataAtual = new Date();
     
-    // Cria uma cópia da data para evitar mutação
     const data = new Date(Date.UTC(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate()));
     
-    // Ajusta para o dia da semana (0=domingo, 6=sábado)
     const dayNum = data.getUTCDay() || 7;
     
-    // Seta a data para a quinta-feira da semana (meio da semana ISO)
     data.setUTCDate(data.getUTCDate() + 4 - dayNum);
     
-    // Obtém o início do ano
     const yearStart = new Date(Date.UTC(data.getUTCFullYear(), 0, 1));
     
-    // Calcula a diferença em milissegundos e depois em semanas
     const weekNo = Math.ceil((((data - yearStart) / 86400000) + 1) / 7);
     
     return weekNo;
 };
-
-
-// ----------------------------------------------------------------------
-// --- COMPONENTE PRINCIPAL (COM CORREÇÃO DO ESCOPO DO NAVIGATION) ---
-// ----------------------------------------------------------------------
 
 export default function ListarDiario({ navigation, route }) {
     
@@ -62,22 +46,19 @@ export default function ListarDiario({ navigation, route }) {
     const [areaNamesCache, setAreaNamesCache] = useState({}); 
     const [loading, setLoading] = useState(true);
     const [semanaExpandidaId, setSemanaExpandidaId] = useState(null); 
-    const [semanaAtual, setSemanaAtual] = useState(null); // Estado para a semana atual
+    const [semanaAtual, setSemanaAtual] = useState(null); 
     
-    // --- FUNÇÃO CORRIGIDA: AGORA DENTRO DO ESCOPO ---
     const handleFecharSemanal = () => {
         if (!semanaAtual) {
             Alert.alert("Atenção", "Não foi possível determinar a semana atual para fechamento.");
             return;
         }
 
-        // 💡 Ajuste o nome da tela ('FecharSemanalScreen') para o nome que você usou no seu Stack Navigator
         navigation.navigate("FecharSemanal", { 
             idAgente: idAgente,
-            semana: semanaAtual, // Passa a semana atual para a tela de fechamento
+            semana: semanaAtual, 
         });
     };
-    // --- FIM DA FUNÇÃO CORRIGIDA ---
 
 
     const fetchAreaName = useCallback(async (idArea) => {
@@ -86,7 +67,6 @@ export default function ListarDiario({ navigation, route }) {
         }
         
         try {
-            // 💡 Ajuste: Usando /areas/:idArea, conforme sua implementação
             const url = `${API_URL}/areas/${idArea}`; 
             const res = await fetch(url);
             
@@ -96,7 +76,6 @@ export default function ListarDiario({ navigation, route }) {
             }
             
             const data = await res.json();
-            // 💡 Ajuste: Pega o nome, seja 'nome' ou 'nomeArea' no retorno
             const nomeEncontrado = data.nome || data.nomeArea; 
 
             if (nomeEncontrado) {
@@ -113,7 +92,6 @@ export default function ListarDiario({ navigation, route }) {
 
     const fetchDiarios = async (agenteId) => {
         setLoading(true);
-        // 💡 Ajuste: Use a rota que retorna diários agrupados por semana
         const url = `${API_URL}/diarios/agente/${agenteId}`;
 
         try {
@@ -170,7 +148,6 @@ export default function ListarDiario({ navigation, route }) {
     };
 
     useEffect(() => {
-        // Define a semana atual ao carregar o componente
         setSemanaAtual(getSemanaAtual()); 
         
         if (idAgente) {
@@ -268,7 +245,7 @@ export default function ListarDiario({ navigation, route }) {
             </View>
             <TouchableOpacity
                 style={styles.closeDiaryButton}
-                onPress={handleFecharSemanal} // Chamando a função corrigida
+                onPress={handleFecharSemanal} 
                 activeOpacity={0.8}
             >
                 <Text style={styles.closeDiaryButtonText}>FECHAR SEMANAL (Semana {semanaAtual})</Text>
@@ -374,7 +351,7 @@ const styles = StyleSheet.create({
     bottom: height(2), 
     left: width(5),
     right: width(5),
-    backgroundColor: "#05419A", // Mudei a cor para destacar o Fechamento Semanal
+    backgroundColor: "#05419A",
     paddingVertical: height(2),
     borderRadius: 8,
     alignItems: "center",
