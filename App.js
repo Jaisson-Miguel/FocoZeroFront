@@ -20,7 +20,7 @@ import Visita from "./src/Pages/Visita/CadastrarVisita";
 import ListarVisitas from "./src/Pages/Visita/ListarVisitas";
 import DetalhesVisita from "./src/Pages/Visita/DetalhesVisita";
 import ListarAgentes from "./src/Pages/Usuario/ListarAgentes";
-import AgenteQuarteirao from "./src/Pages/Usuario/AgenteQuarteirao"
+import AgenteQuarteirao from "./src/Pages/Usuario/AgenteQuarteirao";
 import AtribuirQuarteirao from "./src/Pages/AtribuirQuarteiroes";
 import ResumoDiario from "./src/Pages/Visita/ResumoDiario";
 import QuarteiraoOffline from "./src/Pages/Visita/QuarteiraoOffline";
@@ -31,6 +31,8 @@ import AtualizarQuarteirao from "./src/Pages/Visita/AtualizarQuarteirao";
 import DiariosScreen from "./src/Pages/Diario/ListarDiario";
 import DetalheDiarioHistorico from "./src/Pages/Diario/DetalheDiario";
 import FecharSemanal from "./src/Pages/Semanal/FecharSemanal";
+import ListarOpcoes from "./src/Pages/Relatorios/ListarOpcoes";
+import ResumoCicloPDF from "./src/Pages/Relatorios/ResumoCiclo";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -191,6 +193,16 @@ export default function App() {
           <Stack.Screen
             name="FecharSemanal"
             component={FecharSemanal}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ListarOpcoes"
+            component={ListarOpcoes}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ResumoCicloPDF"
+            component={ResumoCicloPDF}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

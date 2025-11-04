@@ -67,7 +67,10 @@ export default function Home({ navigation }) {
         {
           text: "DIÁRIOS",
           onPress: () =>
-            navigation.navigate("ListarDiario", { modo: "visualizar", idAgente: idUsuario }),
+            navigation.navigate("ListarDiario", {
+              modo: "visualizar",
+              idAgente: idUsuario,
+            }),
           bgColor: "#8ABDE0",
           iconName: "timer-outline",
           iconColor: "#333",
@@ -76,7 +79,7 @@ export default function Home({ navigation }) {
     }
 
     if (funcao === "adm" || funcao === "fiscal") {
-      return [
+      const comum = [
         {
           text: "ÁREAS",
           onPress: () =>
@@ -95,21 +98,37 @@ export default function Home({ navigation }) {
           iconName: "people-outline",
           iconColor: "#333",
         },
-        {
+      ];
+
+      if (funcao === "adm") {
+        comum.push({
+          text: "RELATÓRIOS",
+          onPress: () => navigation.navigate("ListarOpcoes"),
+          bgColor: "#2CA856",
+          iconName: "document-text-outline",
+          iconColor: "#333",
+        });
+      }
+
+      if (funcao === "fiscal") {
+        comum.push({
           text: "DEFINIR QUARTEIRÕES",
           onPress: () => navigation.navigate("AgenteQuarteirao", { funcao }),
           bgColor: "#2CA856",
           iconName: "grid-outline",
           iconColor: "#333",
-        },
-        {
-          text: "RESUMO CICLO",
-          onPress: () => navigation.navigate("ResumoCiclo"),
-          bgColor: "#d3175fff",
-          iconName: "analytics-outline",
-          iconColor: "#333",
-        },
-      ];
+        });
+      }
+
+      comum.push({
+        text: "RESUMO CICLO",
+        onPress: () => navigation.navigate("ResumoCiclo"),
+        bgColor: "#d3175fff",
+        iconName: "analytics-outline",
+        iconColor: "#333",
+      });
+
+      return comum;
     }
 
     return [];
