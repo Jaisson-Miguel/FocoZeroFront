@@ -36,7 +36,7 @@ export default function ResumoDiario({ navigation }) {
     const buscarResumo = async () => {
       try {
         setLoading(true);
-        const hoje = new Date().toISOString().split("T")[0];
+        const hoje = new Date().toLocaleDateString("en-CA");
         const idAgente = await getId();
         const url = `${API_URL}/resumoDiario?idAgente=${idAgente}&data=${hoje}`;
 
@@ -68,7 +68,7 @@ export default function ResumoDiario({ navigation }) {
   const handleFecharDiario = async (idArea, atividade) => {
     try {
       const idAgente = await getId();
-      const hoje = new Date().toISOString().split("T")[0];
+      const hoje = new Date().toLocaleDateString("en-CA");
 
       const areaSelecionadaObj = resumoPorArea.find(
         (area) => area.idArea === idArea
@@ -89,12 +89,8 @@ export default function ResumoDiario({ navigation }) {
         totalDepLarvicida: areaSelecionadaObj.depositosTratadosComLarvicida,
         quarteiroes: areaSelecionadaObj.quarteiroes || [],
         totalQuarteiroes: areaSelecionadaObj.totalQuarteiroes || 0,
-        idsVisitas: areaSelecionadaObj.idsVisitas || [], // ⬅️ adiciona aqui os IDs das visitas
+        idsVisitas: areaSelecionadaObj.idsVisitas || [],
       };
-      console.log(
-        "IDs das visitas que serão enviadas:",
-        resumoParaEnvio.idsVisitas
-      );
 
       const res = await fetch(`${API_URL}/cadastrarDiario`, {
         method: "POST",
@@ -123,17 +119,16 @@ export default function ResumoDiario({ navigation }) {
     }
   };
 
-  const limparVisitasEImoveis = async () => {
+  const limparAsyncStorage = async () => {
     try {
-      await AsyncStorage.removeItem("visitas");
-      await AsyncStorage.removeItem("dadosImoveis");
+      await AsyncStorage.clear();
+      Alert.alert("Sucesso", "Todos os dados locais foram apagados!");
       setResumoPorArea([]);
       setQuarteiroes([]);
       setTotais({});
-      Alert.alert("Sucesso", "Visitas e imóveis apagados!");
     } catch (err) {
-      console.error("Erro ao limpar visitas e imóveis:", err);
-      Alert.alert("Erro", "Falha ao apagar visitas e imóveis.");
+      console.error("Erro ao limpar AsyncStorage:", err);
+      Alert.alert("Erro", "Falha ao apagar dados locais.");
     }
   };
 
@@ -182,7 +177,6 @@ export default function ResumoDiario({ navigation }) {
                     onPress={() => toggleArea(area.idArea)}
                   >
                     <Text style={styles.sectionTitle}>{area.nomeArea}</Text>
-
                     <Icon
                       name={
                         expandedAreaId === area.idArea
@@ -194,7 +188,6 @@ export default function ResumoDiario({ navigation }) {
                       style={styles.arrowIcon}
                     />
                   </TouchableOpacity>
-
                   {expandedAreaId === area.idArea && (
                     <View>
                       <View style={styles.box}>
@@ -205,7 +198,7 @@ export default function ResumoDiario({ navigation }) {
 
                       <View style={styles.box}>
                         <Text style={styles.subtitulo}>Imóveis por tipo:</Text>
-                        {Object.entries(area.totalPorTipoImovel).map(
+                        {Object.entries(area.totalPorTipoImovel || {}).map(
                           ([tipo, qtd]) => {
                             const tiposMap = {
                               r: "Residencial",
@@ -227,13 +220,13 @@ export default function ResumoDiario({ navigation }) {
                         <Text style={styles.subtitulo}>
                           Depósitos inspecionados:
                         </Text>
-                        {Object.entries(area.totalDepositosInspecionados).map(
-                          ([tipo, qtd]) => (
-                            <Text key={tipo} style={styles.textBase}>
-                              {tipo.toUpperCase()}: {qtd}
-                            </Text>
-                          )
-                        )}
+                        {Object.entries(
+                          area.totalDepositosInspecionados || {}
+                        ).map(([tipo, qtd]) => (
+                          <Text key={tipo} style={styles.textBase}>
+                            {tipo.toUpperCase()}: {qtd}
+                          </Text>
+                        ))}
                       </View>
 
                       <View style={styles.box}>
@@ -308,16 +301,15 @@ export default function ResumoDiario({ navigation }) {
                   )}
                 </View>
               ))}
-
-              {/* Botão para limpar visitas e imóveis */}
-              <TouchableOpacity
-                style={[styles.botaoFechar, { backgroundColor: "#F44336" }]}
-                onPress={limparVisitasEImoveis}
-              >
-                <Text style={styles.textoBotao}>LIMPAR VISITAS E IMÓVEIS</Text>
-              </TouchableOpacity>
             </>
           )}
+
+          <TouchableOpacity
+            style={[styles.botaoFechar, { backgroundColor: "#FF5722" }]}
+            onPress={limparAsyncStorage}
+          >
+            <Text style={styles.textoBotao}>LIMPAR DADOS LOCAIS (ASYNC)</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -378,27 +370,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
-
   containerWithData: {
     flexGrow: 1,
     paddingHorizontal: width(2),
     paddingVertical: height(2),
   },
-
   containerEmpty: {
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-
   contentWrapper: {
     flex: 1,
   },
-
   loadingIndicator: {
     marginTop: height(10),
   },
-
   titulo: {
     fontSize: font(3.8),
     fontWeight: "bold",
@@ -407,57 +394,48 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginTop: height(1),
   },
-
   box: {
     padding: height(2.5),
     backgroundColor: "#e0e0e0",
     borderRadius: width(2),
     marginBottom: height(0.25),
   },
-
   subtitulo: {
     fontWeight: "600",
     fontSize: font(2.25),
     marginBottom: height(0.5),
     color: "#333",
   },
-
   textBase: {
     fontSize: font(2.25),
     marginBottom: height(0.25),
     color: "#333",
   },
-
   emptyMessageContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: width(5),
   },
-
   sectionHeaderContainer: {
     backgroundColor: "#05419A",
     borderRadius: width(1.5),
     marginBottom: height(0.25),
-
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: width(4),
     paddingVertical: height(2),
   },
-
   sectionTitle: {
     fontWeight: "bold",
     fontSize: font(3),
     color: "#eee",
     flexShrink: 1,
   },
-
   arrowIcon: {
     marginLeft: width(2),
   },
-
   botaoFechar: {
     backgroundColor: "#2CA856",
     padding: height(2),
@@ -472,7 +450,6 @@ const styles = StyleSheet.create({
     fontSize: font(2.25),
     textTransform: "uppercase",
   },
-
   modalFundo: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",

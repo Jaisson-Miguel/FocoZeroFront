@@ -113,13 +113,21 @@ export default function ListarVisitas({ navigation }) {
     setIsSyncing(true);
 
     try {
+      console.log("🔄 Iniciando sincronização geral...");
+
       const visitasSalvas = await AsyncStorage.getItem("visitas");
       const listaVisitas = visitasSalvas ? JSON.parse(visitasSalvas) : [];
+      console.log("📦 Visitas salvas localmente:", listaVisitas);
+
       const pendentes = listaVisitas.filter((v) => !v.sincronizado);
+      console.log("🕓 Visitas pendentes para envio:", pendentes.length);
+      if (pendentes.length)
+        console.log("🔍 Conteúdo das visitas pendentes:", pendentes);
 
       const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
       const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
       const imoveisEditados = listaImoveis.filter((i) => i.editado);
+      console.log("🏠 Imóveis editados:", imoveisEditados.length);
 
       if (pendentes.length === 0 && imoveisEditados.length === 0) {
         Alert.alert("Aviso", "Nenhuma alteração para sincronizar.");
@@ -132,21 +140,41 @@ export default function ListarVisitas({ navigation }) {
 
       // ✅ Sincroniza visitas
       await Promise.all(
-        pendentes.map((v) =>
+        pendentes.map((v, index) =>
           (async () => {
             try {
+              console.log(
+                `\n📤 [${index + 1}/${pendentes.length}] Enviando visita ID: ${
+                  v.idVisita || "(sem id)"
+                }`
+              );
+              console.log("🧾 Dados enviados:", v);
+
               const { sincronizado, ...dadosParaEnviar } = v;
               const res = await fetch(`${API_URL}/cadastrarVisita`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dadosParaEnviar),
               });
+
+              console.log("📡 Status da resposta:", res.status);
+
+              const respostaTexto = await res.text();
+              console.log("💬 Corpo da resposta:", respostaTexto);
+
               if (res.ok) {
                 v.sincronizado = true;
                 sucessoVisitas++;
+                console.log(
+                  `✅ Visita ${
+                    v.idVisita || "(sem id)"
+                  } sincronizada com sucesso.`
+                );
+              } else {
+                console.log(`⚠️ Falha ao enviar visita: ${res.status}`);
               }
             } catch (err) {
-              console.error("Erro ao sincronizar visita:", err);
+              console.log("❌ Erro ao sincronizar visita:", err.message);
             }
           })()
         )
@@ -154,8 +182,14 @@ export default function ListarVisitas({ navigation }) {
 
       // ✅ Sincroniza imóveis editados
       await Promise.all(
-        imoveisEditados.map((i) =>
+        imoveisEditados.map((i, index) =>
           (async () => {
+            console.log(
+              `🏘️ Enviando imóvel editado [${index + 1}/${
+                imoveisEditados.length
+              }]`,
+              i
+            );
             const { editado, _id, ...dadosParaEnviar } = i;
             try {
               const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
@@ -163,20 +197,34 @@ export default function ListarVisitas({ navigation }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(dadosParaEnviar),
               });
+
+              console.log("📡 Status da resposta (imóvel):", res.status);
+
               if (res.ok) {
                 i.editado = false;
                 sucessoImoveis++;
+                console.log(`✅ Imóvel ${_id} sincronizado com sucesso.`);
+              } else {
+                const txt = await res.text();
+                console.log(
+                  `⚠️ Erro ao sincronizar imóvel (${res.status}):`,
+                  txt
+                );
               }
             } catch (err) {
-              console.error("Erro ao sincronizar imóvel:", err);
+              console.log(
+                "❌ Erro de rede ao sincronizar imóvel:",
+                err.message
+              );
             }
           })()
         )
       );
 
-      // Salva alterações no AsyncStorage
+      // 💾 Atualiza o AsyncStorage
       await AsyncStorage.setItem("visitas", JSON.stringify(listaVisitas));
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
+      console.log("💾 AsyncStorage atualizado com dados sincronizados.");
 
       setVisitas(listaVisitas);
 
@@ -185,7 +233,7 @@ export default function ListarVisitas({ navigation }) {
         `Sucesso:\n- ${sucessoVisitas} visitas\n- ${sucessoImoveis} imóveis.`
       );
     } catch (err) {
-      console.error(err);
+      console.log("🚨 Erro geral na sincronização:", err);
       Alert.alert("Erro", "Falha na sincronização.");
     } finally {
       setIsSyncing(false);

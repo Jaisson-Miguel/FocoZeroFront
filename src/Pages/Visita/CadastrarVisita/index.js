@@ -44,9 +44,7 @@ const ElementDropdown = ({
   const renderItem = (item) => {
     return (
       <View style={styles.dropdownItem}>
-        <Text style={styles.dropdownItemText}>
-          {item.label}
-        </Text>
+        <Text style={styles.dropdownItemText}>{item.label}</Text>
       </View>
     );
   };
@@ -54,7 +52,9 @@ const ElementDropdown = ({
   const renderValue = () => {
     return (
       <View style={styles.selectedWrapper}>
-        <Text style={[styles.selectedValueDisplayed, { color: inputTextColor }]}>
+        <Text
+          style={[styles.selectedValueDisplayed, { color: inputTextColor }]}
+        >
           {mapearTipoImovel(value)}
         </Text>
       </View>
@@ -83,14 +83,13 @@ const ElementDropdown = ({
       flatListProps={{
         style: {
           borderWidth: 1,
-          borderColor: '#ccc',
+          borderColor: "#ccc",
           borderRadius: font(0.5),
         },
       }}
     />
   );
 };
-
 
 const ValueBox = ({
   label,
@@ -247,7 +246,7 @@ export default function Visita({ route, navigation }) {
     qtdGatos: imovel.qtdGatos || "",
     amostrasInicial: "",
     amostrasFinal: "",
-    foco: "",
+    qtdFoco: "",
     qtdLarvicida: "",
     qtdDepTratado: "",
     qtdDepEliminado: "",
@@ -259,7 +258,7 @@ export default function Visita({ route, navigation }) {
       "qtdGatos",
       "amostrasInicial",
       "amostrasFinal",
-      "foco",
+      "qtdFoco",
       "qtdLarvicida",
       "qtdDepTratado",
       "qtdDepEliminado",
@@ -309,7 +308,7 @@ export default function Visita({ route, navigation }) {
           qtdGatos: Number(form.qtdGatos) || 0,
           amostrasInicial: Number(form.amostrasInicial) || 0,
           amostrasFinal: Number(form.amostrasFinal) || 0,
-          foco: Number(form.foco) || 0,
+          qtdFoco: Number(form.qtdFoco) || 0,
           qtdLarvicida: Number(form.qtdLarvicida) || 0,
           qtdDepTratado: Number(form.qtdDepTratado) || 0,
           qtdDepEliminado: Number(form.qtdDepEliminado) || 0,
@@ -554,10 +553,10 @@ export default function Visita({ route, navigation }) {
               <View style={styles.infoRowCampos}>
                 <ValueBox
                   label="Quantidade"
-                  value={form.foco}
+                  value={form.qtdFoco}
                   isInput={true}
                   isSpecialInput={true}
-                  onChangeText={(v) => handleInputChange("foco", v)}
+                  onChangeText={(v) => handleInputChange("qtdFoco", v)}
                   keyboardType="numeric"
                   style={styles.fullWidthSpecial}
                 />
@@ -842,17 +841,17 @@ const styles = StyleSheet.create({
   },
   selectedWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
     paddingHorizontal: width(1),
   },
   selectedValueDisplayed: {
     fontSize: font(2.5),
     fontWeight: "bold",
     textAlign: "center",
-    width: '100%',
+    width: "100%",
   },
   iconStyle: {
     width: font(3),
@@ -868,7 +867,7 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: font(2.25),
     color: "#05419A",
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   bottomBar: {
