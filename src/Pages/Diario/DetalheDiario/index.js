@@ -16,7 +16,7 @@ import Cabecalho from "../../../Components/Cabecalho";
 const createLocalDate = (dateString) => {
     if (!dateString) return null;
     try {
-        const dateParts = dateString.split('-'); 
+        const dateParts = dateString.split('-');
         return new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
     } catch (e) {
         console.error("Erro ao criar data local:", e);
@@ -25,7 +25,7 @@ const createLocalDate = (dateString) => {
 };
 
 export default function DetalheDiarioHistorico({ navigation, route }) {
-    
+
     const { diarioId, nomeArea: nomeAreaFallback, dataDiario } = route.params;
 
     const [loading, setLoading] = useState(true);
@@ -33,21 +33,21 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
     const [expandedSection, setExpandedSection] = useState(null);
     const [visitasDetalhes, setVisitasDetalhes] = useState(null);
     const [loadingVisitas, setLoadingVisitas] = useState(false);
-    
+
     const [nomeArea, setNomeArea] = useState(nomeAreaFallback);
 
-    const dataFormatadaUrl = dataDiario; 
+    const dataFormatadaUrl = dataDiario;
 
     let dataFormatadaExibicao = 'Data Desconhecida';
     const displayDate = createLocalDate(dataDiario);
     if (displayDate) {
         dataFormatadaExibicao = displayDate.toLocaleDateString('pt-BR');
     }
-    
+
     const toggleSection = (sectionName) => {
         setExpandedSection(sectionName === expandedSection ? null : sectionName);
     };
-    
+
     const tiposMap = {
         r: "Residencial",
         c: "Comercial",
@@ -62,12 +62,12 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         try {
             const url = `${API_URL}/areas/${idArea}`;
             const res = await fetch(url);
-            
+
             if (!res.ok) {
                 console.warn(`Aviso: Não foi possível buscar nome da área ${idArea}.`);
                 return;
             }
-            
+
             const data = await res.json();
             const nomeEncontrado = data.nome || data.nomeArea;
 
@@ -97,10 +97,10 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                 }
                 const data = await res.json();
                 if (!data || !data.resumo) {
-                     throw new Error("Resposta da API inválida: estrutura 'resumo' ausente.");
+                    throw new Error("Resposta da API inválida: estrutura 'resumo' ausente.");
                 }
                 setDiarioData(data);
-                
+
                 if (data.idArea) {
                     fetchNomeArea(data.idArea);
                 }
@@ -117,27 +117,27 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
     }, [diarioId, fetchNomeArea]);
 
     const fetchVisitas = useCallback(async () => {
-        
+
         if (loadingVisitas || !diarioId) return;
 
         if (!diarioId) {
-             Alert.alert("Erro", "ID do Diário não encontrado para buscar as visitas.");
-             return;
+            Alert.alert("Erro", "ID do Diário não encontrado para buscar as visitas.");
+            return;
         }
 
         try {
             setLoadingVisitas(true);
-            
+
             const url = `${API_URL}/visitas/detalhes/diario/${diarioId}`;
-            
+
             const res = await fetch(url);
-            
+
             if (!res.ok) {
                 const errorBody = await res.json().catch(() => ({ message: res.statusText }));
                 console.error("ERROR URL da Requisição com erro:", url);
                 throw new Error(errorBody.message || `Erro HTTP ${res.status}`);
             }
-            
+
             const data = await res.json();
             setVisitasDetalhes(data);
 
@@ -150,11 +150,11 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         }
     }, [diarioId, loadingVisitas]);
 
-    
+
     const resumo = diarioData?.resumo;
     const hasData = resumo && Object.keys(resumo).length > 0;
     const scrollContentStyle = hasData || loading ? styles.containerWithData : styles.containerEmpty;
-        
+
     const renderSection = (title, content, sectionName) => (
         <View key={sectionName}>
             <TouchableOpacity
@@ -177,12 +177,12 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
             )}
         </View>
     );
-    
+
     const renderVisitasDetalhes = () => {
         if (loadingVisitas) {
             return <ActivityIndicator size="small" color="#2CA856" style={styles.loadingVisitas} />;
         }
-        
+
         if (!visitasDetalhes || visitasDetalhes.length === 0) {
             return (
                 <View style={styles.box}>
@@ -192,7 +192,7 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
         }
 
         return visitasDetalhes.map(quarteirao => {
-            
+
             const visitasOrdenadas = [...quarteirao.visitas].sort((a, b) => {
                 const posA = a.posicaoImovel || Infinity;
                 const posB = b.posicaoImovel || Infinity;
@@ -205,7 +205,7 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                     <Text style={styles.quarteiraoTitle}>
                         Quarteirão {quarteirao.numeroQuarteirao} ({quarteirao.nomeArea})
                     </Text>
-                    
+
                     {visitasOrdenadas.map(visita => (
                         <View key={visita._id} style={styles.visitaItem}>
                             <Text style={styles.textBase}>
@@ -257,13 +257,13 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                     ), 'gerais')}
 
                     {hasData && renderSection("Imóveis por Tipo", (
-                                                <>
-                                                    {Object.entries(resumo.totalVisitasTipo || {}).map(([tipo, qtd]) => (
-                                                        <Text key={tipo} style={styles.textBase}>
-                                                            {tiposMap[tipo] || tipo}: {qtd || 0}
-                                                        </Text>
-                                                    ))}
-                                                </>
+                        <>
+                            {Object.entries(resumo.totalVisitasTipo || {}).map(([tipo, qtd]) => (
+                                <Text key={tipo} style={styles.textBase}>
+                                    {tiposMap[tipo] || tipo}: {qtd || 0}
+                                </Text>
+                            ))}
+                        </>
                     ), 'tiposImovel')}
 
                     {hasData && renderSection("Depósitos e Tratamento", (
@@ -291,14 +291,14 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                             </Text>
                         </>
                     ), 'depositos')}
-                    
+
                     {hasData && renderSection("Focos e Amostras", (
                         <>
                             <Text style={styles.textBase}>Total de amostras: {resumo.totalAmostras || 0}</Text>
                             <Text style={styles.textBase}>Imóveis com foco: {resumo.imoveisComFoco || 0}</Text>
                         </>
                     ), 'focos')}
-                    
+
                     {hasData && (
                         <TouchableOpacity
                             style={styles.loadVisitasButton}
@@ -321,20 +321,20 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
                                     {visitasDetalhes ? 'Listar imóveis visitados' : 'Listar imóveis visitados'}
                                 </Text>
                             )}
-                            <Icon 
+                            <Icon
                                 name={expandedSection === 'detalhesVisitas' ? 'chevron-up' : 'chevron-down'}
                                 size={font(2.5)}
                                 color="#fff"
                             />
                         </TouchableOpacity>
                     )}
-                    
+
                     {expandedSection === 'detalhesVisitas' && (
                         <View style={styles.visitasContainer}>
                             {renderVisitasDetalhes()}
                         </View>
                     )}
-                    
+
                     {!hasData && (
                         <View style={styles.emptyMessageContainer}>
                             <Text style={styles.textBase}>Nenhum resumo encontrado para este diário.</Text>
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     },
     containerWithData: {
         flexGrow: 1,
-        paddingHorizontal: width(4), 
+        paddingHorizontal: width(4),
         paddingVertical: height(2),
     },
     containerEmpty: {
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
         marginTop: height(10),
     },
     titulo: {
-        fontSize: font(5), 
+        fontSize: font(5),
         fontWeight: "bold",
         color: '#05419A',
         paddingBottom: height(0.5),
@@ -376,9 +376,9 @@ const styles = StyleSheet.create({
         marginTop: height(1)
     },
     subTituloInfo: {
-        fontSize: font(2.5), 
+        fontSize: font(2.5),
         color: '#333',
-        marginBottom: height(1.5), 
+        marginBottom: height(1.5),
         alignSelf: "center",
         textAlign: 'center',
     },
@@ -386,20 +386,20 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     box: {
-        padding: height(2.5), 
+        padding: height(2.5),
         backgroundColor: "#e0e0e0",
-        borderRadius: width(2), 
+        borderRadius: width(2),
         marginBottom: height(0.5),
     },
     subtitulo: {
         fontWeight: "600",
-        fontSize: font(2.5), 
+        fontSize: font(2.5),
         marginBottom: height(0.5),
         color: '#333'
     },
     textBase: {
-        fontSize: font(2.25), 
-        marginBottom: height(0.5), 
+        fontSize: font(2.25),
+        marginBottom: height(0.5),
         color: '#333',
     },
     emptyMessageContainer: {
@@ -410,17 +410,17 @@ const styles = StyleSheet.create({
     },
     sectionHeaderContainer: {
         backgroundColor: "#05419A",
-        borderRadius: width(1.5), 
+        borderRadius: width(1.5),
         marginBottom: height(0.5),
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: width(4), 
-        paddingVertical: height(2), 
+        paddingHorizontal: width(4),
+        paddingVertical: height(2),
     },
     sectionTitle: {
         fontWeight: "bold",
-        fontSize: font(3), 
+        fontSize: font(3),
         color: '#eee',
         flexShrink: 1,
     },
@@ -430,13 +430,13 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: '#ccc',
-        marginVertical: height(1), 
+        marginVertical: height(1),
     },
     loadVisitasButton: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#2CA856', 
+        backgroundColor: '#2CA856',
         padding: height(2),
         borderRadius: width(2),
     },
@@ -452,8 +452,8 @@ const styles = StyleSheet.create({
     },
     quarteiraoGroup: {
         backgroundColor: '#f9f9f9',
-        borderRadius: width(2), 
-        padding: width(4), 
+        borderRadius: width(2),
+        padding: width(4),
         marginBottom: height(0.5),
         borderWidth: 1,
         borderColor: '#ddd',
@@ -464,19 +464,19 @@ const styles = StyleSheet.create({
         color: '#05419A',
         marginBottom: height(1),
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc', 
+        borderBottomColor: '#ccc',
         paddingBottom: height(1),
     },
     visitaItem: {
         backgroundColor: '#fff',
-        padding: width(4), 
-        borderRadius: width(1.5), 
-        marginBottom: height(0.5), 
-        borderLeftWidth: width(1), 
+        padding: width(4),
+        borderRadius: width(1.5),
+        marginBottom: height(0.5),
+        borderLeftWidth: width(1),
         borderLeftColor: '#2CA856',
     },
     textBaseTipo: {
-        fontSize: font(2.25), 
+        fontSize: font(2.25),
         color: '#666',
         marginTop: height(0.25),
     },

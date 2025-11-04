@@ -116,8 +116,8 @@ const ValueBox = ({
   const inputBackgroundColor = useSpecialStyle
     ? "#E0E0E0"
     : isBlueTheme
-    ? "#fff"
-    : "#E0E0E0";
+      ? "#fff"
+      : "#E0E0E0";
   const inputTextColor = "#05419A";
 
   const labelStyle = useSpecialStyle
@@ -331,12 +331,12 @@ export default function Visita({ route, navigation }) {
           listaImoveis = listaImoveis.map((i) =>
             i._id === imovel._id
               ? {
-                  ...i,
-                  status: "visitado",
-                  numero: form.numero,
-                  tipo: form.tipo,
-                  editadoOffline: true,
-                }
+                ...i,
+                status: "visitado",
+                numero: form.numero,
+                tipo: form.tipo,
+                editadoOffline: true,
+              }
               : i
           );
           await AsyncStorage.setItem(

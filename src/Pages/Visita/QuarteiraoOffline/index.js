@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView, // 👈 Adicionado para garantir que o botão não seja cortado
+  SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
@@ -21,12 +21,10 @@ export default function QuarteiraoOffline({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);
 
-  // Função para navegar para a tela ListarVisitas (Diários)
   const fecharDiario = () => {
     navigation.navigate("ListarVisitas", { modo: "visualizar" });
   };
 
-  // 🔹 timeout p/ evitar travamento offline
   const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
     return Promise.race([
       fetch(url, options),
@@ -63,7 +61,6 @@ export default function QuarteiraoOffline({ navigation }) {
     try {
       const idUsuario = await getId();
 
-      // 🔹 baixa quarteirões com timeout
       const resQ = await fetchWithTimeout(
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`,
         {},
@@ -88,11 +85,10 @@ export default function QuarteiraoOffline({ navigation }) {
 
         quarteiroesArray.push({
           ...q,
-          uriMapaLocal: uriMapaLocal, // 🔸 mantém aqui pra enviar depois
+          uriMapaLocal: uriMapaLocal,
         });
       }
 
-      // 🔹 baixa imóveis com timeout
       const resI = await fetchWithTimeout(
         `${API_URL}/baixarImoveisResponsavel/${idUsuario}`,
         {},
@@ -146,7 +142,7 @@ export default function QuarteiraoOffline({ navigation }) {
   useEffect(() => {
     (async () => {
       await carregarOffline();
-      baixarDados(); // 🔹 tenta sincronizar, mas sem travar a tela
+      baixarDados();
     })();
   }, []);
 
@@ -244,7 +240,7 @@ export default function QuarteiraoOffline({ navigation }) {
                     onPress={() =>
                       navigation.navigate("ImovelOffline", {
                         quarteirao: item,
-                        uriMapaLocal: item.uriMapaLocal, // 🔸 envia o caminho do mapa pro ImovelOffline
+                        uriMapaLocal: item.uriMapaLocal,
                       })
                     }
                   >
@@ -266,12 +262,11 @@ export default function QuarteiraoOffline({ navigation }) {
                 </Text>
               </View>
             )}
-            contentContainerStyle={styles.listContent} // 👈 Garante espaço no final para o botão
+            contentContainerStyle={styles.listContent}
           />
         )}
       </View>
 
-      {/* BOTÃO FIXO FECHAR DIÁRIO */}
       <TouchableOpacity
         style={styles.closeDiaryButton}
         onPress={fecharDiario}
@@ -284,7 +279,7 @@ export default function QuarteiraoOffline({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" }, // Ocupa toda a tela
+  safeArea: { flex: 1, backgroundColor: "#fff" },
   container: { flex: 1, backgroundColor: "#fff" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   headerTitleContainer: {
@@ -370,14 +365,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   listContent: {
-    paddingBottom: height(5), // Espaço no final da lista para o botão não sobrepor
+    paddingBottom: height(5),
   },
   closeDiaryButton: {
     position: "absolute",
-    bottom: height(2), // Distância do fundo da tela (ajustável)
+    bottom: height(2),
     left: width(5),
     right: width(5),
-    backgroundColor: "#05419A", // Cor do navigation original
+    backgroundColor: "#05419A",
     paddingVertical: height(2),
     borderRadius: 8,
     alignItems: "center",
@@ -389,7 +384,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   closeDiaryButtonText: {
-    color: "#fff", 
+    color: "#fff",
     fontSize: font(2.5),
     fontWeight: "bold",
   },

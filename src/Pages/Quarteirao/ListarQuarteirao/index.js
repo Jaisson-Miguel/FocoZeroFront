@@ -516,7 +516,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#05419A",
   },
-
   fabButton: {
     position: "absolute",
     width: height(8),

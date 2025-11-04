@@ -10,9 +10,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
 import Icon from "react-native-vector-icons/FontAwesome";
-
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";

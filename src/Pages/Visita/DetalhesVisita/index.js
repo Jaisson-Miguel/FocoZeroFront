@@ -52,10 +52,10 @@ export default function DetalhesVisita({ route, navigation }) {
   return (
     <View style={styles.fullScreenContainer}>
       <Cabecalho navigation={navigation} />
-      
+
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.titulo}>Detalhes da Visita</Text>
-        
+
         <View style={styles.box}>
           <Text style={styles.subtitulo}>Informações do Imóvel</Text>
           <Text style={styles.textBase}>
@@ -96,11 +96,11 @@ export default function DetalhesVisita({ route, navigation }) {
 
         <View style={styles.depositoBox}>
           <Text style={styles.subtituloDep}>
-              Depósitos Inspecionados
+            Depósitos Inspecionados
           </Text>
           {renderDepositos(visita.depositosInspecionados)}
         </View>
-        
+
         <View style={[styles.box, { backgroundColor: visita.sincronizado ? '#c3e3caff' : '#ff99a3ff' }]}>
           <Text style={styles.textBase}>
             <Text style={styles.textBold}>Sincronizado?</Text>{" "}
@@ -137,13 +137,13 @@ const styles = StyleSheet.create({
     padding: height(2.5),
     backgroundColor: "#e0e0e0",
     borderRadius: width(2),
-    marginBottom: height(1.5), 
+    marginBottom: height(1.5),
   },
   subtitulo: {
     fontWeight: "600",
-    fontSize: font(2.5), 
+    fontSize: font(2.5),
     marginBottom: height(1),
-    color: "#05419A", 
+    color: "#05419A",
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     paddingBottom: height(0.5)
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   depositoBox: {
     padding: height(2.5),
-    backgroundColor: "#e0e0e0", 
+    backgroundColor: "#e0e0e0",
     borderRadius: width(2),
     marginBottom: height(1.5),
   },

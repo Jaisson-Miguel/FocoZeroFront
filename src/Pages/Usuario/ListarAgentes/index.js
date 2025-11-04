@@ -11,17 +11,12 @@ import {
 import { API_URL } from "../../../config/config.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
-// 🚨 Importe as funções de redimensionamento (AJUSTE O CAMINHO!)
-import { height, width, font } from "../../../utils/responsive.js"; 
+import { height, width, font } from "../../../utils/responsive.js";
 
-// --- Componente principal ---
 export default function AgenteQuarteirao({ navigation, route }) {
-  // A função do usuário (ex: 'administrador')
-  const { funcao } = route.params; 
+  const { funcao } = route.params;
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Constantes de cores padronizadas
 
   function confirmarReset() {
     Alert.alert(
@@ -51,7 +46,6 @@ export default function AgenteQuarteirao({ navigation, route }) {
     );
   }
 
-  // 🔁 Atualiza a lista sempre que a tela voltar a ficar em foco
   useFocusEffect(
     useCallback(() => {
       const fetchAgentes = async () => {
@@ -93,8 +87,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
       <View style={styles.containerMenor}>
-        
-        {/* Botão Resetar Responsáveis */}
+
         <TouchableOpacity
           onPress={confirmarReset}
           style={[styles.button, { backgroundColor: "red", marginBottom: height(1.2) }]}
@@ -102,7 +95,6 @@ export default function AgenteQuarteirao({ navigation, route }) {
           <Text style={styles.buttonText}>Resetar Responsáveis</Text>
         </TouchableOpacity>
 
-        {/* Botão Cadastrar Agente */}
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("Register", { funcaoUsuario: funcao })
@@ -118,8 +110,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
           data={agentes}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            // Ação: Card apenas lista, não navega
-            <ItemAgenteGerenciar agente={item} /> 
+            <ItemAgenteGerenciar agente={item} />
           )}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={() => (
@@ -131,9 +122,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
   );
 }
 
-// --- Componente de Item da Lista (APENAS VISUALIZAÇÃO) ---
 function ItemAgenteGerenciar({ agente }) {
-  // Use um View em vez de TouchableOpacity para remover a função de clique
   return (
     <View style={styles.card}>
       <View style={styles.containerInfo}>
@@ -144,7 +133,6 @@ function ItemAgenteGerenciar({ agente }) {
   );
 }
 
-// --- Estilos Padronizados (Reutilizados e Ajustados) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -184,9 +172,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: height(0.2) },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-  },
-  containerInfo: {
-    // Estilos de container
   },
   cardTitle: {
     fontSize: font(2.5),

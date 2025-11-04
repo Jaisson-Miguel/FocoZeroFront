@@ -136,7 +136,6 @@ export default function ListarVisitas({ navigation }) {
       let sucessoVisitas = 0;
       let sucessoImoveis = 0;
 
-      // ✅ Sincroniza visitas
       await Promise.all(
         pendentes.map(async (v, index) => {
           try {
@@ -169,12 +168,10 @@ export default function ListarVisitas({ navigation }) {
         })
       );
 
-      // ✅ Sincroniza imóveis editados
       await Promise.all(
         imoveisEditados.map(async (i, index) => {
           console.log(
-            `🏘️ Enviando imóvel editado [${index + 1}/${
-              imoveisEditados.length
+            `🏘️ Enviando imóvel editado [${index + 1}/${imoveisEditados.length
             }]`,
             i
           );
@@ -200,7 +197,6 @@ export default function ListarVisitas({ navigation }) {
         })
       );
 
-      // 💾 Remove visitas sincronizadas do AsyncStorage
       const visitasNaoSincronizadas = listaVisitas.filter(
         (v) => !v.sincronizado
       );
@@ -213,7 +209,6 @@ export default function ListarVisitas({ navigation }) {
         "💾 AsyncStorage atualizado. Visitas sincronizadas removidas."
       );
 
-      // Atualiza a tela
       setVisitas(visitasNaoSincronizadas);
 
       Alert.alert(

@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; 
-import Cabecalho from '../../../Components/Cabecalho'; 
+import Icon from 'react-native-vector-icons/Ionicons';
+import Cabecalho from '../../../Components/Cabecalho';
 import { API_URL } from "../../../config/config";
 import { height, width, font } from "../../../utils/responsive";
 
 const formatarDataUTC = (dateString) => {
     if (!dateString) return 'Data Desconhecida';
-    
+
     const dateObj = new Date(dateString);
 
     const day = String(dateObj.getUTCDate()).padStart(2, '0');
     const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
     const year = dateObj.getUTCFullYear();
-    
+
     return `${day}/${month}/${year}`;
 };
 
@@ -24,39 +24,39 @@ const extrairDataParaAPI = (dateString) => {
 
 const getSemanaAtual = () => {
     const dataAtual = new Date();
-    
+
     const data = new Date(Date.UTC(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate()));
-    
+
     const dayNum = data.getUTCDay() || 7;
-    
+
     data.setUTCDate(data.getUTCDate() + 4 - dayNum);
-    
+
     const yearStart = new Date(Date.UTC(data.getUTCFullYear(), 0, 1));
-    
+
     const weekNo = Math.ceil((((data - yearStart) / 86400000) + 1) / 7);
-    
+
     return weekNo;
 };
 
 export default function ListarDiario({ navigation, route }) {
-    
-    const { idAgente } = route.params; 
+
+    const { idAgente } = route.params;
 
     const [semanas, setSemanas] = useState([]);
-    const [areaNamesCache, setAreaNamesCache] = useState({}); 
+    const [areaNamesCache, setAreaNamesCache] = useState({});
     const [loading, setLoading] = useState(true);
-    const [semanaExpandidaId, setSemanaExpandidaId] = useState(null); 
-    const [semanaAtual, setSemanaAtual] = useState(null); 
-    
+    const [semanaExpandidaId, setSemanaExpandidaId] = useState(null);
+    const [semanaAtual, setSemanaAtual] = useState(null);
+
     const handleFecharSemanal = () => {
         if (!semanaAtual) {
             Alert.alert("Atenção", "Não foi possível determinar a semana atual para fechamento.");
             return;
         }
 
-        navigation.navigate("FecharSemanal", { 
+        navigation.navigate("FecharSemanal", {
             idAgente: idAgente,
-            semana: semanaAtual, 
+            semana: semanaAtual,
         });
     };
 
@@ -65,24 +65,24 @@ export default function ListarDiario({ navigation, route }) {
         if (!idArea || areaNamesCache[idArea]) {
             return areaNamesCache[idArea];
         }
-        
+
         try {
-            const url = `${API_URL}/areas/${idArea}`; 
+            const url = `${API_URL}/areas/${idArea}`;
             const res = await fetch(url);
-            
+
             if (!res.ok) {
                 console.warn(`Aviso: Não foi possível buscar nome da área ${idArea}. Status: ${res.status}`);
                 return `Área ID: ${idArea}`;
             }
-            
+
             const data = await res.json();
-            const nomeEncontrado = data.nome || data.nomeArea; 
+            const nomeEncontrado = data.nome || data.nomeArea;
 
             if (nomeEncontrado) {
                 setAreaNamesCache(prevCache => ({ ...prevCache, [idArea]: nomeEncontrado }));
                 return nomeEncontrado;
             }
-            
+
             return `Área ID: ${idArea}`;
         } catch (err) {
             console.error(`ERROR ao buscar nome da área ${idArea}:`, err.message);
@@ -96,40 +96,40 @@ export default function ListarDiario({ navigation, route }) {
 
         try {
             const response = await fetch(url);
-            
+
             if (!response.ok) {
                 throw new Error(`Erro de rede: ${response.statusText}`);
             }
 
             const data = await response.json();
-            
+
             const allAreaIds = new Set();
             data.forEach(semana => {
                 semana.diarios.forEach(diario => {
-                    if (diario.idArea && !diario.nomeArea) { 
+                    if (diario.idArea && !diario.nomeArea) {
                         allAreaIds.add(diario.idArea);
                     }
                 });
             });
 
-            const areaPromises = Array.from(allAreaIds).map(id => 
+            const areaPromises = Array.from(allAreaIds).map(id =>
                 fetchAreaName(id).then(name => ({ id, name }))
             );
 
             const areaResults = await Promise.all(areaPromises);
-            
+
             const newAreaNames = areaResults.reduce((acc, current) => {
                 acc[current.id] = current.name;
                 return acc;
             }, {});
 
             setAreaNamesCache(prevCache => ({ ...prevCache, ...newAreaNames }));
-            
+
             const updatedSemanas = data.map(semana => ({
                 ...semana,
                 diarios: semana.diarios.map(diario => {
                     const nomeReal = diario.nomeArea || areaNamesCache[diario.idArea] || newAreaNames[diario.idArea];
-                    
+
                     return {
                         ...diario,
                         nomeArea: nomeReal || `Área ID: ${diario.idArea}`
@@ -138,7 +138,7 @@ export default function ListarDiario({ navigation, route }) {
             }));
 
             setSemanas(updatedSemanas);
-            
+
         } catch (error) {
             console.error("ERRO GERAL NA BUSCA:", error.message);
             Alert.alert("Erro", `Não foi possível carregar os diários. Detalhe: ${error.message}`);
@@ -148,8 +148,8 @@ export default function ListarDiario({ navigation, route }) {
     };
 
     useEffect(() => {
-        setSemanaAtual(getSemanaAtual()); 
-        
+        setSemanaAtual(getSemanaAtual());
+
         if (idAgente) {
             fetchDiarios(idAgente);
         } else {
@@ -161,25 +161,25 @@ export default function ListarDiario({ navigation, route }) {
 
 
     const renderDiarioItem = ({ item }) => {
-        
-        const dataApenas = extrairDataParaAPI(item.data); 
+
+        const dataApenas = extrairDataParaAPI(item.data);
 
         return (
-            <TouchableOpacity 
-                onPress={() => navigation.navigate('DetalheDiario', { 
-                    diarioId: item._id, 
-                    nomeArea: item.nomeArea, 
-                    dataDiario: dataApenas 
+            <TouchableOpacity
+                onPress={() => navigation.navigate('DetalheDiario', {
+                    diarioId: item._id,
+                    nomeArea: item.nomeArea,
+                    dataDiario: dataApenas
                 })}
-                style={styles.diarioItem} 
+                style={styles.diarioItem}
             >
                 <View style={styles.diarioItemContent}>
-                    <Text 
+                    <Text
                         style={styles.diarioData}
                         numberOfLines={0}
                         ellipsizeMode="tail"
                     >
-                        {`${item.nomeArea} - ${formatarDataUTC(item.data)}`} 
+                        {`${item.nomeArea} - ${formatarDataUTC(item.data)}`}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -187,16 +187,16 @@ export default function ListarDiario({ navigation, route }) {
     };
 
     const renderSemanaItem = ({ item }) => {
-        const isExpanded = semanaExpandidaId === item._id; 
+        const isExpanded = semanaExpandidaId === item._id;
 
         return (
             <View style={styles.semanaContainer}>
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={() => setSemanaExpandidaId(isExpanded ? null : item._id)}
-                    style={styles.semanaHeader} 
+                    style={styles.semanaHeader}
                 >
-                    <Text style={styles.semanaTitle}> 
-                        Semana: {item._id} ({item.totalDiarios} Diários) 
+                    <Text style={styles.semanaTitle}>
+                        Semana: {item._id} ({item.totalDiarios} Diários)
                     </Text>
                     <Icon
                         name={isExpanded ? 'chevron-down' : 'chevron-forward'}
@@ -245,13 +245,13 @@ export default function ListarDiario({ navigation, route }) {
             </View>
             <TouchableOpacity
                 style={styles.closeDiaryButton}
-                onPress={handleFecharSemanal} 
+                onPress={handleFecharSemanal}
                 activeOpacity={0.8}
             >
                 <Text style={styles.closeDiaryButtonText}>FECHAR SEMANAL (Semana {semanaAtual})</Text>
             </TouchableOpacity>
         </View>
-        
+
     );
 }
 
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         flex: 1,
     },
-    arrowIcon: { 
+    arrowIcon: {
         marginLeft: width(2),
     },
 
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     diariosList: {
         backgroundColor: "#fff",
     },
-    
+
     diarioItem: {
         backgroundColor: "#ecececff",
         paddingVertical: height(1.5),
@@ -347,24 +347,24 @@ const styles = StyleSheet.create({
         paddingBottom: height(2),
     },
     closeDiaryButton: {
-    position: "absolute",
-    bottom: height(2), 
-    left: width(5),
-    right: width(5),
-    backgroundColor: "#05419A",
-    paddingVertical: height(2),
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
+        position: "absolute",
+        bottom: height(2),
+        left: width(5),
+        right: width(5),
+        backgroundColor: "#05419A",
+        paddingVertical: height(2),
+        borderRadius: 8,
+        alignItems: "center",
+        justifyContent: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4.65,
+        elevation: 8,
     },
     closeDiaryButtonText: {
-    color: "#fff", 
-    fontSize: font(2.5),
-    fontWeight: "bold",
+        color: "#fff",
+        fontSize: font(2.5),
+        fontWeight: "bold",
     },
 });

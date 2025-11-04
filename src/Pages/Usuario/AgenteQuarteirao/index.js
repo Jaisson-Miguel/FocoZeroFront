@@ -11,21 +11,17 @@ import {
 import { API_URL } from "../../../config/config.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
-// 🚨 Importe as funções de redimensionamento (AJUSTE O CAMINHO!)
-import { height, width, font } from "../../../utils/responsive.js"; 
+import { height, width, font } from "../../../utils/responsive.js";
 
-// --- Componente principal ---
 export default function ListarAgentes({ navigation, route }) {
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔁 Atualiza a lista sempre que a tela voltar a ficar em foco
   useFocusEffect(
     useCallback(() => {
       const fetchAgentes = async () => {
         setLoading(true);
         try {
-          // Busca apenas agentes
           const response = await fetch(
             `${API_URL}/listarUsuarios?funcao=agente`
           );
@@ -70,7 +66,6 @@ export default function ListarAgentes({ navigation, route }) {
           data={agentes}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            // Ação: Ao clicar, navega para a lista de áreas para atribuir
             <ItemAgenteAtribuir agente={item} navigation={navigation} />
           )}
           showsVerticalScrollIndicator={false}
@@ -83,7 +78,6 @@ export default function ListarAgentes({ navigation, route }) {
   );
 }
 
-// --- Componente de Item da Lista (Clicável para Atribuição) ---
 function ItemAgenteAtribuir({ agente, navigation }) {
   return (
     <TouchableOpacity
@@ -104,8 +98,6 @@ function ItemAgenteAtribuir({ agente, navigation }) {
   );
 }
 
-
-// --- Estilos Padronizados (Mantidos, mas simplificados) ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -164,8 +156,3 @@ const styles = StyleSheet.create({
     color: '#666',
   }
 });
-
-
-
-
-

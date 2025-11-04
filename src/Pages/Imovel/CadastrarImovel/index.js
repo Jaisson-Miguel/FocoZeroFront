@@ -92,12 +92,10 @@ export default function CadastrarImovel({ route, navigation }) {
             {posicao !== null
               ? posicao === 0
                 ? `Primeiro da lista`
-                : `${
-                    imoveis.find((i) => i.posicao === posicao - 1)
-                      ?.logradouro || ""
-                  }, ${
-                    imoveis.find((i) => i.posicao === posicao - 1)?.numero || ""
-                  }`
+                : `${imoveis.find((i) => i.posicao === posicao - 1)
+                  ?.logradouro || ""
+                }, ${imoveis.find((i) => i.posicao === posicao - 1)?.numero || ""
+                }`
               : "Nenhuma posição escolhida ainda"}
           </Text>
 
@@ -151,7 +149,7 @@ export default function CadastrarImovel({ route, navigation }) {
                 <Button
                   title="Cancelar"
                   onPress={() => setModalVisible(false)}
-                  styles={{color:"red"}}
+                  styles={{ color: "red" }}
                 />
               </View>
             </View>

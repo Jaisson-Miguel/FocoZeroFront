@@ -179,9 +179,9 @@ export default function FecharSemanalScreen({ navigation, route }) {
 
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     {mensagemStatus ? (
-                           <View style={styles.statusBox}>
-                               <Text style={styles.statusText}>{mensagemStatus}</Text>
-                           </View>
+                        <View style={styles.statusBox}>
+                            <Text style={styles.statusText}>{mensagemStatus}</Text>
+                        </View>
                     ) : (
                         <>
                             <Text style={styles.instructionText}>
@@ -246,8 +246,8 @@ const customStyles = StyleSheet.create({
         borderColor: '#28a745',
     },
     checkboxDisabled: {
-          backgroundColor: '#ccc',
-          borderColor: '#999',
+        backgroundColor: '#ccc',
+        borderColor: '#999',
     }
 });
 

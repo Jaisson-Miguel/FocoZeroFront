@@ -156,10 +156,10 @@ export default function EditarImovelOnline({ route, navigation }) {
               itemStyle={
                 Platform.OS === "ios"
                   ? {
-                      height: height(6),
-                      lineHeight: height(6) * 1.25,
-                      paddingVertical: height(0.5),
-                    }
+                    height: height(6),
+                    lineHeight: height(6) * 1.25,
+                    paddingVertical: height(0.5),
+                  }
                   : {}
               }
             >

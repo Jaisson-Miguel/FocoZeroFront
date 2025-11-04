@@ -291,7 +291,7 @@ export default function ResumoCiclo({ navigation }) {
             Nenhum resumo de área disponível.
           </Text>
         )}
-        <View style={{ height: height(10) }} /> 
+        <View style={{ height: height(10) }} />
       </ScrollView>
       <View style={styles.bottomFixedButtonContainer}>
         <TouchableOpacity
@@ -311,9 +311,9 @@ export default function ResumoCiclo({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  fullScreenContainer: { 
-    flex: 1, 
-    backgroundColor: "#f5f5f5" 
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5"
   },
   containerWithData: {
     flexGrow: 1,
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     color: "#eee",
     flexShrink: 1,
   },
-  arrowIcon: { 
-    marginLeft: width(2) 
+  arrowIcon: {
+    marginLeft: width(2)
   },
   expandedContentBox: {
     padding: height(2),
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subDetalheBox: {
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
     padding: height(1),
     borderRadius: width(1.5),
     marginBottom: height(0.75),

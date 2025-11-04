@@ -90,8 +90,8 @@ export default function ResumoDiario({ navigation }) {
         quarteiroes: areaSelecionadaObj.quarteiroes || [],
         totalQuarteiroes: areaSelecionadaObj.totalQuarteiroes || 0,
         idsVisitas: areaSelecionadaObj.idsVisitas || [],
-        imoveisComFoco: areaSelecionadaObj.imoveisComFoco || 0, // ✅ imóveis com foco
-        totalFocos: areaSelecionadaObj.totalFocos || 0, // ✅ total de focos
+        imoveisComFoco: areaSelecionadaObj.imoveisComFoco || 0,
+        totalFocos: areaSelecionadaObj.totalFocos || 0,
       };
 
       const res = await fetch(`${API_URL}/cadastrarDiario`, {

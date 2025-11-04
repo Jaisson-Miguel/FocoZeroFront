@@ -6,18 +6,18 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  ScrollView, // Adicionado para telas menores
-  KeyboardAvoidingView, // Adicionado para melhor UX com teclado
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
-  ActivityIndicator, // Adicionado para o estado de loading do botão
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "../../config/config.js";
 import { height, width, font } from "../../utils/responsive.js";
-import Cabecalho from "../../Components/Cabecalho.js"; 
+import Cabecalho from "../../Components/Cabecalho.js";
 
 export default function Cadastro({ navigation, route }) {
-  const { funcaoUsuario } = route.params; // vem da tela anterior
+  const { funcaoUsuario } = route.params;
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
@@ -25,7 +25,7 @@ export default function Cadastro({ navigation, route }) {
     funcaoUsuario === "fiscal" ? "agente" : ""
   );
   const [isEditable, setIsEditable] = useState(funcaoUsuario !== "fiscal");
-  const [loading, setLoading] = useState(false); // Adicionado estado de loading
+  const [loading, setLoading] = useState(false);
 
   const handleCadastro = async () => {
     if (!nome || !cpf || !senha) {
@@ -33,8 +33,7 @@ export default function Cadastro({ navigation, route }) {
       return;
     }
 
-    setLoading(true); // Inicia o loading
-
+    setLoading(true);
     try {
       const response = await fetch(`${API_URL}/cadastrarUsuario`, {
         method: "POST",
@@ -57,12 +56,12 @@ export default function Cadastro({ navigation, route }) {
       Alert.alert("Sucesso", "Usuário cadastrado com sucesso!", [
         { text: "Ok", onPress: () => navigation.goBack() },
       ]);
-      
+
     } catch (error) {
       Alert.alert("Erro", "Não foi possível conectar ao servidor");
       console.error(error);
     } finally {
-      setLoading(false); // Finaliza o loading
+      setLoading(false);
     }
   };
 
@@ -76,7 +75,7 @@ export default function Cadastro({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Cabecalho navigation={navigation} /> 
+      <Cabecalho navigation={navigation} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -120,7 +119,7 @@ export default function Cadastro({ navigation, route }) {
           <View style={pickerContainerStyle}>
             <Picker
               selectedValue={funcao}
-              enabled={isEditable && !loading} // Bloqueia também durante o loading
+              enabled={isEditable && !loading}
               onValueChange={(itemValue) => setFuncao(itemValue)}
               style={styles.picker}
               itemStyle={pickerItemStyle}
@@ -161,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(3.75),
     alignItems: "center",
     paddingVertical: height(1.25),
-    backgroundColor: "#fff",    marginHorizontal: -width(3.75),
+    backgroundColor: "#fff", marginHorizontal: -width(3.75),
     marginBottom: height(1),
   },
   simpleTitle: {
@@ -196,18 +195,17 @@ const styles = StyleSheet.create({
     marginBottom: height(1),
     overflow: "hidden",
     height: height(6),
-    justifyContent: 'center', // Adicionado para centralizar o Picker verticalmente
+    justifyContent: 'center',
   },
   disabledContainer: {
-    backgroundColor: "#f0f0f0", // Fundo cinza para desabilitado
+    backgroundColor: "#f0f0f0",
     borderColor: "#ccc",
   },
   picker: {
     width: "100%",
     color: "#333",
-    // Remove paddingVertical e height do picker, deixa apenas no container para controle
   },
-  iosPickerItem: { // Estilo para iOS
+  iosPickerItem: {
     height: height(6),
     lineHeight: height(6) * 1.25,
     paddingVertical: height(0.5),
@@ -216,7 +214,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#05419A",
     padding: height(1.5),
     borderRadius: 5,
-    marginTop: height(3), // Maior espaçamento antes do botão principal
+    marginTop: height(3),
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
