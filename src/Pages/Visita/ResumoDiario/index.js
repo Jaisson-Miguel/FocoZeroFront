@@ -90,6 +90,8 @@ export default function ResumoDiario({ navigation }) {
         quarteiroes: areaSelecionadaObj.quarteiroes || [],
         totalQuarteiroes: areaSelecionadaObj.totalQuarteiroes || 0,
         idsVisitas: areaSelecionadaObj.idsVisitas || [],
+        imoveisComFoco: areaSelecionadaObj.imoveisComFoco || 0, // ✅ imóveis com foco
+        totalFocos: areaSelecionadaObj.totalFocos || 0, // ✅ total de focos
       };
 
       const res = await fetch(`${API_URL}/cadastrarDiario`, {
@@ -258,7 +260,10 @@ export default function ResumoDiario({ navigation }) {
 
                       <View style={styles.box}>
                         <Text style={styles.textBase}>
-                          Imóveis com foco: {area.totalFocos}
+                          Total de focos encontrados: {area.totalFocos}
+                        </Text>
+                        <Text style={styles.textBase}>
+                          Imóveis com foco: {area.imoveisComFoco || 0}
                         </Text>
                       </View>
 
@@ -366,10 +371,7 @@ export default function ResumoDiario({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  fullScreenContainer: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
+  fullScreenContainer: { flex: 1, backgroundColor: "#f5f5f5" },
   containerWithData: {
     flexGrow: 1,
     paddingHorizontal: width(2),
@@ -380,12 +382,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  contentWrapper: {
-    flex: 1,
-  },
-  loadingIndicator: {
-    marginTop: height(10),
-  },
+  contentWrapper: { flex: 1 },
+  loadingIndicator: { marginTop: height(10) },
   titulo: {
     fontSize: font(3.8),
     fontWeight: "bold",
@@ -406,11 +404,7 @@ const styles = StyleSheet.create({
     marginBottom: height(0.5),
     color: "#333",
   },
-  textBase: {
-    fontSize: font(2.25),
-    marginBottom: height(0.25),
-    color: "#333",
-  },
+  textBase: { fontSize: font(2.25), marginBottom: height(0.25), color: "#333" },
   emptyMessageContainer: {
     flex: 1,
     justifyContent: "center",
@@ -433,9 +427,7 @@ const styles = StyleSheet.create({
     color: "#eee",
     flexShrink: 1,
   },
-  arrowIcon: {
-    marginLeft: width(2),
-  },
+  arrowIcon: { marginLeft: width(2) },
   botaoFechar: {
     backgroundColor: "#2CA856",
     padding: height(2),
