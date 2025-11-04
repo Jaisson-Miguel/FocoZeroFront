@@ -11,6 +11,99 @@ import {
 import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
+import { height, width, font } from "../../../utils/responsive.js";
+import Icon from "react-native-vector-icons/Ionicons";
+
+const getPercentualColor = (percentual) => {
+  if (percentual < 10) {
+    return styles.percentualVerde;
+  } else if (percentual >= 10 && percentual <= 20) {
+    return styles.percentualAmarelo;
+  } else {
+    return styles.percentualVermelho;
+  }
+};
+
+const formatarTiposDeVisita = (tipos) => {
+  const mapeamento = {
+    r: "Residência",
+    c: "Comércio",
+    tb: "Terreno Baldio",
+    pe: "Ponto Estratégico",
+    out: "Outros",
+  };
+
+  return (
+    <View style={styles.subDetalheBox}>
+      <Text style={[styles.subtituloDetalhe, { marginTop: height(0) }]}>
+        Tipos de Visita:
+      </Text>
+      {Object.entries(tipos).map(([sigla, quantidade]) => {
+        const nomeCompleto = mapeamento[sigla.toLowerCase()] || sigla.toUpperCase();
+        return (
+          <Text key={sigla} style={styles.textDetalhe}>
+            {`\u2022 ${nomeCompleto}: ${quantidade}`}
+          </Text>
+        );
+      })}
+    </View>
+  );
+};
+
+const formatarDepositos = (depositos) => {
+  return (
+    <View style={styles.subDetalheBox}>
+      <Text key="dep_titulo" style={[styles.subtituloDetalhe, { marginTop: height(1) }]}>
+        Depósitos Inspecionados:
+      </Text>
+      {Object.entries(depositos).map(([tipo, quantidade]) => (
+        <Text key={tipo} style={styles.textDetalhe}>
+          {`\u2022 Tipo ${tipo.toUpperCase()}: ${quantidade}`}
+        </Text>
+      ))}
+    </View>
+  );
+};
+
+const DetalhesSemanaisCard = ({ semana }) => (
+  <View style={styles.semanaisBoxDestaque}>
+    <Text style={styles.subtituloSemanal}>
+      Detalhes Semanais:
+    </Text>
+    <View style={styles.subDetalheBox}>
+      <Text style={styles.textDetalhe}>
+        Quarteirões Trabalhados:{" "}
+        <Text style={styles.valorDetalhe}>{semana.totalQuarteiroesTrabalhados}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Total Visitas: <Text style={styles.valorDetalhe}>{semana.totalVisitas}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Total Focos: <Text style={styles.valorDetalhe}>{semana.totalFocos}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Imóveis com Foco: <Text style={styles.valorDetalhe}>{semana.imoveisComFoco}</Text>
+      </Text>
+    </View>
+    <View style={[styles.subDetalheBox,]}>
+      <Text style={styles.textDetalhe}>
+        Depósitos Eliminados: <Text style={styles.valorDetalhe}>{semana.totalDepEliminados}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Imóveis Larvicida: <Text style={styles.valorDetalhe}>{semana.totalImoveisLarvicida}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Qtd Larvicida: <Text style={styles.valorDetalhe}>{semana.totalQtdLarvicida}</Text>
+      </Text>
+      <Text style={styles.textDetalhe}>
+        Dep Larvicida: <Text style={styles.valorDetalhe}>{semana.totalDepLarvicida}</Text>
+      </Text>
+    </View>
+    {formatarTiposDeVisita(semana.totalVisitasTipo)}
+    {formatarDepositos(semana.totalDepInspecionados)}
+  </View>
+);
+
 
 export default function ResumoCiclo({ navigation }) {
   const [resumoImoveis, setResumoImoveis] = useState([]);
@@ -23,9 +116,7 @@ export default function ResumoCiclo({ navigation }) {
   });
   const [loading, setLoading] = useState(true);
   const [reseting, setReseting] = useState(false);
-
-  // Controle de expansão por área
-  const [expandido, setExpandido] = useState({});
+  const [expandedAreaId, setExpandedAreaId] = useState(null);
 
   useEffect(() => {
     const carregarResumo = async () => {
@@ -57,8 +148,8 @@ export default function ResumoCiclo({ navigation }) {
     carregarResumo();
   }, []);
 
-  const toggleExpandido = (idArea) => {
-    setExpandido((prev) => ({ ...prev, [idArea]: !prev[idArea] }));
+  const toggleArea = (idArea) => {
+    setExpandedAreaId(idArea === expandedAreaId ? null : idArea);
   };
 
   const resetarCiclo = async () => {
@@ -103,214 +194,302 @@ export default function ResumoCiclo({ navigation }) {
         <Cabecalho navigation={navigation} />
         <ActivityIndicator
           size="large"
-          color="#2CA856"
-          style={{ marginTop: 50 }}
+          color="#05419A"
+          style={styles.loadingIndicator}
         />
       </View>
     );
   }
 
-  return (
-    <View style={{ flex: 1 }}>
-      <Cabecalho navigation={navigation} />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.titulo}>Resumo do Ciclo</Text>
+  const hasAreas = resumoImoveis.length > 0;
+  const totalPercentColor = getPercentualColor(totais.percentualNaoVisitados);
 
-        {/* Totais Gerais */}
-        <View style={styles.box}>
-          <Text style={styles.subtitulo}>Totais Gerais:</Text>
-          <Text style={styles.item}>Visitados: {totais.totalVisitados}</Text>
-          <Text style={styles.item}>
-            Não Visitados: {totais.totalNaoVisitados}
+  return (
+    <View style={styles.fullScreenContainer}>
+      <Cabecalho navigation={navigation} />
+      <ScrollView contentContainerStyle={styles.containerWithData}>
+        <Text style={styles.titulo}>Resumo do Ciclo</Text>
+        <View style={styles.totalCard}>
+          <Text style={styles.cardTitulo}>Total Geral do Ciclo</Text>
+          <Text style={styles.itemGeral}>
+            <Text style={styles.itemGeralLabel}>Imóveis visitados:</Text>{" "}
+            {totais.totalVisitados}
           </Text>
-          <Text style={styles.item}>Total: {totais.totalGeral}</Text>
-          <Text style={styles.item}>
-            % Não Visitados: {totais.percentualNaoVisitados}%
+          <Text style={styles.itemGeral}>
+            <Text style={styles.itemGeralLabel}>Imóveis não visitados:</Text>{" "}
+            {totais.totalNaoVisitados}
+          </Text>
+          <Text style={styles.itemGeral}>
+            <Text style={styles.itemGeralLabel}>Total de imóveis:</Text>{" "}
+            {totais.totalGeral}
+          </Text>
+          <Text style={styles.itemGeral}>
+            <Text style={styles.itemGeralLabel}>Porcentagem de fechados:</Text>{" "}
+            <Text style={[styles.percentualDestaque, totalPercentColor]}>
+              {totais.percentualNaoVisitados}%
+            </Text>
           </Text>
         </View>
-
-        {/* Resumo de imóveis por área com menu expansível */}
-        {resumoImoveis.length === 0 ? (
-          <Text style={{ textAlign: "center", marginTop: 10 }}>
-            Nenhum imóvel encontrado.
-          </Text>
-        ) : (
+        {hasAreas ? (
           resumoImoveis.map((area) => {
             const totalArea = area.totalVisitados + area.totalNaoVisitados;
-            const percentualArea =
+            const percentualArea = parseFloat(
               totalArea > 0
                 ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
-                : 0;
-
+                : 0
+            );
+            const areaPercentColor = getPercentualColor(percentualArea);
             const semana = resumoSemana.find((s) => s.idArea === area.idArea);
+            const isExpanded = expandedAreaId === area.idArea;
 
             return (
-              <View key={area.idArea} style={styles.box}>
-                {/* Informações básicas de imóveis */}
-                <Text style={styles.subtitulo}>
-                  {area.nomeArea.toUpperCase()}
-                </Text>
-                <Text style={styles.item}>
-                  Visitados: {area.totalVisitados}
-                </Text>
-                <Text style={styles.item}>
-                  Não Visitados: {area.totalNaoVisitados}
-                </Text>
-                <Text style={styles.item}>Total: {totalArea}</Text>
-                <Text style={styles.item}>
-                  % Não Visitados: {percentualArea}%
-                </Text>
-
-                {/* Botão para expandir semanais */}
-                {semana && (
-                  <>
-                    <TouchableOpacity
-                      style={styles.botaoExpandir}
-                      onPress={() => toggleExpandido(area.idArea)}
-                    >
-                      <Text style={styles.textoBotaoExpandir}>
-                        {expandido[area.idArea]
-                          ? "Ocultar Resumo"
-                          : "Mostrar Resumo"}
+              <View key={area.idArea} style={styles.areaWrapper}>
+                <TouchableOpacity
+                  style={styles.sectionHeaderContainer}
+                  onPress={() => toggleArea(area.idArea)}
+                >
+                  <Text style={styles.sectionTitle}>
+                    {area.nomeArea.toUpperCase()}
+                  </Text>
+                  <Icon
+                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                    size={font(3)}
+                    color="#eee"
+                    style={styles.arrowIcon}
+                  />
+                </TouchableOpacity>
+                {isExpanded && (
+                  <View style={styles.expandedContentBox}>
+                    <Text style={styles.subtituloArea}>
+                      Resumo de Imóveis:
+                    </Text>
+                    <Text style={styles.textBase}>
+                      Imóveis visitados: {area.totalVisitados}
+                    </Text>
+                    <Text style={styles.textBase}>
+                      Imóveis não visitados: {area.totalNaoVisitados}
+                    </Text>
+                    <Text style={styles.textBase}>
+                      Total de imóveis: {totalArea}
+                    </Text>
+                    <Text style={styles.textBase}>
+                      <Text>
+                        Porcentagem de imóveis fechados:{" "}
                       </Text>
-                    </TouchableOpacity>
-
-                    {expandido[area.idArea] && (
-                      <View style={styles.semanaisBox}>
-                        <Text style={styles.item}>
-                          Total Quarteirões Trabalhados:{" "}
-                          {semana.totalQuarteiroesTrabalhados}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Visitas: {semana.totalVisitas}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Depósitos Eliminados:{" "}
-                          {semana.totalDepEliminados}
-                        </Text>
-                        <Text style={styles.item}>
-                          Imóveis com Foco: {semana.imoveisComFoco}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Focos: {semana.totalFocos}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Imóveis Larvicida:{" "}
-                          {semana.totalImoveisLarvicida}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Qtd Larvicida: {semana.totalQtdLarvicida}
-                        </Text>
-                        <Text style={styles.item}>
-                          Total Dep Larvicida: {semana.totalDepLarvicida}
-                        </Text>
-                        <Text style={styles.item}>
-                          Tipos de Visita: R:{semana.totalVisitasTipo.r} C:
-                          {semana.totalVisitasTipo.c} TB:
-                          {semana.totalVisitasTipo.tb} PE:
-                          {semana.totalVisitasTipo.pe} OUT:
-                          {semana.totalVisitasTipo.out}
-                        </Text>
-                        <Text style={styles.item}>
-                          Depósitos Inspecionados: A1:
-                          {semana.totalDepInspecionados.a1} A2:
-                          {semana.totalDepInspecionados.a2} B:
-                          {semana.totalDepInspecionados.b} C:
-                          {semana.totalDepInspecionados.c} D1:
-                          {semana.totalDepInspecionados.d1} D2:
-                          {semana.totalDepInspecionados.d2} E:
-                          {semana.totalDepInspecionados.e}
-                        </Text>
-                        <Text style={styles.item}>
-                          Quarteirões Trabalhados:{" "}
-                          {semana.quarteiroesTrabalhados || "-"}
-                        </Text>
-                      </View>
-                    )}
-                  </>
+                      <Text style={areaPercentColor}>
+                        {percentualArea}%
+                      </Text>
+                    </Text>
+                    {semana && <DetalhesSemanaisCard semana={semana} />}
+                  </View>
                 )}
               </View>
             );
           })
+        ) : (
+          <Text style={styles.emptyMessage}>
+            Nenhum resumo de área disponível.
+          </Text>
         )}
-
-        {/* Botões */}
+        <View style={{ height: height(10) }} /> 
+      </ScrollView>
+      <View style={styles.bottomFixedButtonContainer}>
         <TouchableOpacity
-          style={[styles.botao, { backgroundColor: "#4CAF50" }]}
+          style={[styles.botao, { backgroundColor: "#c03f3bff", marginVertical: 0 }]}
           onPress={resetarCiclo}
           disabled={reseting || totais.totalVisitados === 0}
         >
           {reseting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.textoBotao}>Fechar Ciclo</Text>
+            <Text style={styles.textoBotao}>FECHAR CICLO</Text>
           )}
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.botao, { backgroundColor: "#2196F3" }]}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.textoBotao}>Voltar</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: "#f5f5f5",
+  fullScreenContainer: { 
+    flex: 1, 
+    backgroundColor: "#f5f5f5" 
   },
+  containerWithData: {
+    flexGrow: 1,
+    paddingHorizontal: width(2),
+    paddingVertical: height(2),
+  },
+  loadingIndicator: { marginTop: height(10) },
   titulo: {
-    fontSize: 22,
+    fontSize: font(4),
     fontWeight: "bold",
-    marginBottom: 20,
+    color: "#05419A",
+    paddingBottom: height(2),
+    alignSelf: "center",
+    marginTop: height(1),
+  },
+  totalCard: {
+    padding: height(2.5),
+    backgroundColor: "#effdf8be",
+    borderRadius: width(2),
+    marginBottom: height(2),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.41,
+    elevation: 1,
+    borderLeftWidth: width(0.5),
+    borderLeftColor: "#05419A",
+  },
+  cardTitulo: {
+    fontSize: font(3.25),
+    fontWeight: "bold",
+    marginBottom: height(1.5),
+    color: "#05419A",
     textAlign: "center",
   },
-  box: {
-    padding: 15,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 8,
-    marginBottom: 15,
+  itemGeral: {
+    fontSize: font(2.5),
+    color: "#333",
+    marginBottom: height(0.5),
   },
-  subtitulo: {
-    fontWeight: "600",
-    fontSize: 16,
-    marginBottom: 5,
+  itemGeralLabel: {
+    fontWeight: "bold",
   },
-  item: {
-    fontSize: 15,
-    marginTop: 2,
+  percentualDestaque: {
+    fontWeight: "bold",
+    fontSize: font(2.5),
+  },
+  percentualVerde: {
+    color: "#388E3C",
+  },
+  percentualAmarelo: {
+    color: "#FBC02D",
+  },
+  percentualVermelho: {
+    color: "#D32F2F",
+  },
+  areaWrapper: {
+    marginBottom: height(1),
+  },
+  sectionHeaderContainer: {
+    backgroundColor: "#05419A",
+    borderRadius: width(1.5),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: width(4),
+    paddingVertical: height(2),
+  },
+  sectionTitle: {
+    fontWeight: "bold",
+    fontSize: font(2.5),
+    color: "#eee",
+    flexShrink: 1,
+  },
+  arrowIcon: { 
+    marginLeft: width(2) 
+  },
+  expandedContentBox: {
+    padding: height(2),
+    backgroundColor: "#fff",
+    borderBottomLeftRadius: width(2),
+    borderBottomRightRadius: width(2),
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderTopWidth: 0,
+    marginBottom: height(1.5),
+  },
+  subtituloArea: {
+    fontWeight: "700",
+    fontSize: font(2.5),
+    marginBottom: height(1),
+    color: "#333",
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingBottom: height(0.5),
+  },
+  textBase: {
+    fontSize: font(2.25),
+    marginBottom: height(0.5),
+    color: "#333",
+  },
+  semanaisBoxDestaque: {
+    marginTop: height(1),
+    padding: height(1.5),
+    backgroundColor: "#f5f8ff",
+    borderRadius: width(2),
+    borderWidth: 1,
+    borderColor: '#05419A20',
+  },
+  subtituloSemanal: {
+    fontWeight: "bold",
+    fontSize: font(2.75),
+    marginBottom: height(1.5),
+    color: "#05419A",
+    textAlign: 'center',
+  },
+  subDetalheBox: {
+    backgroundColor: '#fff', 
+    padding: height(1),
+    borderRadius: width(1.5),
+    marginBottom: height(0.75),
+    borderLeftWidth: width(0.5),
+    borderLeftColor: '#05419A',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  subtituloDetalhe: {
+    fontWeight: "700",
+    fontSize: font(2.5),
+    color: "#05419A",
+    marginBottom: height(0.5),
+  },
+  textDetalhe: {
+    fontSize: font(2.2),
+    marginBottom: height(0.3),
+    color: "#444",
+  },
+  valorDetalhe: {
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  emptyMessage: {
+    fontSize: font(2.5),
+    textAlign: "center",
+    marginTop: height(2),
+    color: "#777",
+  },
+  bottomFixedButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: width(2),
+    paddingVertical: height(1.5),
+    backgroundColor: '#f5f5f5',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1.41,
+    elevation: 5,
   },
   botao: {
-    padding: 15,
-    borderRadius: 8,
+    padding: height(2),
+    borderRadius: width(2),
     alignItems: "center",
-    marginTop: 10,
-  },
-  botaoExpandir: {
-    marginTop: 10,
-    padding: 8,
-    backgroundColor: "#888",
-    borderRadius: 5,
-    alignItems: "center",
+    elevation: 2,
   },
   textoBotao: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
-  },
-  textoBotaoExpandir: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  semanaisBox: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#c8e6c9",
-    borderRadius: 5,
+    fontSize: font(2.5),
+    textTransform: "uppercase",
   },
 });
