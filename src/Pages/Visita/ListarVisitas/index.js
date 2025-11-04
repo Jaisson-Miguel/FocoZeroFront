@@ -121,8 +121,6 @@ export default function ListarVisitas({ navigation }) {
 
       const pendentes = listaVisitas.filter((v) => !v.sincronizado);
       console.log("🕓 Visitas pendentes para envio:", pendentes.length);
-      if (pendentes.length)
-        console.log("🔍 Conteúdo das visitas pendentes:", pendentes);
 
       const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
       const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
@@ -140,93 +138,83 @@ export default function ListarVisitas({ navigation }) {
 
       // ✅ Sincroniza visitas
       await Promise.all(
-        pendentes.map((v, index) =>
-          (async () => {
-            try {
-              console.log(
-                `\n📤 [${index + 1}/${pendentes.length}] Enviando visita ID: ${
-                  v.idVisita || "(sem id)"
-                }`
-              );
-              console.log("🧾 Dados enviados:", v);
+        pendentes.map(async (v, index) => {
+          try {
+            console.log(
+              `📤 [${index + 1}/${pendentes.length}] Enviando visita:`,
+              v.idVisita || "(sem id)"
+            );
 
-              const { sincronizado, ...dadosParaEnviar } = v;
-              const res = await fetch(`${API_URL}/cadastrarVisita`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dadosParaEnviar),
-              });
+            const { sincronizado, ...dadosParaEnviar } = v;
+            const res = await fetch(`${API_URL}/cadastrarVisita`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(dadosParaEnviar),
+            });
 
-              console.log("📡 Status da resposta:", res.status);
+            console.log("📡 Status da resposta:", res.status);
+            const respostaTexto = await res.text();
+            console.log("💬 Corpo da resposta:", respostaTexto);
 
-              const respostaTexto = await res.text();
-              console.log("💬 Corpo da resposta:", respostaTexto);
-
-              if (res.ok) {
-                v.sincronizado = true;
-                sucessoVisitas++;
-                console.log(
-                  `✅ Visita ${
-                    v.idVisita || "(sem id)"
-                  } sincronizada com sucesso.`
-                );
-              } else {
-                console.log(`⚠️ Falha ao enviar visita: ${res.status}`);
-              }
-            } catch (err) {
-              console.log("❌ Erro ao sincronizar visita:", err.message);
+            if (res.ok) {
+              v.sincronizado = true;
+              sucessoVisitas++;
+              console.log(`✅ Visita sincronizada com sucesso: ${v.idVisita}`);
+            } else {
+              console.log(`⚠️ Falha ao enviar visita: ${res.status}`);
             }
-          })()
-        )
+          } catch (err) {
+            console.log("❌ Erro ao sincronizar visita:", err.message);
+          }
+        })
       );
 
       // ✅ Sincroniza imóveis editados
       await Promise.all(
-        imoveisEditados.map((i, index) =>
-          (async () => {
-            console.log(
-              `🏘️ Enviando imóvel editado [${index + 1}/${
-                imoveisEditados.length
-              }]`,
-              i
-            );
-            const { editado, _id, ...dadosParaEnviar } = i;
-            try {
-              const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dadosParaEnviar),
-              });
+        imoveisEditados.map(async (i, index) => {
+          console.log(
+            `🏘️ Enviando imóvel editado [${index + 1}/${
+              imoveisEditados.length
+            }]`,
+            i
+          );
+          const { editado, _id, ...dadosParaEnviar } = i;
+          try {
+            const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(dadosParaEnviar),
+            });
 
-              console.log("📡 Status da resposta (imóvel):", res.status);
-
-              if (res.ok) {
-                i.editado = false;
-                sucessoImoveis++;
-                console.log(`✅ Imóvel ${_id} sincronizado com sucesso.`);
-              } else {
-                const txt = await res.text();
-                console.log(
-                  `⚠️ Erro ao sincronizar imóvel (${res.status}):`,
-                  txt
-                );
-              }
-            } catch (err) {
-              console.log(
-                "❌ Erro de rede ao sincronizar imóvel:",
-                err.message
-              );
+            if (res.ok) {
+              i.editado = false;
+              sucessoImoveis++;
+              console.log(`✅ Imóvel ${_id} sincronizado com sucesso.`);
+            } else {
+              const txt = await res.text();
+              console.log(`⚠️ Erro ao sincronizar imóvel: ${res.status}`, txt);
             }
-          })()
-        )
+          } catch (err) {
+            console.log("❌ Erro de rede ao sincronizar imóvel:", err.message);
+          }
+        })
       );
 
-      // 💾 Atualiza o AsyncStorage
-      await AsyncStorage.setItem("visitas", JSON.stringify(listaVisitas));
+      // 💾 Remove visitas sincronizadas do AsyncStorage
+      const visitasNaoSincronizadas = listaVisitas.filter(
+        (v) => !v.sincronizado
+      );
+      await AsyncStorage.setItem(
+        "visitas",
+        JSON.stringify(visitasNaoSincronizadas)
+      );
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
-      console.log("💾 AsyncStorage atualizado com dados sincronizados.");
+      console.log(
+        "💾 AsyncStorage atualizado. Visitas sincronizadas removidas."
+      );
 
-      setVisitas(listaVisitas);
+      // Atualiza a tela
+      setVisitas(visitasNaoSincronizadas);
 
       Alert.alert(
         "Sincronização Concluída",
