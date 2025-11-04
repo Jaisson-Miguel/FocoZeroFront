@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -18,7 +19,9 @@ export default function ResumoCiclo({ navigation }) {
   const [totalGeral, setTotalGeral] = useState(0);
   const [percentualNaoVisitados, setPercentualNaoVisitados] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [reseting, setReseting] = useState(false);
 
+  // Carrega o resumo
   useEffect(() => {
     const carregarResumo = async () => {
       try {
@@ -46,6 +49,43 @@ export default function ResumoCiclo({ navigation }) {
     carregarResumo();
   }, []);
 
+  // Função para resetar o ciclo
+  const resetarCiclo = async () => {
+    Alert.alert(
+      "Confirmar ação",
+      "Tem certeza que deseja fechar todos os imóveis visitados?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            try {
+              setReseting(true);
+              const id = await getId();
+              const response = await fetch(`${API_URL}/resetarCiclo/${id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              const data = await response.json();
+
+              if (response.ok) {
+                Alert.alert("Sucesso", data.message);
+                navigation.goBack();
+              } else {
+                Alert.alert("Erro", data.message || "Falha ao resetar ciclo.");
+              }
+            } catch (err) {
+              console.error("Erro ao resetar ciclo:", err);
+              Alert.alert("Erro", "Não foi possível resetar o ciclo.");
+            } finally {
+              setReseting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <Cabecalho navigation={navigation} />
@@ -61,6 +101,7 @@ export default function ResumoCiclo({ navigation }) {
           />
         ) : (
           <>
+            {/* Totais Gerais */}
             <View style={styles.box}>
               <Text style={styles.subtitulo}>Totais Gerais:</Text>
               <Text style={styles.item}>Visitados: {totalVisitados}</Text>
@@ -73,6 +114,7 @@ export default function ResumoCiclo({ navigation }) {
               </Text>
             </View>
 
+            {/* Resumo por área */}
             {resumo.length === 0 ? (
               <Text style={{ textAlign: "center", marginTop: 20 }}>
                 Nenhum imóvel encontrado.
@@ -104,6 +146,27 @@ export default function ResumoCiclo({ navigation }) {
                 );
               })
             )}
+
+            {/* Botão para resetar ciclo */}
+            <TouchableOpacity
+              style={[styles.botao, { backgroundColor: "#4CAF50" }]}
+              onPress={resetarCiclo}
+              disabled={reseting || totalVisitados === 0}
+            >
+              {reseting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.textoBotao}>Fechar Ciclo</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Botão voltar */}
+            <TouchableOpacity
+              style={[styles.botao, { backgroundColor: "#2196F3" }]}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.textoBotao}>Voltar</Text>
+            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -137,5 +200,16 @@ const styles = StyleSheet.create({
   item: {
     fontSize: 15,
     marginTop: 2,
+  },
+  botao: {
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  textoBotao: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
