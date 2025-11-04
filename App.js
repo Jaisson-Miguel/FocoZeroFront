@@ -30,6 +30,7 @@ import ResumoCiclo from "./src/Pages/Fiscal/ResumoCiclo";
 import AtualizarQuarteirao from "./src/Pages/Visita/AtualizarQuarteirao";
 import DiariosScreen from "./src/Pages/Diario/ListarDiario";
 import DetalheDiarioHistorico from "./src/Pages/Diario/DetalheDiario";
+import FecharSemanal from "./src/Pages/Semanal/FecharSemanal";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -185,6 +186,11 @@ export default function App() {
           <Stack.Screen
             name="DetalheDiario"
             component={DetalheDiarioHistorico}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FecharSemanal"
+            component={FecharSemanal}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

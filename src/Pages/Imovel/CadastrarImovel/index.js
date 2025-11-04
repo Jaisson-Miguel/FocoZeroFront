@@ -151,6 +151,7 @@ export default function CadastrarImovel({ route, navigation }) {
                 <Button
                   title="Cancelar"
                   onPress={() => setModalVisible(false)}
+                  styles={{color:"red"}}
                 />
               </View>
             </View>
@@ -295,7 +296,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-  modalItemText: { fontSize: font(2), color: "#333" },
+  modalItemText: {
+    fontSize: font(2),
+    color: "#333",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#05419A",

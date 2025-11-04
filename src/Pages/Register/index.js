@@ -140,7 +140,7 @@ export default function Cadastro({ navigation, route }) {
             {loading ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.buttonText}>Cadastrar Usuário</Text>
+              <Text style={styles.buttonText}>Cadastrar Agente</Text>
             )}
           </TouchableOpacity>
 
