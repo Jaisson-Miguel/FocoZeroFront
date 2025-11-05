@@ -33,6 +33,7 @@ import DetalheDiarioHistorico from "./src/Pages/Diario/DetalheDiario";
 import FecharSemanal from "./src/Pages/Semanal/FecharSemanal";
 import ListarOpcoes from "./src/Pages/Relatorios/ListarOpcoes";
 import ResumoCicloPDF from "./src/Pages/Relatorios/ResumoCiclo";
+import FocosPorArea from "./src/Pages/Relatorios/FocosPorArea";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -203,6 +204,11 @@ export default function App() {
           <Stack.Screen
             name="ResumoCicloPDF"
             component={ResumoCicloPDF}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FocosPorArea"
+            component={FocosPorArea}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

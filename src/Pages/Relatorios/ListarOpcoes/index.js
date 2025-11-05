@@ -19,8 +19,8 @@ export default function ListarOpcoes({ navigation }) {
       bgColor: "#4CAF50",
     },
     {
-      key: "ResumoDiario",
-      title: "Resumo Diário (PDF)",
+      key: "FocosPorArea",
+      title: "Focos por Area",
       icon: "timer-outline",
       bgColor: "#8ABDE0",
     },
