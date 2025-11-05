@@ -14,7 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { height, width, font } from "../../../utils/responsive.js";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { API_URL } from "../../../config/config.js";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // ✅ adicionado
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -47,7 +47,7 @@ export default function ListarImovel({ route, navigation }) {
   const { quarteirao, idArea, nomeArea, modoI, funcao, modo } = route.params;
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
-  const insets = useSafeAreaInsets(); // ✅ usado para detectar a área segura inferior
+  const insets = useSafeAreaInsets();
 
   const agruparImoveisPorRua = (imoveisArray) => {
     return imoveisArray.reduce((acc, imovel) => {
@@ -194,12 +194,11 @@ export default function ListarImovel({ route, navigation }) {
         )}
       </ScrollView>
 
-      {/* ✅ FAB respeitando área segura */}
       {modoI !== "Visualizar" && (
         <TouchableOpacity
           style={[
             styles.fabButton,
-            { bottom: insets.bottom + height(2.5) }, // respeita safe area
+            { bottom: insets.bottom + height(2.5) },
           ]}
           onPress={() =>
             navigation.navigate("CadastrarImovel", {

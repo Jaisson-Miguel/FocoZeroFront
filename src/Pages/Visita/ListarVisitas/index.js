@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function ListarVisitas({ navigation }) {
   const [visitas, setVisitas] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const insets = useSafeAreaInsets(); // ✅ hook para lidar com área segura inferior
+  const insets = useSafeAreaInsets();
 
   const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
@@ -278,7 +278,6 @@ export default function ListarVisitas({ navigation }) {
           </>
         )}
 
-        {/* 🔽 Botões com área segura */}
         <View
           style={[
             styles.buttonWrapper,

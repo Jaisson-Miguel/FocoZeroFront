@@ -36,7 +36,7 @@ const mapearTipoImovel = (tipoAbreviado) => {
 
 export default function EditarImovelOffline({ route, navigation }) {
   const { imovel } = route.params;
-  const insets = useSafeAreaInsets(); // 👈 obtém a área segura inferior
+  const insets = useSafeAreaInsets();
 
   const inicialObservacao =
     imovel.observacao && String(imovel.observacao).trim() !== NENHUMA_OBSERVACAO
@@ -99,7 +99,6 @@ export default function EditarImovelOffline({ route, navigation }) {
   const tipoOuComplemento = imovel.complemento || imovel.tipo;
   const tipoMapeadoDetalhado = mapearTipoImovel(tipoOuComplemento);
 
-  // 👇 calcula a margem inferior com base na área segura
   const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
   return (
@@ -188,7 +187,6 @@ export default function EditarImovelOffline({ route, navigation }) {
             onChangeText={(v) => handleChange("observacao", v)}
           />
 
-          {/* 👇 Botão ajustado com área segura */}
           <View style={[styles.buttonWrapper, { marginBottom: bottomMargin }]}>
             <TouchableOpacity
               style={styles.button}

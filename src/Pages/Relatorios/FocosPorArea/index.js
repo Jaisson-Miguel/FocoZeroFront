@@ -11,36 +11,31 @@ import {
 } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Estas imports DEVERÃO ser resolvidas no seu ambiente mobile
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { width, height, font } from "../../../utils/responsive.js";
 import { API_URL } from "../../../config/config.js";
 
-// Definições de cores e constantes (Mobile Friendly)
 const PRIMARY_BLUE = "#05419A";
 const SECONDARY_ORANGE = "#D38B17";
 const ACCENT_GREEN = "#2CA856";
 const BG_LIGHT_BLUE = "#E6EFFF";
 const BG_WHITE = "#FFFFFF";
-const CRITICAL_RED = "#B90707"; // Cor usada para os valores em foco (dataValueTotal/Imoveis)
+const CRITICAL_RED = "#B90707";
 
-// Fallback para dimensões se o utils/responsive.js não for resolvido
 const screenWidth = Dimensions.get("window").width;
 const responsiveWidth = (percent) => (screenWidth * percent) / 100;
 const responsiveFont = (size) => size * (screenWidth / 360);
 
-// Constante para a margem padrão inferior
 const DEFAULT_BOTTOM_PADDING = 30;
 
 export default function FocosPorArea({ navigation }) {
-  const insets = useSafeAreaInsets(); // 2. Obter insets
+  const insets = useSafeAreaInsets();
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [ordenarPor, setOrdenarPor] = useState("imoveis"); // padrão
+  const [ordenarPor, setOrdenarPor] = useState("imoveis");
 
-  // LOGICA ORIGINAL MANTIDA
   useEffect(() => {
     const fetchFocosPorArea = async () => {
       setLoading(true);
@@ -66,54 +61,51 @@ export default function FocosPorArea({ navigation }) {
     fetchFocosPorArea();
   }, [ordenarPor]);
 
-  // LOGICA ORIGINAL MANTIDA
   const gerarPDF = async () => {
     try {
-      // HTML aprimorado para o PDF
       let html = `
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: ${PRIMARY_BLUE}; text-align: center; margin-bottom: 20px; }
-            p { text-align:center; margin: 10px 0; font-size: 1.1em; }
-            table { width:100%; border-collapse:collapse; margin-top: 20px; }
-            th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
-            thead tr { background-color: ${PRIMARY_BLUE}; color: white; }
-            tbody tr:nth-child(even) { background-color: #f2f2f2; }
-            .total-focos { font-weight: bold; color: ${CRITICAL_RED}; }
-            .imoveis-foco { font-weight: bold; color: ${CRITICAL_RED}; }
-          </style>
-        </head>
-        <body>
-          <h1>Relatório de Focos por Área</h1>
-          <p>Ordenado por: <b>${
-        ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
-      }</b></p>
-          <table>
-            <thead>
-              <tr>
-                <th>Área</th>
-                <th>Total de Focos</th>
-                <th>Imóveis com Foco</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${areas
-        .map(
-          (area) => `
-                <tr>
-                  <td style="text-align:left;">${area.nomeArea}</td>
-                  <td class="total-focos">${area.totalFocos}</td>
-                  <td class="imoveis-foco">${area.imoveisComFoco}</td>
-                </tr>`
-        )
-        .join("")}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: ${PRIMARY_BLUE}; text-align: center; margin-bottom: 20px; }
+            p { text-align:center; margin: 10px 0; font-size: 1.1em; }
+            table { width:100%; border-collapse:collapse; margin-top: 20px; }
+            th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+            thead tr { background-color: ${PRIMARY_BLUE}; color: white; }
+            tbody tr:nth-child(even) { background-color: #f2f2f2; }
+            .total-focos { font-weight: bold; color: ${CRITICAL_RED}; }
+            .imoveis-foco { font-weight: bold; color: ${CRITICAL_RED}; }
+          </style>
+        </head>
+        <body>
+          <h1>Relatório de Focos por Área</h1>
+          <p>Ordenado por: <b>${ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
+        }</b></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Área</th>
+                <th>Total de Focos</th>
+                <th>Imóveis com Foco</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${areas
+          .map(
+            (area) => `
+                <tr>
+                  <td style="text-align:left;">${area.nomeArea}</td>
+                  <td class="total-focos">${area.totalFocos}</td>
+                  <td class="imoveis-foco">${area.imoveisComFoco}</td>
+                </tr>`
+          )
+          .join("")}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
 
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri);
@@ -142,7 +134,6 @@ export default function FocosPorArea({ navigation }) {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          // 3. Adicionar o insets.bottom ao padding inferior
           {
             paddingBottom:
               (height ? height(5) : DEFAULT_BOTTOM_PADDING) + insets.bottom,
@@ -151,7 +142,6 @@ export default function FocosPorArea({ navigation }) {
       >
         <Text style={styles.titulo}>Focos por Área</Text>
 
-        {/* Botão de PDF */}
         <TouchableOpacity
           style={styles.botao}
           onPress={gerarPDF}
@@ -160,7 +150,6 @@ export default function FocosPorArea({ navigation }) {
           <Text style={styles.textoBotao}>Gerar e Compartilhar PDF</Text>
         </TouchableOpacity>
 
-        {/* Seletor de ordenação */}
         <View style={styles.seletorContainer}>
           <Text style={styles.seletorLabel}>Ordenar por:</Text>
 
@@ -200,7 +189,6 @@ export default function FocosPorArea({ navigation }) {
           </View>
         </View>
 
-        {/* Lista de áreas */}
         <View style={styles.listSection}>
           {areas.length === 0 ? (
             <Text style={styles.empty}>
@@ -212,11 +200,9 @@ export default function FocosPorArea({ navigation }) {
                 key={area.idArea}
                 style={[
                   styles.card,
-                  // Destaca o primeiro item
                   index === 0 && styles.cardHighlight,
                 ]}
               >
-                {/* Nome da Área */}
                 <View style={styles.cardHeader}>
                   <Text style={styles.areaNome}>
                     {area.nomeArea.toUpperCase()}
@@ -226,12 +212,10 @@ export default function FocosPorArea({ navigation }) {
 
                 <View style={styles.dataRow}>
                   <Text style={styles.dataLabel}>Total de Focos:</Text>
-                  {/* Destaque para o valor */}
                   <Text style={styles.dataValueTotal}>{area.totalFocos}</Text>
                 </View>
                 <View style={[styles.dataRow, styles.dataRowDivider]}>
                   <Text style={styles.dataLabel}>Imóveis com Foco:</Text>
-                  {/* Destaque para o valor */}
                   <Text style={styles.dataValueImoveis}>
                     {area.imoveisComFoco}
                   </Text>
@@ -246,25 +230,16 @@ export default function FocosPorArea({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // --- Layout Base (Corrigido o erro do cabeçalho) ---
   safeArea: {
     flex: 1,
     backgroundColor: "#f9f9f9",
   },
   container: {
     padding: width ? width(5) : responsiveWidth(5),
-    // O paddingBottom foi removido daqui e aplicado dinamicamente no componente,
-    // mas mantive a linha comentada para referência:
-    // paddingBottom: height ? height(5) : 30
   },
 
-  // --- Loading State (Corrigido para centralizar o conteúdo, mantendo o cabeçalho no topo) ---
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: "#f9f9f9",
-  },
   loadingContent: {
-    flex: 1, // Permite que o conteúdo de loading ocupe o espaço restante
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -275,7 +250,6 @@ const styles = StyleSheet.create({
     fontSize: font ? font(2.8) : responsiveFont(15),
   },
 
-  // --- Título Principal ---
   titulo: {
     fontSize: font ? font(4) : responsiveFont(22),
     fontWeight: "800",
@@ -284,7 +258,6 @@ const styles = StyleSheet.create({
     color: PRIMARY_BLUE,
   },
 
-  // --- Botão de PDF ---
   botao: {
     backgroundColor: ACCENT_GREEN,
     padding: 15,
@@ -304,7 +277,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
 
-  // --- Seletor de Ordenação ---
   seletorContainer: {
     marginBottom: height ? height(1) : 15,
     backgroundColor: BG_LIGHT_BLUE,
@@ -343,7 +315,6 @@ const styles = StyleSheet.create({
     color: BG_WHITE,
   },
 
-  // --- Lista de Cards ---
   listSection: {
     marginTop: height ? height(1) : 10,
   },
@@ -381,7 +352,7 @@ const styles = StyleSheet.create({
     color: PRIMARY_BLUE,
   },
   rankBadge: {
-    backgroundColor: CRITICAL_RED, // Usando a cor CRITICAL_RED para o destaque
+    backgroundColor: CRITICAL_RED,
     color: BG_WHITE,
     fontWeight: "bold",
     paddingHorizontal: width(3),
@@ -407,12 +378,12 @@ const styles = StyleSheet.create({
   dataValueTotal: {
     fontSize: font ? font(2.5) : responsiveFont(16),
     fontWeight: "bold",
-    color: CRITICAL_RED, // Valor em foco em destaque
+    color: CRITICAL_RED,
   },
   dataValueImoveis: {
     fontSize: font ? font(2.5) : responsiveFont(16),
     fontWeight: "bold",
-    color: CRITICAL_RED, // Valor em foco em destaque
+    color: CRITICAL_RED,
   },
   empty: {
     fontSize: font ? font(2.5) : responsiveFont(15),

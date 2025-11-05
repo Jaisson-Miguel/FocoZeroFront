@@ -15,7 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "./../../../config/config.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -37,7 +37,7 @@ const NENHUMA_OBSERVACAO = "Nenhuma observação.";
 export default function EditarImovelOnline({ route, navigation }) {
   const { imovel, funcao } = route.params;
   const isFiscal = funcao === "fiscal";
-  const insets = useSafeAreaInsets(); // 2. Obter insets
+  const insets = useSafeAreaInsets();
 
   const inicialObservacao =
     imovel.observacao && String(imovel.observacao).trim() !== NENHUMA_OBSERVACAO
@@ -111,7 +111,6 @@ export default function EditarImovelOnline({ route, navigation }) {
     form.observacao === "" && { color: "#AAA" },
   ];
 
-  // 3. Estilo dinâmico: combina o padding original com a safe area
   const contentPaddingBottom = insets.bottom + height(3);
 
   return (
@@ -125,7 +124,7 @@ export default function EditarImovelOnline({ route, navigation }) {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: contentPaddingBottom } // 4. Aplica o espaçamento seguro
+            { paddingBottom: contentPaddingBottom }
           ]}
         >
           <View style={styles.simpleTitleContainer}>
@@ -137,7 +136,6 @@ export default function EditarImovelOnline({ route, navigation }) {
             </Text>
           </View>
 
-          {/* ... Campos de input omitidos para brevidade ... */}
           <Text style={styles.inputLabel}>Logradouro</Text>
           <TextInput
             style={styles.input}
@@ -249,10 +247,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: width(3.75),
-    // o paddingBottom original de height(3) foi movido para o componente
-    // para ser combinado com o insets.bottom dinamicamente.
   },
-  // ... (restante dos estilos não alterados)
   simpleTitleContainer: {
     paddingHorizontal: width(3.75),
     alignItems: "center",

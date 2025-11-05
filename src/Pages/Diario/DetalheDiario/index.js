@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { API_URL } from "../../../config/config.js";
 import { height, width, font } from "../../../utils/responsive.js";
 import Cabecalho from "../../../Components/Cabecalho";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const createLocalDate = (dateString) => {
     if (!dateString) return null;
@@ -28,7 +28,7 @@ const createLocalDate = (dateString) => {
 export default function DetalheDiarioHistorico({ navigation, route }) {
 
     const { diarioId, nomeArea: nomeAreaFallback, dataDiario } = route.params;
-    const insets = useSafeAreaInsets(); // 2. Obter insets
+    const insets = useSafeAreaInsets();
 
     const [loading, setLoading] = useState(true);
     const [diarioData, setDiarioData] = useState(null);
@@ -156,10 +156,9 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
     const resumo = diarioData?.resumo;
     const hasData = resumo && Object.keys(resumo).length > 0;
 
-    // 3. Modificar o estilo do container principal para incluir o padding superior da safe area (já que o Cabecalho não a cobre totalmente em todos os casos)
     const safeAreaStyle = {
         paddingTop: insets.top,
-        paddingBottom: insets.bottom // 4. Adiciona padding inferior da safe area
+        paddingBottom: insets.bottom
     };
 
     const scrollContentStyle = hasData || loading ? styles.containerWithData : styles.containerEmpty;
@@ -233,7 +232,6 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
 
     if (loading) {
         return (
-            // Aplica o padding superior no container de carregamento para respeitar a safe area
             <View style={[styles.fullScreenContainer, { paddingTop: insets.top }]}>
                 <Cabecalho navigation={navigation} />
                 <ActivityIndicator size="large" color="#2CA856" style={styles.loadingIndicator} />
@@ -242,10 +240,8 @@ export default function DetalheDiarioHistorico({ navigation, route }) {
     }
 
     return (
-        // 5. Aplica a safe area no container principal
         <View style={styles.fullScreenContainer}>
             <Cabecalho navigation={navigation} />
-            {/* O ScrollView precisa do padding inferior para que o último conteúdo não fique atrás da barra de gestos */}
             <ScrollView contentContainerStyle={[scrollContentStyle, { paddingBottom: insets.bottom + height(2) }]}>
                 <View style={styles.contentWrapper}>
                     <Text style={styles.titulo}>Diário </Text>
@@ -361,13 +357,11 @@ const styles = StyleSheet.create({
     fullScreenContainer: {
         flex: 1,
         backgroundColor: "#f5f5f5",
-        // O padding superior é aplicado dinamicamente onde necessário (loading e ScrollView)
     },
     containerWithData: {
         flexGrow: 1,
         paddingHorizontal: width(4),
         paddingVertical: height(2),
-        // O paddingBottom é adicionado dinamicamente para respeitar a safe area
     },
     containerEmpty: {
         flexGrow: 1,

@@ -8,7 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // ✅ Import adicionado
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
@@ -22,8 +22,8 @@ export default function QuarteiraoOffline({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);
 
-  const insets = useSafeAreaInsets(); // ✅ Hook para detectar área segura
-  const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2); // ✅ Margem dinâmica
+  const insets = useSafeAreaInsets();
+  const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
   const fecharDiario = () => {
     navigation.navigate("ListarVisitas", { modo: "visualizar" });
@@ -276,8 +276,6 @@ export default function QuarteiraoOffline({ navigation }) {
           />
         )}
       </View>
-
-      {/* Botão de Fechar Diário */}
       <View style={styles.closeDiaryButtonWrapper}>
         <TouchableOpacity
           style={[styles.closeDiaryButton, { marginBottom: bottomMargin }]}

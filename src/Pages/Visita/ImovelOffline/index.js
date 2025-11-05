@@ -102,7 +102,6 @@ export default function ImovelOffline({ route, navigation }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
 
-      {/* Botão de mapa da área */}
       {quarteirao?.uriMapaLocal ? (
         <TouchableOpacity
           style={styles.mapaButton}
@@ -128,7 +127,6 @@ export default function ImovelOffline({ route, navigation }) {
         </View>
       )}
 
-      {/* Modal de visualização do mapa */}
       <ImageViewing
         images={[{ uri: quarteirao.uriMapaLocal }]}
         imageIndex={0}

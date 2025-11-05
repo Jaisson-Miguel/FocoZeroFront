@@ -16,7 +16,6 @@ export default function AtribuirQuarteirao({ route, navigation }) {
   const [selecionados, setSelecionados] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Buscar quarteirões da área
   useEffect(() => {
     const fetchQuarteiroes = async () => {
       try {
@@ -41,7 +40,6 @@ export default function AtribuirQuarteirao({ route, navigation }) {
     fetchQuarteiroes();
   }, []);
 
-  // Marcar/desmarcar quarteirão
   const toggleSelecionado = (id) => {
     if (selecionados.includes(id)) {
       setSelecionados(selecionados.filter((q) => q !== id));
@@ -50,7 +48,6 @@ export default function AtribuirQuarteirao({ route, navigation }) {
     }
   };
 
-  // Confirmar atribuição
   const confirmarAtribuicao = async () => {
     if (selecionados.length === 0) {
       Alert.alert("Aviso", "Selecione pelo menos um quarteirão");

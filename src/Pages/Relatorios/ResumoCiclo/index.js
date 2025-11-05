@@ -1,4 +1,3 @@
-// Código em React Native (Mobile) com estilização avançada.
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -12,14 +11,12 @@ import {
 } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
-// Estas imports DEVERÃO ser resolvidas no seu ambiente mobile
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { width, height, font } from "../../../utils/responsive.js";
 import { API_URL } from "../../../config/config.js";
 
-// Definição de cores e tamanhos para melhor legibilidade
 const PRIMARY_BLUE = "#05419A";
 const ACCENT_GREEN = "#2CA856";
 const VISITADO_GREEN = "#4CAF50";
@@ -27,21 +24,17 @@ const NAO_VISITADO_RED = "#D32F2F";
 const BG_LIGHT_BLUE = "#E6EFFF";
 const BG_CRITICAL = "#FFEBEB";
 
-// Fallback para funções responsivas se o arquivo utils/responsive.js não for encontrado,
-// utilizando Dimensions para garantir que as proporções sejam razoáveis no RN.
 const screenWidth = Dimensions.get('window').width;
-const fontFallback = (size) => size * (screenWidth / 360); // Ajuste proporcional ao tamanho da tela
+const fontFallback = (size) => size * (screenWidth / 360);
 
-// Constante para a margem padrão inferior (caso 'height' não esteja disponível)
 const DEFAULT_BOTTOM_MARGIN = 20;
 
 export default function ResumoCicloPDF({ navigation }) {
-  const insets = useSafeAreaInsets(); // 2. Obter insets
+  const insets = useSafeAreaInsets();
   const [resumoImoveis, setResumoImoveis] = useState([]);
   const [totais, setTotais] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // LOGICA ORIGINAL MANTIDA
   useEffect(() => {
     const carregarResumo = async () => {
       try {
@@ -71,39 +64,37 @@ export default function ResumoCicloPDF({ navigation }) {
     carregarResumo();
   }, []);
 
-  // LOGICA ORIGINAL MANTIDA
   const gerarPDF = async () => {
     try {
-      // Melhorando o HTML do PDF com estilos básicos para melhor visualização no documento
       let html = `
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: ${PRIMARY_BLUE}; text-align: center; margin-bottom: 20px; }
-            h2 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-top: 25px; }
-            h3 { color: ${PRIMARY_BLUE}; margin-top: 15px; font-size: 1.2em; font-weight: bold; }
-            .total-box { background-color: ${BG_LIGHT_BLUE}; border: 1px solid ${PRIMARY_BLUE}; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-            .area-box { border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
-            p { margin: 5px 0; }
-            .visited { color: ${VISITADO_GREEN}; font-weight: bold; }
-            .not-visited { color: ${NAO_VISITADO_RED}; font-weight: bold; }
-            .total-area { border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <h1>Relatório de Resumo do Ciclo</h1>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: ${PRIMARY_BLUE}; text-align: center; margin-bottom: 20px; }
+            h2 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 5px; margin-top: 25px; }
+            h3 { color: ${PRIMARY_BLUE}; margin-top: 15px; font-size: 1.2em; font-weight: bold; }
+            .total-box { background-color: ${BG_LIGHT_BLUE}; border: 1px solid ${PRIMARY_BLUE}; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+            .area-box { border: 1px solid #eee; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+            p { margin: 5px 0; }
+            .visited { color: ${VISITADO_GREEN}; font-weight: bold; }
+            .not-visited { color: ${NAO_VISITADO_RED}; font-weight: bold; }
+            .total-area { border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <h1>Relatório de Resumo do Ciclo</h1>
 
-          <div class="total-box">
-            <h2>Totais Gerais</h2>
-            <p><strong>Total de Imóveis:</strong> ${totais.totalGeral}</p>
-            <p><strong>Visitados:</strong> <span class="visited">${totais.totalVisitados}</span></p>
-            <p><strong>Não Visitados:</strong> <span class="not-visited">${totais.totalNaoVisitados}</span></p>
-            <p><strong>% Não Visitados:</strong> <span class="not-visited">${totais.percentualNaoVisitados}%</span></p>
-          </div>
+          <div class="total-box">
+            <h2>Totais Gerais</h2>
+            <p><strong>Total de Imóveis:</strong> ${totais.totalGeral}</p>
+            <p><strong>Visitados:</strong> <span class="visited">${totais.totalVisitados}</span></p>
+            <p><strong>Não Visitados:</strong> <span class="not-visited">${totais.totalNaoVisitados}</span></p>
+            <p><strong>% Não Visitados:</strong> <span class="not-visited">${totais.percentualNaoVisitados}%</span></p>
+          </div>
 
-          <h2>Resumo por Área</h2>
-          ${resumoImoveis
+          <h2>Resumo por Área</h2>
+          ${resumoImoveis
           .map((area) => {
             const totalArea = area.totalVisitados + area.totalNaoVisitados;
             const percentualArea =
@@ -111,19 +102,19 @@ export default function ResumoCicloPDF({ navigation }) {
                 ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
                 : 0;
             return `
-              <div class="area-box">
-                <h3>${area.nomeArea.toUpperCase()}</h3>
-                <p>Visitados: <span class="visited">${area.totalVisitados}</span></p>
-                <p>Não Visitados: <span class="not-visited">${area.totalNaoVisitados}</span></p>
-                <p class="total-area">Total na Área: ${totalArea}</p>
-                <p>% Não Visitados: <span class="not-visited">${percentualArea}%</span></p>
-              </div>
-            `;
+                <div class="area-box">
+                  <h3>${area.nomeArea.toUpperCase()}</h3>
+                  <p>Visitados: <span class="visited">${area.totalVisitados}</span></p>
+                  <p>Não Visitados: <span class="not-visited">${area.totalNaoVisitados}</span></p>
+                  <p class="total-area">Total na Área: ${totalArea}</p>
+                  <p>% Não Visitados: <span class="not-visited">${percentualArea}%</span></p>
+                </div>
+              `;
           })
           .join("")}
-        </body>
-        </html>
-      `;
+        </body>
+        </html>
+      `;
 
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri);
@@ -142,31 +133,26 @@ export default function ResumoCicloPDF({ navigation }) {
     );
   }
 
-  // Componente separado para os Totais Gerais
   const TotalSummary = (
     <View style={styles.totalSummaryContainer}>
       <Text style={styles.totalSummaryTitle}>Totais Gerais</Text>
 
       <View style={styles.totalRow}>
-        {/* Pill Visitados */}
         <View style={styles.totalPill}>
           <Text style={styles.pillLabel}>Visitados</Text>
           <Text style={[styles.pillValue, { color: VISITADO_GREEN }]}>{totais.totalVisitados}</Text>
         </View>
-        {/* Pill Não Visitados */}
         <View style={[styles.totalPill, styles.pillNegative]}>
           <Text style={styles.pillLabel}>Não Visitados</Text>
           <Text style={[styles.pillValue, { color: NAO_VISITADO_RED }]}>{totais.totalNaoVisitados}</Text>
         </View>
       </View>
 
-      {/* Total Geral de Imóveis */}
       <View style={styles.metricCard}>
         <Text style={styles.metricLabel}>Total Geral de Imóveis</Text>
         <Text style={styles.metricValue}>{totais.totalGeral}</Text>
       </View>
 
-      {/* % Não Visitados (Destaque Crítico) */}
       <View style={[styles.metricCard, styles.metricCardHighlight]}>
         <Text style={styles.metricLabelHighlight}>Porcentagem de fechados</Text>
         <Text style={styles.metricValueHighlight}>{totais.percentualNaoVisitados}%</Text>
@@ -180,7 +166,6 @@ export default function ResumoCicloPDF({ navigation }) {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          // 3. Adicionar o insets.bottom ao padding inferior do ScrollView
           { paddingBottom: (height ? height(5) : DEFAULT_BOTTOM_MARGIN) + insets.bottom }
         ]}
       >
@@ -236,8 +221,6 @@ export default function ResumoCicloPDF({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // ... (estilos restantes permanecem inalterados) ...
-  // --- Loading State ---
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -249,14 +232,12 @@ const styles = StyleSheet.create({
     fontSize: font ? font(3) : fontFallback(18),
     color: PRIMARY_BLUE,
   },
-  // --- Layout Base ---
   safeArea: {
     flex: 1,
     backgroundColor: "#f7f7f7",
   },
   container: {
     padding: width ? width(5) : 20,
-    // O paddingBottom foi removido daqui e aplicado dinamicamente no componente
   },
   titulo: {
     fontSize: font ? font(4) : fontFallback(24),
@@ -265,7 +246,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: height ? height(3) : 15,
   },
-  // --- Botão PDF ---
   botao: {
     backgroundColor: ACCENT_GREEN,
     padding: height ? height(2) : 12,
@@ -284,7 +264,6 @@ const styles = StyleSheet.create({
     fontSize: font ? font(2.25) : fontFallback(16),
     textTransform: 'uppercase',
   },
-  // --- Totais Gerais (Section) ---
   totalSummaryContainer: {
     backgroundColor: BG_LIGHT_BLUE,
     padding: width ? width(4) : 16,
@@ -292,7 +271,6 @@ const styles = StyleSheet.create({
     marginBottom: height ? height(3) : 15,
     borderWidth: 1,
     borderColor: PRIMARY_BLUE,
-    // Garante que o container use a largura total disponível no ScrollView
     alignSelf: 'stretch',
   },
   totalSummaryTitle: {
@@ -336,7 +314,7 @@ const styles = StyleSheet.create({
     padding: width ? width(3) : 12,
     borderRadius: width ? width(2) : 6,
     marginBottom: height ? height(1) : 5,
-    flexDirection: 'row', // Adicionado para ícone/label
+    flexDirection: 'row',
     alignItems: 'center',
     borderLeftWidth: 1.5,
     borderLeftColor: PRIMARY_BLUE,
@@ -366,7 +344,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: NAO_VISITADO_RED,
   },
-  // --- Resumo por Área (Cards) ---
   sectionTitle: {
     fontSize: font ? font(3.5) : fontFallback(18),
     fontWeight: "bold",

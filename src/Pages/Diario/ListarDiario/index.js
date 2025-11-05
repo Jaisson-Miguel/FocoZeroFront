@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Cabecalho from '../../../Components/Cabecalho';
 import { API_URL } from "../../../config/config";
 import { height, width, font } from "../../../utils/responsive";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const formatarDataUTC = (dateString) => {
     if (!dateString) return 'Data Desconhecida';
@@ -42,7 +42,7 @@ const getSemanaAtual = () => {
 export default function ListarDiario({ navigation, route }) {
 
     const { idAgente } = route.params;
-    const insets = useSafeAreaInsets(); // 2. Obter insets
+    const insets = useSafeAreaInsets();
 
     const [semanas, setSemanas] = useState([]);
     const [areaNamesCache, setAreaNamesCache] = useState({});
@@ -229,9 +229,8 @@ export default function ListarDiario({ navigation, route }) {
         );
     }
 
-    // 3. Definir o padding/margin inferior do conteúdo da lista e do botão
-    const bottomPaddingForList = insets.bottom + height(15); // Aumenta o padding da lista para o botão fixo não cobrir o último item da lista
-    const bottomMarginForButton = insets.bottom + height(2); // Ajusta a posição absoluta do botão
+    const bottomPaddingForList = insets.bottom + height(15);
+    const bottomMarginForButton = insets.bottom + height(2);
 
     return (
         <View style={styles.safeArea}>
@@ -247,7 +246,7 @@ export default function ListarDiario({ navigation, route }) {
                     keyExtractor={item => item._id.toString()}
                     contentContainerStyle={[
                         styles.listContent,
-                        { paddingBottom: bottomPaddingForList } // 4. Aplica o padding extra para o botão
+                        { paddingBottom: bottomPaddingForList }
                     ]}
                     ListEmptyComponent={<Text style={styles.emptyText}>Nenhum diário encontrado para este agente.</Text>}
                 />
@@ -255,7 +254,7 @@ export default function ListarDiario({ navigation, route }) {
             <TouchableOpacity
                 style={[
                     styles.closeDiaryButton,
-                    { bottom: bottomMarginForButton } // 5. Aplica a safe area no botão fixo
+                    { bottom: bottomMarginForButton }
                 ]}
                 onPress={handleFecharSemanal}
                 activeOpacity={0.8}
@@ -356,11 +355,10 @@ const styles = StyleSheet.create({
         fontSize: font(3.5),
     },
     listContent: {
-        paddingBottom: height(2), // Este valor será sobrescrito/complementado
+        paddingBottom: height(2),
     },
     closeDiaryButton: {
         position: "absolute",
-        // bottom: height(2), // Valor base alterado para ser dinâmico
         left: width(5),
         right: width(5),
         backgroundColor: "#05419A",

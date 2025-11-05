@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { API_URL } from "../../../config/config.js";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { getFuncao } from "../../../utils/tokenStorage.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
@@ -123,17 +123,14 @@ function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
 
 export default function ListarArea({ route, navigation }) {
   const { modo, idAgente, idUsuario, modoI } = route.params;
-  const insets = useSafeAreaInsets(); // 2. Obter insets
+  const insets = useSafeAreaInsets();
 
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [funcao, setFuncao] = useState(false);
 
-  // 3. Definir a altura mínima de padding inferior para a lista
-  // Isso é importante para que o último item não seja coberto pelo FAB, que agora é dinâmico.
   const LIST_BOTTOM_PADDING = insets.bottom + FAB_SIZE + height(4);
 
-  // 4. Definir a posição bottom do FAB, ajustando a safe area + o padding base (height(4) original)
   const FAB_BOTTOM_POSITION = insets.bottom + height(4);
 
   useFocusEffect(
@@ -216,7 +213,6 @@ export default function ListarArea({ route, navigation }) {
           data={groupedAreas}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
-          // 5. Aplicar o padding inferior na lista para que o FAB não cubra o último item
           contentContainerStyle={[
             styles.listContent,
             funcao === "adm" && { paddingBottom: LIST_BOTTOM_PADDING }
@@ -227,7 +223,6 @@ export default function ListarArea({ route, navigation }) {
       {funcao === "adm" && (
         <TouchableOpacity
           onPress={() => navigation.navigate("CadastrarArea")}
-          // 6. Aplicar o estilo dinâmico com a posição bottom ajustada pela safe area
           style={[styles.fabButton, { bottom: FAB_BOTTOM_POSITION }]}
         >
           <Icon name="plus" size={font(5)} color="#fff" />
@@ -309,7 +304,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     right: width(6),
-    // bottom: height(4), // Removido valor fixo
     backgroundColor: "#05419A",
     borderRadius: FAB_SIZE / 2,
     elevation: 8,
@@ -326,7 +320,6 @@ const styles = StyleSheet.create({
     fontSize: font(6.5),
     lineHeight: font(6.5),
   },
-  // Adicionado ListEmptyComponent para evitar erro de referência
   emptyText: {
     padding: height(3),
     textAlign: 'center',
