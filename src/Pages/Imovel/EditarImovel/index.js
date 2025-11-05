@@ -15,6 +15,7 @@ import { Picker } from "@react-native-picker/picker";
 import { API_URL } from "./../../../config/config.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -34,8 +35,9 @@ const mapearTipoImovel = (tipoAbreviado) => {
 const NENHUMA_OBSERVACAO = "Nenhuma observação.";
 
 export default function EditarImovelOnline({ route, navigation }) {
-  const { imovel, funcao } = route.params; // 👈 Recebe a função do usuário
-  const isFiscal = funcao === "fiscal"; // 👈 Bloqueia edição se for fiscal
+  const { imovel, funcao } = route.params;
+  const isFiscal = funcao === "fiscal";
+  const insets = useSafeAreaInsets(); // 2. Obter insets
 
   const inicialObservacao =
     imovel.observacao && String(imovel.observacao).trim() !== NENHUMA_OBSERVACAO
@@ -56,11 +58,11 @@ export default function EditarImovelOnline({ route, navigation }) {
   const [loading, setLoading] = useState(false);
 
   function handleChange(field, value) {
-    if (!isFiscal) setForm({ ...form, [field]: value }); // 👈 Só permite editar se não for fiscal
+    if (!isFiscal) setForm({ ...form, [field]: value });
   }
 
   async function handleSubmit() {
-    if (isFiscal) return; // 👈 Evita envio se for fiscal
+    if (isFiscal) return;
 
     if (!form.logradouro || !form.numero || !form.tipo) {
       return Alert.alert("Erro", "Preencha os campos obrigatórios!");
@@ -109,6 +111,9 @@ export default function EditarImovelOnline({ route, navigation }) {
     form.observacao === "" && { color: "#AAA" },
   ];
 
+  // 3. Estilo dinâmico: combina o padding original com a safe area
+  const contentPaddingBottom = insets.bottom + height(3);
+
   return (
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
@@ -117,7 +122,12 @@ export default function EditarImovelOnline({ route, navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? height(8) : 0}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: contentPaddingBottom } // 4. Aplica o espaçamento seguro
+          ]}
+        >
           <View style={styles.simpleTitleContainer}>
             <Text style={styles.simpleTitle}>
               {isFiscal ? "Detalhes do Imóvel" : "Editar Imóvel"}
@@ -127,6 +137,7 @@ export default function EditarImovelOnline({ route, navigation }) {
             </Text>
           </View>
 
+          {/* ... Campos de input omitidos para brevidade ... */}
           <Text style={styles.inputLabel}>Logradouro</Text>
           <TextInput
             style={styles.input}
@@ -152,7 +163,7 @@ export default function EditarImovelOnline({ route, navigation }) {
               selectedValue={form.tipo}
               style={styles.picker}
               onValueChange={(v) => handleChange("tipo", v)}
-              enabled={!isFiscal} // 👈 bloqueia picker
+              enabled={!isFiscal}
               itemStyle={
                 Platform.OS === "ios"
                   ? {
@@ -213,7 +224,7 @@ export default function EditarImovelOnline({ route, navigation }) {
             editable={!isFiscal}
           />
 
-          {!isFiscal && ( // 👈 oculta o botão se for fiscal
+          {!isFiscal && (
             <TouchableOpacity
               style={styles.button}
               onPress={handleSubmit}
@@ -223,7 +234,7 @@ export default function EditarImovelOnline({ route, navigation }) {
               {loading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text style={styles.buttonText}>Salvar Alterações</Text>
+                <Text style={styles.buttonText}>SALVAR ALTERAÇÕES</Text>
               )}
             </TouchableOpacity>
           )}
@@ -238,8 +249,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: width(3.75),
-    paddingBottom: height(3),
+    // o paddingBottom original de height(3) foi movido para o componente
+    // para ser combinado com o insets.bottom dinamicamente.
   },
+  // ... (restante dos estilos não alterados)
   simpleTitleContainer: {
     paddingHorizontal: width(3.75),
     alignItems: "center",

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Cabecalho from "../../../Components/Cabecalho";
 import { height, width, font } from "../../../utils/responsive";
 
@@ -34,7 +35,8 @@ const mapearTipoImovel = (tipoAbreviado) => {
 };
 
 export default function EditarImovelOffline({ route, navigation }) {
-  const { imovel, quarteirao } = route.params;
+  const { imovel } = route.params;
+  const insets = useSafeAreaInsets(); // 👈 obtém a área segura inferior
 
   const inicialObservacao =
     imovel.observacao && String(imovel.observacao).trim() !== NENHUMA_OBSERVACAO
@@ -80,7 +82,6 @@ export default function EditarImovelOffline({ route, navigation }) {
         }
         return item;
       });
-      console.log(atualizados);
 
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(atualizados));
 
@@ -97,6 +98,9 @@ export default function EditarImovelOffline({ route, navigation }) {
 
   const tipoOuComplemento = imovel.complemento || imovel.tipo;
   const tipoMapeadoDetalhado = mapearTipoImovel(tipoOuComplemento);
+
+  // 👇 calcula a margem inferior com base na área segura
+  const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
   return (
     <View style={styles.container}>
@@ -184,18 +188,21 @@ export default function EditarImovelOffline({ route, navigation }) {
             onChangeText={(v) => handleChange("observacao", v)}
           />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleSubmit}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.buttonText}>Salvar Alterações</Text>
-            )}
-          </TouchableOpacity>
+          {/* 👇 Botão ajustado com área segura */}
+          <View style={[styles.buttonWrapper, { marginBottom: bottomMargin }]}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSubmit}
+              disabled={loading}
+              activeOpacity={0.7}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.buttonText}>Salvar Alterações</Text>
+              )}
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -210,7 +217,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: width(3.75),
-    paddingBottom: height(3),
   },
   simpleTitleContainer: {
     alignItems: "center",
@@ -264,6 +270,10 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     color: "#333",
+  },
+  buttonWrapper: {
+    backgroundColor: "#fff",
+    paddingTop: height(1),
   },
   button: {
     backgroundColor: "#05419A",

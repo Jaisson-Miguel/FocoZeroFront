@@ -309,12 +309,12 @@ export default function ResumoDiario({ navigation }) {
             </>
           )}
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.botaoFechar, { backgroundColor: "#FF5722" }]}
             onPress={limparAsyncStorage}
           >
             <Text style={styles.textoBotao}>LIMPAR DADOS LOCAIS (ASYNC)</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
 

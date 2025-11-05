@@ -7,16 +7,21 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { height, width, font } from "../../../utils/responsive.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ListarVisitas({ navigation }) {
   const [visitas, setVisitas] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const insets = useSafeAreaInsets(); // ✅ hook para lidar com área segura inferior
+
+  const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
   const carregarVisitas = async () => {
     try {
@@ -120,7 +125,7 @@ export default function ListarVisitas({ navigation }) {
       console.log("📦 Visitas salvas localmente:", listaVisitas);
 
       const pendentes = listaVisitas.filter((v) => !v.sincronizado);
-      console.log("🕓 Visitas pendentes para envio:", pendentes.length);
+      console.log("🕓 Visitas pendentes:", pendentes.length);
 
       const imoveisSalvos = await AsyncStorage.getItem("dadosImoveis");
       const listaImoveis = imoveisSalvos ? JSON.parse(imoveisSalvos) : [];
@@ -139,11 +144,6 @@ export default function ListarVisitas({ navigation }) {
       await Promise.all(
         pendentes.map(async (v, index) => {
           try {
-            console.log(
-              `📤 [${index + 1}/${pendentes.length}] Enviando visita:`,
-              v.idVisita || "(sem id)"
-            );
-
             const { sincronizado, ...dadosParaEnviar } = v;
             const res = await fetch(`${API_URL}/cadastrarVisita`, {
               method: "POST",
@@ -151,16 +151,9 @@ export default function ListarVisitas({ navigation }) {
               body: JSON.stringify(dadosParaEnviar),
             });
 
-            console.log("📡 Status da resposta:", res.status);
-            const respostaTexto = await res.text();
-            console.log("💬 Corpo da resposta:", respostaTexto);
-
             if (res.ok) {
               v.sincronizado = true;
               sucessoVisitas++;
-              console.log(`✅ Visita sincronizada com sucesso: ${v.idVisita}`);
-            } else {
-              console.log(`⚠️ Falha ao enviar visita: ${res.status}`);
             }
           } catch (err) {
             console.log("❌ Erro ao sincronizar visita:", err.message);
@@ -169,12 +162,7 @@ export default function ListarVisitas({ navigation }) {
       );
 
       await Promise.all(
-        imoveisEditados.map(async (i, index) => {
-          console.log(
-            `🏘️ Enviando imóvel editado [${index + 1}/${imoveisEditados.length
-            }]`,
-            i
-          );
+        imoveisEditados.map(async (i) => {
           const { editado, _id, ...dadosParaEnviar } = i;
           try {
             const res = await fetch(`${API_URL}/editarImovel/${_id}`, {
@@ -182,17 +170,12 @@ export default function ListarVisitas({ navigation }) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(dadosParaEnviar),
             });
-
             if (res.ok) {
               i.editado = false;
               sucessoImoveis++;
-              console.log(`✅ Imóvel ${_id} sincronizado com sucesso.`);
-            } else {
-              const txt = await res.text();
-              console.log(`⚠️ Erro ao sincronizar imóvel: ${res.status}`, txt);
             }
           } catch (err) {
-            console.log("❌ Erro de rede ao sincronizar imóvel:", err.message);
+            console.log("❌ Erro ao sincronizar imóvel:", err.message);
           }
         })
       );
@@ -205,9 +188,6 @@ export default function ListarVisitas({ navigation }) {
         JSON.stringify(visitasNaoSincronizadas)
       );
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(listaImoveis));
-      console.log(
-        "💾 AsyncStorage atualizado. Visitas sincronizadas removidas."
-      );
 
       setVisitas(visitasNaoSincronizadas);
 
@@ -224,7 +204,6 @@ export default function ListarVisitas({ navigation }) {
   };
 
   const getPendentesCount = () => visitas.filter((v) => !v.sincronizado).length;
-
   const hasVisitas = visitas.length > 0;
 
   return (
@@ -299,33 +278,31 @@ export default function ListarVisitas({ navigation }) {
           </>
         )}
 
-        {/* Botões sempre visíveis */}
-        <TouchableOpacity
-          style={[styles.botao, styles.botaoSincronizar]}
-          onPress={sincronizarTudo}
+        {/* 🔽 Botões com área segura */}
+        <View
+          style={[
+            styles.buttonWrapper,
+            { marginBottom: bottomMargin },
+          ]}
         >
-          {isSyncing ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.textoBotao}>SINCRONIZAR DADOS</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoSincronizar]}
+            onPress={sincronizarTudo}
+          >
+            {isSyncing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.textoBotao}>SINCRONIZAR DADOS</Text>
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.botao, styles.botaoFinalizar]}
-          onPress={finalizarDiario}
-        >
-          <Text style={styles.textoBotao}>FINALIZAR DIÁRIO</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.botao, styles.botaoLimpar]}
-          onPress={limparVisitas}
-        >
-          <Text style={styles.textoBotao}>LIMPAR VISITAS</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: height(4) }} />
+          <TouchableOpacity
+            style={[styles.botao, styles.botaoFinalizar]}
+            onPress={finalizarDiario}
+          >
+            <Text style={styles.textoBotao}>FINALIZAR DIÁRIO</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -409,15 +386,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(5),
   },
   msg: { textAlign: "center", fontSize: font(2.5), color: "#777" },
-  botao: {
-    padding: height(2.25),
-    borderRadius: width(2.25),
+
+  buttonWrapper: {
     alignItems: "center",
+    justifyContent: "center",
     marginTop: height(2),
-    elevation: 2,
+  },
+  botao: {
+    padding: height(2),
+    borderRadius: width(2),
+    alignItems: "center",
+    width: width(90),
+    marginVertical: height(1),
   },
   textoBotao: { color: "#fff", fontWeight: "bold", fontSize: font(2.25) },
   botaoSincronizar: { backgroundColor: "#05419A" },
   botaoFinalizar: { backgroundColor: "#4CAF50" },
-  botaoLimpar: { backgroundColor: "#F44336" },
 });

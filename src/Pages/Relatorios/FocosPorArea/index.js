@@ -7,18 +7,40 @@ import {
   ActivityIndicator,
   StyleSheet,
   Alert,
+  Dimensions,
 } from "react-native";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
+
+// Estas imports DEVERÃO ser resolvidas no seu ambiente mobile
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { width, height, font } from "../../../utils/responsive.js";
 import { API_URL } from "../../../config/config.js";
 
+// Definições de cores e constantes (Mobile Friendly)
+const PRIMARY_BLUE = "#05419A";
+const SECONDARY_ORANGE = "#D38B17";
+const ACCENT_GREEN = "#2CA856";
+const BG_LIGHT_BLUE = "#E6EFFF";
+const BG_WHITE = "#FFFFFF";
+const CRITICAL_RED = "#B90707"; // Cor usada para os valores em foco (dataValueTotal/Imoveis)
+
+// Fallback para dimensões se o utils/responsive.js não for resolvido
+const screenWidth = Dimensions.get('window').width;
+const responsiveWidth = (percent) => (screenWidth * percent) / 100;
+const responsiveFont = (size) => size * (screenWidth / 360);
+
+// Constante para a margem padrão inferior
+const DEFAULT_BOTTOM_PADDING = 30;
+
 export default function FocosPorArea({ navigation }) {
+  const insets = useSafeAreaInsets(); // 2. Obter insets
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ordenarPor, setOrdenarPor] = useState("imoveis"); // padrão
 
+  // LOGICA ORIGINAL MANTIDA
   useEffect(() => {
     const fetchFocosPorArea = async () => {
       setLoading(true);
@@ -44,36 +66,53 @@ export default function FocosPorArea({ navigation }) {
     fetchFocosPorArea();
   }, [ordenarPor]);
 
+  // LOGICA ORIGINAL MANTIDA
   const gerarPDF = async () => {
     try {
+      // HTML aprimorado para o PDF
       let html = `
-        <h1 style="text-align:center;">Relatório de Focos por Área</h1>
-        <p style="text-align:center;">Ordenado por: <b>${
-          ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { color: ${PRIMARY_BLUE}; text-align: center; margin-bottom: 20px; }
+            p { text-align:center; margin: 10px 0; font-size: 1.1em; }
+            table { width:100%; border-collapse:collapse; margin-top: 20px; }
+            th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+            thead tr { background-color: ${PRIMARY_BLUE}; color: white; }
+            tbody tr:nth-child(even) { background-color: #f2f2f2; }
+            .total-focos { font-weight: bold; color: ${CRITICAL_RED}; }
+            .imoveis-foco { font-weight: bold; color: ${CRITICAL_RED}; }
+          </style>
+        </head>
+        <body>
+          <h1>Relatório de Focos por Área</h1>
+          <p>Ordenado por: <b>${ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
         }</b></p>
-        <hr />
-        <table style="width:100%; border-collapse:collapse;" border="1">
-          <thead>
-            <tr style="background-color:#05419A; color:white;">
-              <th style="padding:8px;">Área</th>
-              <th style="padding:8px;">Total de Focos</th>
-              <th style="padding:8px;">Imóveis com Foco</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${areas
-              .map(
-                (area) => `
-              <tr>
-                <td style="padding:8px;">${area.nomeArea}</td>
-                <td style="padding:8px; text-align:center;">${area.totalFocos}</td>
-                <td style="padding:8px; text-align:center;">${area.imoveisComFoco}</td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
-      `;
+          <table>
+            <thead>
+              <tr>
+                <th>Área</th>
+                <th>Total de Focos</th>
+                <th>Imóveis com Foco</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${areas
+          .map(
+            (area) => `
+                <tr>
+                  <td style="text-align:left;">${area.nomeArea}</td>
+                  <td class="total-focos">${area.totalFocos}</td>
+                  <td class="imoveis-foco">${area.imoveisComFoco}</td>
+                </tr>`
+          )
+          .join("")}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
 
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri);
@@ -85,16 +124,15 @@ export default function FocosPorArea({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.safeArea}>
         <Cabecalho navigation={navigation} />
-        <ActivityIndicator
-          size="large"
-          color="#05419A"
-          style={{ marginTop: 50 }}
-        />
-        <Text style={{ textAlign: "center", marginTop: 10 }}>
-          Carregando áreas...
-        </Text>
+        <View style={styles.loadingContent}>
+          <ActivityIndicator
+            size="large"
+            color={PRIMARY_BLUE}
+          />
+          <Text style={styles.loadingText}>Carregando áreas...</Text>
+        </View>
       </View>
     );
   }
@@ -102,143 +140,280 @@ export default function FocosPorArea({ navigation }) {
   return (
     <View style={styles.safeArea}>
       <Cabecalho navigation={navigation} />
-      {/* Botão de PDF */}
-      <TouchableOpacity
-        style={[styles.botao, { backgroundColor: "#05419A" }]}
-        onPress={gerarPDF}
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          // 3. Adicionar o insets.bottom ao padding inferior
+          { paddingBottom: (height ? height(5) : DEFAULT_BOTTOM_PADDING) + insets.bottom }
+        ]}
       >
-        <Text style={styles.textoBotao}>Gerar PDF</Text>
-      </TouchableOpacity>
-      <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.titulo}>Focos por Área</Text>
-        <Text style={styles.subTitulo}>Ordenado por:</Text>
+
+        {/* Botão de PDF */}
+        <TouchableOpacity
+          style={styles.botao}
+          onPress={gerarPDF}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.textoBotao}>Gerar e Compartilhar PDF</Text>
+        </TouchableOpacity>
 
         {/* Seletor de ordenação */}
         <View style={styles.seletorContainer}>
-          <TouchableOpacity
-            style={[
-              styles.seletorButton,
-              ordenarPor === "imoveis" && styles.seletorButtonAtivo,
-            ]}
-            onPress={() => setOrdenarPor("imoveis")}
-          >
-            <Text
+          <Text style={styles.seletorLabel}>Ordenar por:</Text>
+
+          <View style={styles.seletorOptions}>
+            <TouchableOpacity
               style={[
-                styles.seletorText,
-                ordenarPor === "imoveis" && styles.seletorTextAtivo,
+                styles.seletorButton,
+                ordenarPor === "imoveis" && styles.seletorButtonAtivo,
               ]}
+              onPress={() => setOrdenarPor("imoveis")}
             >
-              Imóveis com Foco
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.seletorButton,
-              ordenarPor === "foco" && styles.seletorButtonAtivo,
-            ]}
-            onPress={() => setOrdenarPor("foco")}
-          >
-            <Text
+              <Text
+                style={[
+                  styles.seletorText,
+                  ordenarPor === "imoveis" && styles.seletorTextAtivo,
+                ]}
+              >
+                Imóveis (Foco)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
-                styles.seletorText,
-                ordenarPor === "foco" && styles.seletorTextAtivo,
+                styles.seletorButton,
+                ordenarPor === "foco" && styles.seletorButtonAtivo,
               ]}
+              onPress={() => setOrdenarPor("foco")}
             >
-              Total de Focos
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.seletorText,
+                  ordenarPor === "foco" && styles.seletorTextAtivo,
+                ]}
+              >
+                Total Focos
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Lista de áreas */}
-        {areas.length === 0 ? (
-          <Text style={styles.empty}>Nenhuma área encontrada.</Text>
-        ) : (
-          areas.map((area) => (
-            <View key={area.idArea} style={styles.card}>
-              <Text style={styles.areaNome}>{area.nomeArea.toUpperCase()}</Text>
-              <Text style={styles.item}>Total Focos: {area.totalFocos}</Text>
-              <Text style={styles.item}>
-                Imóveis com Foco: {area.imoveisComFoco}
-              </Text>
-            </View>
-          ))
-        )}
+        <View style={styles.listSection}>
+          {areas.length === 0 ? (
+            <Text style={styles.empty}>Nenhuma área com focos encontrada no ciclo.</Text>
+          ) : (
+            areas.map((area, index) => (
+              <View
+                key={area.idArea}
+                style={[
+                  styles.card,
+                  // Destaca o primeiro item
+                  index === 0 && styles.cardHighlight,
+                ]}
+              >
+                {/* Nome da Área */}
+                <View style={styles.cardHeader}>
+                  <Text style={styles.areaNome}>{area.nomeArea.toUpperCase()}</Text>
+                  {index === 0 && <Text style={styles.rankBadge}>#1</Text>}
+                </View>
+
+                <View style={styles.dataRow}>
+                  <Text style={styles.dataLabel}>Total de Focos:</Text>
+                  {/* Destaque para o valor */}
+                  <Text style={styles.dataValueTotal}>{area.totalFocos}</Text>
+                </View>
+                <View style={[styles.dataRow, styles.dataRowDivider]}>
+                  <Text style={styles.dataLabel}>Imóveis com Foco:</Text>
+                  {/* Destaque para o valor */}
+                  <Text style={styles.dataValueImoveis}>{area.imoveisComFoco}</Text>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#fff" },
-  container: { padding: width(5), paddingBottom: height(5) },
-  titulo: {
-    fontSize: font(4),
-    fontWeight: "bold",
-    marginBottom: height(3),
-    textAlign: "center",
-    color: "#05419A",
-    width: "100%",
+  // --- Layout Base (Corrigido o erro do cabeçalho) ---
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f9f9f9"
   },
-  subTitulo: {
-    fontSize: font(3),
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#05419A",
-    width: "100%",
+  container: {
+    padding: width ? width(5) : responsiveWidth(5),
+    // O paddingBottom foi removido daqui e aplicado dinamicamente no componente, 
+    // mas mantive a linha comentada para referência:
+    // paddingBottom: height ? height(5) : 30
   },
-  seletorContainer: {
-    flexDirection: "row",
+
+  // --- Loading State (Corrigido para centralizar o conteúdo, mantendo o cabeçalho no topo) ---
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#f9f9f9"
+  },
+  loadingContent: {
+    flex: 1, // Permite que o conteúdo de loading ocupe o espaço restante
     justifyContent: "center",
-    marginBottom: height(3),
+    alignItems: "center",
+  },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 10,
+    color: PRIMARY_BLUE,
+    fontSize: font ? font(2.8) : responsiveFont(15)
+  },
+
+  // --- Título Principal ---
+  titulo: {
+    fontSize: font ? font(4) : responsiveFont(22),
+    fontWeight: "800",
+    marginBottom: height ? height(2) : 15,
+    textAlign: "center",
+    color: PRIMARY_BLUE,
+  },
+
+  // --- Botão de PDF ---
+  botao: {
+    backgroundColor: ACCENT_GREEN,
+    padding: 15,
+    borderRadius: width ? width(3) : 8,
+    alignItems: "center",
+    marginVertical: height ? height(2) : 10,
+    elevation: 8,
+    shadowColor: ACCENT_GREEN,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  textoBotao: {
+    color: BG_WHITE,
+    fontWeight: "bold",
+    fontSize: font ? font(2.25) : responsiveFont(16),
+    textTransform: 'uppercase',
+  },
+
+  // --- Seletor de Ordenação ---
+  seletorContainer: {
+    marginBottom: height ? height(1) : 15,
+    backgroundColor: BG_LIGHT_BLUE,
+    padding: width ? width(4) : 16,
+    borderRadius: width ? width(3) : 8,
+  },
+  seletorLabel: {
+    fontSize: font ? font(2.5) : responsiveFont(15),
+    fontWeight: "600",
+    color: PRIMARY_BLUE,
+    marginBottom: height ? height(1) : 5,
+  },
+  seletorOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   seletorButton: {
     flex: 1,
-    padding: height(1.5),
-    marginHorizontal: width(1),
-    borderRadius: width(2),
+    paddingVertical: height ? height(1.5) : 10,
+    marginHorizontal: width ? width(0.5) : 4,
+    borderRadius: width ? width(2) : 6,
     borderWidth: 1,
-    borderColor: "#05419A",
+    borderColor: PRIMARY_BLUE,
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: BG_WHITE,
   },
-  seletorButtonAtivo: { backgroundColor: "#05419A" },
-  seletorText: { color: "#05419A", fontWeight: "bold" },
-  seletorTextAtivo: { color: "#fff" },
+  seletorButtonAtivo: {
+    backgroundColor: PRIMARY_BLUE
+  },
+  seletorText: {
+    color: PRIMARY_BLUE,
+    fontWeight: "bold",
+    fontSize: font ? font(2.25) : responsiveFont(14)
+  },
+  seletorTextAtivo: {
+    color: BG_WHITE
+  },
+
+  // --- Lista de Cards ---
+  listSection: {
+    marginTop: height ? height(1) : 10,
+  },
   card: {
-    padding: 15,
-    backgroundColor: "#e0e0e0",
-    borderRadius: width(3),
-    marginBottom: height(2),
-    elevation: 3,
+    padding: height(2),
+    backgroundColor: BG_WHITE,
+    borderRadius: width ? width(3) : 8,
+    marginBottom: height ? height(1) : 12,
+    elevation: 6,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4.65,
+    borderLeftWidth: 2,
+    borderLeftColor: SECONDARY_ORANGE,
+  },
+  cardHighlight: {
+    borderLeftColor: PRIMARY_BLUE,
+    backgroundColor: BG_LIGHT_BLUE,
+    elevation: 10,
+    shadowOpacity: 0.3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: height ? height(1) : 8,
+    borderBottomWidth: 1,
+    borderBottomColor: PRIMARY_BLUE,
+    paddingBottom: height(3),
   },
   areaNome: {
-    fontWeight: "bold",
-    fontSize: font(3.2),
-    marginBottom: height(1),
-    color: "#05419A",
+    fontWeight: "900",
+    fontSize: font ? font(3) : responsiveFont(18),
+    color: PRIMARY_BLUE,
   },
-  item: { fontSize: font(2.5), marginTop: height(0.5) },
+  rankBadge: {
+    backgroundColor: CRITICAL_RED, // Usando a cor CRITICAL_RED para o destaque
+    color: BG_WHITE,
+    fontWeight: 'bold',
+    paddingHorizontal: width(3),
+    paddingVertical: height(0.5),
+    borderRadius: 4,
+    fontSize: font ? font(2.2) : responsiveFont(12),
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: height(0.5),
+  },
+  dataRowDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#dbe4e7ff',
+    marginTop: height(0.5),
+    paddingTop: height(1),
+  },
+  dataLabel: {
+    fontSize: font ? font(2.5) : responsiveFont(15),
+    color: '#444'
+  },
+  dataValueTotal: {
+    fontSize: font ? font(2.5) : responsiveFont(16),
+    fontWeight: 'bold',
+    color: CRITICAL_RED, // Valor em foco em destaque
+  },
+  dataValueImoveis: {
+    fontSize: font ? font(2.5) : responsiveFont(16),
+    fontWeight: 'bold',
+    color: CRITICAL_RED, // Valor em foco em destaque
+  },
   empty: {
-    fontSize: font(2.5),
+    fontSize: font ? font(2.5) : responsiveFont(15),
     color: "gray",
     textAlign: "center",
-    marginTop: height(3),
-  },
-  botao: {
-    padding: 15,
-    borderRadius: width(3),
-    alignItems: "center",
-    marginTop: height(3),
-  },
-  textoBotao: { color: "#fff", fontWeight: "bold", fontSize: font(2.8) },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    marginTop: height ? height(5) : 20,
+    backgroundColor: '#fff',
+    padding: height(5),
+    borderRadius: 8,
   },
 });
