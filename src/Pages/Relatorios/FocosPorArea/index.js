@@ -27,7 +27,7 @@ const BG_WHITE = "#FFFFFF";
 const CRITICAL_RED = "#B90707"; // Cor usada para os valores em foco (dataValueTotal/Imoveis)
 
 // Fallback para dimensões se o utils/responsive.js não for resolvido
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 const responsiveWidth = (percent) => (screenWidth * percent) / 100;
 const responsiveFont = (size) => size * (screenWidth / 360);
 
@@ -87,8 +87,9 @@ export default function FocosPorArea({ navigation }) {
         </head>
         <body>
           <h1>Relatório de Focos por Área</h1>
-          <p>Ordenado por: <b>${ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
-        }</b></p>
+          <p>Ordenado por: <b>${
+        ordenarPor === "imoveis" ? "Imóveis com Foco" : "Total de Focos"
+      }</b></p>
           <table>
             <thead>
               <tr>
@@ -99,15 +100,15 @@ export default function FocosPorArea({ navigation }) {
             </thead>
             <tbody>
               ${areas
-          .map(
-            (area) => `
+        .map(
+          (area) => `
                 <tr>
                   <td style="text-align:left;">${area.nomeArea}</td>
                   <td class="total-focos">${area.totalFocos}</td>
                   <td class="imoveis-foco">${area.imoveisComFoco}</td>
                 </tr>`
-          )
-          .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -127,11 +128,8 @@ export default function FocosPorArea({ navigation }) {
       <View style={styles.safeArea}>
         <Cabecalho navigation={navigation} />
         <View style={styles.loadingContent}>
-          <ActivityIndicator
-            size="large"
-            color={PRIMARY_BLUE}
-          />
-          <Text style={styles.loadingText}>Carregando áreas...</Text>
+          <ActivityIndicator size="large" color={PRIMARY_BLUE} />
+          <Text style={styles.loadingText}>Carregando focos...</Text>
         </View>
       </View>
     );
@@ -145,7 +143,10 @@ export default function FocosPorArea({ navigation }) {
         contentContainerStyle={[
           styles.container,
           // 3. Adicionar o insets.bottom ao padding inferior
-          { paddingBottom: (height ? height(5) : DEFAULT_BOTTOM_PADDING) + insets.bottom }
+          {
+            paddingBottom:
+              (height ? height(5) : DEFAULT_BOTTOM_PADDING) + insets.bottom,
+          },
         ]}
       >
         <Text style={styles.titulo}>Focos por Área</Text>
@@ -202,7 +203,9 @@ export default function FocosPorArea({ navigation }) {
         {/* Lista de áreas */}
         <View style={styles.listSection}>
           {areas.length === 0 ? (
-            <Text style={styles.empty}>Nenhuma área com focos encontrada no ciclo.</Text>
+            <Text style={styles.empty}>
+              Nenhuma área com focos encontrada no ciclo.
+            </Text>
           ) : (
             areas.map((area, index) => (
               <View
@@ -215,7 +218,9 @@ export default function FocosPorArea({ navigation }) {
               >
                 {/* Nome da Área */}
                 <View style={styles.cardHeader}>
-                  <Text style={styles.areaNome}>{area.nomeArea.toUpperCase()}</Text>
+                  <Text style={styles.areaNome}>
+                    {area.nomeArea.toUpperCase()}
+                  </Text>
                   {index === 0 && <Text style={styles.rankBadge}>#1</Text>}
                 </View>
 
@@ -227,7 +232,9 @@ export default function FocosPorArea({ navigation }) {
                 <View style={[styles.dataRow, styles.dataRowDivider]}>
                   <Text style={styles.dataLabel}>Imóveis com Foco:</Text>
                   {/* Destaque para o valor */}
-                  <Text style={styles.dataValueImoveis}>{area.imoveisComFoco}</Text>
+                  <Text style={styles.dataValueImoveis}>
+                    {area.imoveisComFoco}
+                  </Text>
                 </View>
               </View>
             ))
@@ -242,11 +249,11 @@ const styles = StyleSheet.create({
   // --- Layout Base (Corrigido o erro do cabeçalho) ---
   safeArea: {
     flex: 1,
-    backgroundColor: "#f9f9f9"
+    backgroundColor: "#f9f9f9",
   },
   container: {
     padding: width ? width(5) : responsiveWidth(5),
-    // O paddingBottom foi removido daqui e aplicado dinamicamente no componente, 
+    // O paddingBottom foi removido daqui e aplicado dinamicamente no componente,
     // mas mantive a linha comentada para referência:
     // paddingBottom: height ? height(5) : 30
   },
@@ -254,7 +261,7 @@ const styles = StyleSheet.create({
   // --- Loading State (Corrigido para centralizar o conteúdo, mantendo o cabeçalho no topo) ---
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#f9f9f9"
+    backgroundColor: "#f9f9f9",
   },
   loadingContent: {
     flex: 1, // Permite que o conteúdo de loading ocupe o espaço restante
@@ -265,7 +272,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 10,
     color: PRIMARY_BLUE,
-    fontSize: font ? font(2.8) : responsiveFont(15)
+    fontSize: font ? font(2.8) : responsiveFont(15),
   },
 
   // --- Título Principal ---
@@ -294,7 +301,7 @@ const styles = StyleSheet.create({
     color: BG_WHITE,
     fontWeight: "bold",
     fontSize: font ? font(2.25) : responsiveFont(16),
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
 
   // --- Seletor de Ordenação ---
@@ -325,15 +332,15 @@ const styles = StyleSheet.create({
     backgroundColor: BG_WHITE,
   },
   seletorButtonAtivo: {
-    backgroundColor: PRIMARY_BLUE
+    backgroundColor: PRIMARY_BLUE,
   },
   seletorText: {
     color: PRIMARY_BLUE,
     fontWeight: "bold",
-    fontSize: font ? font(2.25) : responsiveFont(14)
+    fontSize: font ? font(2.25) : responsiveFont(14),
   },
   seletorTextAtivo: {
-    color: BG_WHITE
+    color: BG_WHITE,
   },
 
   // --- Lista de Cards ---
@@ -360,9 +367,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: height ? height(1) : 8,
     borderBottomWidth: 1,
     borderBottomColor: PRIMARY_BLUE,
@@ -376,35 +383,35 @@ const styles = StyleSheet.create({
   rankBadge: {
     backgroundColor: CRITICAL_RED, // Usando a cor CRITICAL_RED para o destaque
     color: BG_WHITE,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     paddingHorizontal: width(3),
     paddingVertical: height(0.5),
     borderRadius: 4,
     fontSize: font ? font(2.2) : responsiveFont(12),
   },
   dataRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: height(0.5),
   },
   dataRowDivider: {
     borderTopWidth: 1,
-    borderTopColor: '#dbe4e7ff',
+    borderTopColor: "#dbe4e7ff",
     marginTop: height(0.5),
     paddingTop: height(1),
   },
   dataLabel: {
     fontSize: font ? font(2.5) : responsiveFont(15),
-    color: '#444'
+    color: "#444",
   },
   dataValueTotal: {
     fontSize: font ? font(2.5) : responsiveFont(16),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: CRITICAL_RED, // Valor em foco em destaque
   },
   dataValueImoveis: {
     fontSize: font ? font(2.5) : responsiveFont(16),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: CRITICAL_RED, // Valor em foco em destaque
   },
   empty: {
@@ -412,7 +419,7 @@ const styles = StyleSheet.create({
     color: "gray",
     textAlign: "center",
     marginTop: height ? height(5) : 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: height(5),
     borderRadius: 8,
   },
