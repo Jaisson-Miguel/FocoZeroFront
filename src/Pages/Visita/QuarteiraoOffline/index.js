@@ -8,6 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // ✅ Import adicionado
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../../config/config.js";
 import { getId } from "../../../utils/tokenStorage.js";
@@ -20,6 +21,9 @@ export default function QuarteiraoOffline({ navigation }) {
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);
+
+  const insets = useSafeAreaInsets(); // ✅ Hook para detectar área segura
+  const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2); // ✅ Margem dinâmica
 
   const fecharDiario = () => {
     navigation.navigate("ListarVisitas", { modo: "visualizar" });
@@ -178,6 +182,9 @@ export default function QuarteiraoOffline({ navigation }) {
     return acc;
   }, []);
 
+  const buttonHeight = height(2) * 2 + font(2.5) * 1.5;
+  const buttonAreaHeight = height(1) + buttonHeight + bottomMargin + height(2);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -262,18 +269,24 @@ export default function QuarteiraoOffline({ navigation }) {
                 </Text>
               </View>
             )}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: buttonAreaHeight },
+            ]}
           />
         )}
       </View>
 
-      <TouchableOpacity
-        style={styles.closeDiaryButton}
-        onPress={fecharDiario}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.closeDiaryButtonText}>FECHAR DIÁRIO</Text>
-      </TouchableOpacity>
+      {/* Botão de Fechar Diário */}
+      <View style={styles.closeDiaryButtonWrapper}>
+        <TouchableOpacity
+          style={[styles.closeDiaryButton, { marginBottom: bottomMargin }]}
+          onPress={fecharDiario}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.closeDiaryButtonText}>FECHAR DIÁRIO</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -355,23 +368,31 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: width(10),
   },
   emptyText: {
     fontSize: font(2.5),
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   listContent: {
     paddingBottom: height(5),
   },
-  closeDiaryButton: {
+  closeDiaryButtonWrapper: {
     position: "absolute",
-    bottom: height(2),
-    left: width(5),
-    right: width(5),
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    paddingTop: height(1),
+    zIndex: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  closeDiaryButton: {
+    marginHorizontal: width(5),
     backgroundColor: "#05419A",
     paddingVertical: height(2),
     borderRadius: 8,

@@ -16,6 +16,7 @@ import ImageViewing from "react-native-image-viewing";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
 
 const getIdString = (id) => {
   if (typeof id === "string") {
@@ -119,6 +120,7 @@ function CadastrarQuarteiraoModal({
   nomeArea,
   onCadastroSucesso,
 }) {
+  // O modal não precisa dos insets, pois o background cobre a tela toda.
   const [numero, setNumero] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -208,13 +210,23 @@ function CadastrarQuarteiraoModal({
   );
 }
 
+const FAB_SIZE = height(8); // Definido como constante global para cálculo
+
 export default function Quarteiroes({ route, navigation }) {
   const { idArea, mapaUrl, nomeArea, funcao, modoI, modo } = route.params;
+  const insets = useSafeAreaInsets(); // 2. Obter insets
+
   const [quarteiroes, setQuarteiroes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // 3. Calcular a posição bottom ajustada pela safe area + padding base (height(4) original)
+  const FAB_BOTTOM_POSITION = insets.bottom + height(4);
+
+  // 4. Calcular o padding inferior da lista para que o último item não seja coberto pelo FAB
+  const LIST_BOTTOM_PADDING = insets.bottom + FAB_SIZE + height(3); // Adicionamos uma margem extra de 3vh
 
   const fetchQuarteiroes = useCallback(async () => {
     setLoading(true);
@@ -324,7 +336,11 @@ export default function Quarteiroes({ route, navigation }) {
         data={listData}
         keyExtractor={(item) => item.key}
         renderItem={renderListItem}
-        contentContainerStyle={styles.flatListContent}
+        // 5. Aplicar o padding inferior dinâmico na FlatList
+        contentContainerStyle={[
+          styles.flatListContent,
+          funcao === "adm" && { paddingBottom: LIST_BOTTOM_PADDING } // Aplica apenas se o FAB estiver visível
+        ]}
         ListEmptyComponent={
           !loading &&
           !error && (
@@ -338,7 +354,8 @@ export default function Quarteiroes({ route, navigation }) {
       {funcao === "adm" && (
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          style={styles.fabButton}
+          // 6. Aplicar o estilo dinâmico de posição bottom
+          style={[styles.fabButton, { bottom: FAB_BOTTOM_POSITION }]}
           accessibilityLabel="Adicionar novo quarteirão"
         >
           <Icon name="plus" size={font(5)} color="#fff" />
@@ -364,6 +381,8 @@ export default function Quarteiroes({ route, navigation }) {
 }
 
 const modalStyles = StyleSheet.create({
+  // ... (Estilos do modal omitidos para brevidade)
+  // (Os estilos do modal não foram alterados, pois já estavam fora do escopo de safe area)
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -480,7 +499,8 @@ const styles = StyleSheet.create({
   },
 
   flatListContent: {
-    paddingBottom: height(12),
+    flexGrow: 1, // Mantido para permitir rolagem quando houver itens
+    // paddingBottom será ajustado dinamicamente
   },
   mapaButton: {
     backgroundColor: "#05419A",
@@ -518,14 +538,14 @@ const styles = StyleSheet.create({
   },
   fabButton: {
     position: "absolute",
-    width: height(8),
-    height: height(8),
+    width: FAB_SIZE, // Usa a constante definida
+    height: FAB_SIZE, // Usa a constante definida
     alignItems: "center",
     justifyContent: "center",
     right: width(6),
-    bottom: height(4),
+    // bottom: height(4), // Removido valor fixo
     backgroundColor: "#05419A",
-    borderRadius: height(8) / 2,
+    borderRadius: FAB_SIZE / 2,
     elevation: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },

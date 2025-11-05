@@ -12,9 +12,11 @@ import { API_URL } from "../../../config/config.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
 
 export default function AgenteQuarteirao({ navigation, route }) {
   const { funcao } = route.params;
+  const insets = useSafeAreaInsets(); // 2. Obter insets
   const [agentes, setAgentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -113,6 +115,8 @@ export default function AgenteQuarteirao({ navigation, route }) {
             <ItemAgenteGerenciar agente={item} />
           )}
           showsVerticalScrollIndicator={false}
+          // 3. Aplicar o padding inferior na FlatList
+          contentContainerStyle={{ paddingBottom: insets.bottom + height(2) }}
           ListEmptyComponent={() => (
             <Text style={styles.emptyListText}>Nenhum agente cadastrado.</Text>
           )}

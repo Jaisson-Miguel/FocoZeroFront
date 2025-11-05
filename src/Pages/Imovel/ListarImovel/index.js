@@ -14,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { height, width, font } from "../../../utils/responsive.js";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { API_URL } from "../../../config/config.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // ✅ adicionado
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -46,13 +47,12 @@ export default function ListarImovel({ route, navigation }) {
   const { quarteirao, idArea, nomeArea, modoI, funcao, modo } = route.params;
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets(); // ✅ usado para detectar a área segura inferior
 
   const agruparImoveisPorRua = (imoveisArray) => {
     return imoveisArray.reduce((acc, imovel) => {
       const rua = imovel.logradouro || "Rua Desconhecida";
-      if (!acc[rua]) {
-        acc[rua] = [];
-      }
+      if (!acc[rua]) acc[rua] = [];
       acc[rua].push(imovel);
       return acc;
     }, {});
@@ -75,10 +75,7 @@ export default function ListarImovel({ route, navigation }) {
           }
 
           const data = await response.json();
-
-          // Ordena por posição
           data.sort((a, b) => a.posicao - b.posicao);
-
           const agrupados = agruparImoveisPorRua(data);
 
           if (isActive) setImoveis(agrupados);
@@ -94,7 +91,6 @@ export default function ListarImovel({ route, navigation }) {
       };
 
       carregarImoveis();
-
       return () => {
         isActive = false;
       };
@@ -198,10 +194,13 @@ export default function ListarImovel({ route, navigation }) {
         )}
       </ScrollView>
 
-      {/* ➕ Botão flutuante para cadastrar novo imóvel */}
+      {/* ✅ FAB respeitando área segura */}
       {modoI !== "Visualizar" && (
         <TouchableOpacity
-          style={styles.fabButton}
+          style={[
+            styles.fabButton,
+            { bottom: insets.bottom + height(2.5) }, // respeita safe area
+          ]}
           onPress={() =>
             navigation.navigate("CadastrarImovel", {
               idQuarteirao: quarteirao._id,
@@ -209,6 +208,7 @@ export default function ListarImovel({ route, navigation }) {
               imoveis: Object.values(imoveis).flat(),
             })
           }
+          activeOpacity={0.8}
         >
           <Icon name="plus" size={font(5)} color="#fff" />
         </TouchableOpacity>
@@ -317,7 +317,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     right: width(6),
-    bottom: height(4),
     backgroundColor: "#05419A",
     borderRadius: height(8) / 2,
     elevation: 8,

@@ -17,11 +17,13 @@ import { Picker } from "@react-native-picker/picker";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { API_URL } from "../../../config/config.js";
 import { height, width, font } from "../../../utils/responsive.js";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar
 
 export default function CadastrarImovel({ route, navigation }) {
   const { idQuarteirao, numeroQuarteirao, imoveis } = route.params;
   const [modalVisible, setModalVisible] = useState(false);
   const [posicao, setPosicao] = useState(null);
+  const insets = useSafeAreaInsets(); // 2. Obter insets
   const [form, setForm] = useState({
     idQuarteirao: idQuarteirao || "",
     posicao: "",
@@ -71,11 +73,22 @@ export default function CadastrarImovel({ route, navigation }) {
     }
   }
 
+  // 3. Estilo dinâmico para garantir o espaçamento inferior
+  const contentPaddingBottom = insets.bottom + height(3); // Adiciona a safe area + um padding extra
+
   return (
     <View style={styles.mainContainer}>
       <Cabecalho navigation={navigation} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior="height">
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"} // Melhor comportamento para iOS
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: contentPaddingBottom }, // Aplica o espaçamento
+          ]}
+        >
           <Text style={styles.title}>Cadastrar Imóvel</Text>
 
           <Text style={styles.label}>Quarteirão:</Text>
@@ -99,7 +112,7 @@ export default function CadastrarImovel({ route, navigation }) {
               : "Nenhuma posição escolhida ainda"}
           </Text>
 
-          {/* Modal de seleção */}
+          {/* Modal de seleção (código omitido para brevidade) */}
           <Modal
             visible={modalVisible}
             animationType="slide"
@@ -155,6 +168,7 @@ export default function CadastrarImovel({ route, navigation }) {
             </View>
           </Modal>
 
+          {/* Campos de input (código omitido para brevidade) */}
           <TextInput
             style={styles.input}
             placeholder="Logradouro"
@@ -231,8 +245,9 @@ export default function CadastrarImovel({ route, navigation }) {
             onChangeText={(v) => handleChange("observacao", v)}
           />
 
+          {/* O botão de salvar permanece no ScrollView */}
           <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Salvar Imóvel</Text>
+            <Text style={styles.buttonText}>SALVAR IMÓVEL</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -247,6 +262,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(5),
     paddingVertical: height(2),
     backgroundColor: "#fff",
+    // O paddingBottom original foi removido ou ajustado aqui
+    // para ser substituído pela lógica de insets
   },
   title: {
     fontSize: font(4),
@@ -255,6 +272,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: height(3),
   },
+  // ... (outros estilos não alterados)
   label: { fontSize: font(2.25), color: "#05419A", fontWeight: "600" },
   value: { fontSize: font(2), color: "#333", marginBottom: height(1.5) },
   selectPositionButton: {
@@ -327,6 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: width(2),
     alignItems: "center",
     marginTop: height(2),
+    // Não precisa de marginBottom aqui, pois o padding do ScrollView cuidará disso
   },
   buttonText: { color: "#fff", fontSize: font(2.5), fontWeight: "bold" },
 });

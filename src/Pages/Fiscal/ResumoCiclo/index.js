@@ -13,6 +13,7 @@ import { getId } from "../../../utils/tokenStorage.js";
 import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useSafeAreaInsets } from "react-native-safe-area-context"; // 1. Importar useSafeAreaInsets
 
 const getPercentualColor = (percentual) => {
   if (percentual < 10) {
@@ -104,8 +105,13 @@ const DetalhesSemanaisCard = ({ semana }) => (
   </View>
 );
 
+// Definimos uma altura aproximada do container do botão fixo para calcular o padding
+const FIXED_BUTTON_CONTAINER_HEIGHT = height(10);
+
 
 export default function ResumoCiclo({ navigation }) {
+  const insets = useSafeAreaInsets(); // 2. Obter insets
+
   const [resumoImoveis, setResumoImoveis] = useState([]);
   const [resumoSemana, setResumoSemana] = useState([]);
   const [totais, setTotais] = useState({
@@ -117,6 +123,10 @@ export default function ResumoCiclo({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [reseting, setReseting] = useState(false);
   const [expandedAreaId, setExpandedAreaId] = useState(null);
+
+  // 3. Calcular a margem inferior necessária para o ScrollView
+  const SCROLLVIEW_BOTTOM_PADDING = FIXED_BUTTON_CONTAINER_HEIGHT + insets.bottom;
+
 
   useEffect(() => {
     const carregarResumo = async () => {
@@ -207,7 +217,13 @@ export default function ResumoCiclo({ navigation }) {
   return (
     <View style={styles.fullScreenContainer}>
       <Cabecalho navigation={navigation} />
-      <ScrollView contentContainerStyle={styles.containerWithData}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.containerWithData,
+          // 4. Aplicar o padding inferior dinâmico para evitar que o conteúdo fique atrás do botão fixo
+          { paddingBottom: SCROLLVIEW_BOTTOM_PADDING }
+        ]}
+      >
         <Text style={styles.titulo}>Resumo do Ciclo</Text>
         <View style={styles.totalCard}>
           <Text style={styles.cardTitulo}>Total Geral do Ciclo</Text>
@@ -291,9 +307,15 @@ export default function ResumoCiclo({ navigation }) {
             Nenhum resumo de área disponível.
           </Text>
         )}
-        <View style={{ height: height(10) }} />
+        {/* Removida a View de padding fixo, agora tratamos com SCROLLVIEW_BOTTOM_PADDING */}
       </ScrollView>
-      <View style={styles.bottomFixedButtonContainer}>
+      <View
+        style={[
+          styles.bottomFixedButtonContainer,
+          // 5. Ajustar o padding inferior do container fixo com a safe area
+          { paddingBottom: insets.bottom + height(1.5) }
+        ]}
+      >
         <TouchableOpacity
           style={[styles.botao, { backgroundColor: "#c03f3bff", marginVertical: 0 }]}
           onPress={resetarCiclo}
@@ -319,6 +341,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: width(2),
     paddingVertical: height(2),
+    // 6. Remover o paddingBottom fixo desnecessário que foi substituído no componente
+    // height: height(10) foi removido do ScrollView
   },
   loadingIndicator: { marginTop: height(10) },
   titulo: {
@@ -470,7 +494,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: width(2),
-    paddingVertical: height(1.5),
+    // paddingVertical será ajustado dinamicamente
     backgroundColor: '#f5f5f5',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
