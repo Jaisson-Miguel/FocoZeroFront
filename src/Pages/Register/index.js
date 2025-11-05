@@ -56,7 +56,6 @@ export default function Cadastro({ navigation, route }) {
       Alert.alert("Sucesso", "Usuário cadastrado com sucesso!", [
         { text: "Ok", onPress: () => navigation.goBack() },
       ]);
-
     } catch (error) {
       Alert.alert("Erro", "Não foi possível conectar ao servidor");
       console.error(error);
@@ -71,7 +70,6 @@ export default function Cadastro({ navigation, route }) {
     isPickerDisabled && styles.disabledContainer,
   ];
   const pickerItemStyle = Platform.OS === "ios" ? styles.iosPickerItem : {};
-
 
   return (
     <View style={styles.container}>
@@ -142,7 +140,6 @@ export default function Cadastro({ navigation, route }) {
               <Text style={styles.buttonText}>Cadastrar Agente</Text>
             )}
           </TouchableOpacity>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -160,7 +157,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: width(3.75),
     alignItems: "center",
     paddingVertical: height(1.25),
-    backgroundColor: "#fff", marginHorizontal: -width(3.75),
+    backgroundColor: "#fff",
+    marginHorizontal: -width(3.75),
     marginBottom: height(1),
   },
   simpleTitle: {
@@ -195,7 +193,7 @@ const styles = StyleSheet.create({
     marginBottom: height(1),
     overflow: "hidden",
     height: height(6),
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   disabledContainer: {
     backgroundColor: "#f0f0f0",
@@ -227,5 +225,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: font(2.5),
   },
-
 });

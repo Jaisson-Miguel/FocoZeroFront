@@ -90,6 +90,11 @@ function Item({ area, navigation, modo, idAgente, funcao, modoI }) {
         nomeArea: area.nome,
         idAgente: idAgente,
       });
+    } else if (modo === "relatorio") {
+      navigation.navigate("FocosPorQuarteirao", {
+        idArea: area._id,
+        nomeArea: area.nome,
+      });
     } else {
       navigation.navigate("ListarQuarteirao", {
         idArea: area._id,

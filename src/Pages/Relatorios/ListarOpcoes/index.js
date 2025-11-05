@@ -25,8 +25,8 @@ export default function ListarOpcoes({ navigation }) {
       bgColor: "#8ABDE0",
     },
     {
-      key: "ResumoArea",
-      title: "Resumo por Área (PDF)",
+      key: "ListarAreas",
+      title: "Focos por Quarteirao",
       icon: "map-outline",
       bgColor: "#D38B17",
     },
@@ -42,7 +42,7 @@ export default function ListarOpcoes({ navigation }) {
           <TouchableOpacity
             key={item.key}
             style={[styles.menuItemWrapper, { backgroundColor: item.bgColor }]}
-            onPress={() => navigation.navigate(item.key)}
+            onPress={() => navigation.navigate(item.key, { modo: "relatorio" })}
           >
             <View style={styles.menuIconContainer}>
               <Icon name={item.icon} size={font(6)} color="#fff" />
