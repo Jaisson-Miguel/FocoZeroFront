@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Alert, // Adicionado para a função de fechar semanal
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -16,17 +17,51 @@ import Cabecalho from "../../../Components/Cabecalho.js";
 import { height, width, font } from "../../../utils/responsive.js";
 import { downloadMapForOffline } from "../../../utils/mapaUtils.js";
 
+const getSemanaAtual = () => {
+  const dataAtual = new Date();
+  const data = new Date(
+    Date.UTC(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate())
+  );
+  const dayNum = data.getUTCDay() || 7;
+  data.setUTCDate(data.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(data.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil(((data - yearStart) / 86400000 + 1) / 7);
+  return weekNo;
+};
+
 export default function QuarteiraoOffline({ navigation }) {
-  const [quarteiroes, setQuarteiroes, idAgente] = useState([]);
+  const [quarteiroes, setQuarteiroes] = useState([]);
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);
-
+  const [idAgente, setIdAgente] = useState(null);
+  const [semanaAtual, setSemanaAtual] = useState(null);
   const insets = useSafeAreaInsets();
   const bottomMargin = insets.bottom > 0 ? insets.bottom : height(2);
 
   const fecharDiario = () => {
     navigation.navigate("ListarVisitas", { modo: "visualizar" });
+  };
+
+  const handleFecharSemanal = () => {
+    if (!semanaAtual) {
+      Alert.alert(
+        "Atenção",
+        "Não foi possível determinar a semana atual para fechamento."
+      );
+      return;
+    }
+    if (!idAgente) {
+      Alert.alert(
+        "Atenção",
+        "Não foi possível determinar o agente para fechamento."
+      );
+      return;
+    }
+    navigation.navigate("FecharSemanal", {
+      idAgente: idAgente,
+      semana: semanaAtual,
+    });
   };
 
   const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
@@ -42,10 +77,8 @@ export default function QuarteiraoOffline({ navigation }) {
     try {
       const offlineQuarteiroes = await AsyncStorage.getItem("dadosQuarteiroes");
       const offlineImoveis = await AsyncStorage.getItem("dadosImoveis");
-
       const q = offlineQuarteiroes ? JSON.parse(offlineQuarteiroes) : [];
       const i = offlineImoveis ? JSON.parse(offlineImoveis) : [];
-
       setQuarteiroes(Array.isArray(q) ? q : []);
       setImoveis(Array.isArray(i) ? i : []);
     } catch (err) {
@@ -61,19 +94,15 @@ export default function QuarteiraoOffline({ navigation }) {
     setLoading(true);
     let failedDownloads = 0;
     setSyncMessage(null);
-
     try {
       const idUsuario = await getId();
-
       const resQ = await fetchWithTimeout(
         `${API_URL}/baixarQuarteiroesResponsavel/${idUsuario}`,
         {},
         5000
       );
       const quarteiroesArrayOriginal = resQ.ok ? await resQ.json() : [];
-
       const quarteiroesArray = [];
-
       for (const q of quarteiroesArrayOriginal) {
         let uriMapaLocal = null;
         if (q.mapaUrl) {
@@ -86,23 +115,19 @@ export default function QuarteiraoOffline({ navigation }) {
             failedDownloads++;
           }
         }
-
         quarteiroesArray.push({
           ...q,
           uriMapaLocal: uriMapaLocal,
         });
       }
-
       const resI = await fetchWithTimeout(
         `${API_URL}/baixarImoveisResponsavel/${idUsuario}`,
         {},
         5000
       );
       const imoveisArray = resI.ok ? await resI.json() : [];
-
       const rawImoveis = await AsyncStorage.getItem("dadosImoveis");
       const locaisArr = rawImoveis ? JSON.parse(rawImoveis) : [];
-
       const mesclados = imoveisArray.map((i) => {
         const local = locaisArr.find((l) => l._id === i._id);
         if (local && (local.editado || local.status === "visitado")) {
@@ -110,16 +135,13 @@ export default function QuarteiraoOffline({ navigation }) {
         }
         return i;
       });
-
       await AsyncStorage.setItem(
         "dadosQuarteiroes",
         JSON.stringify(quarteiroesArray)
       );
       await AsyncStorage.setItem("dadosImoveis", JSON.stringify(mesclados));
-
       setQuarteiroes(Array.isArray(quarteiroesArray) ? quarteiroesArray : []);
       setImoveis(Array.isArray(mesclados) ? mesclados : []);
-
       if (failedDownloads > 0) {
         setSyncMessage({
           text: `Sincronização concluída, mas falhou ao baixar ${failedDownloads} mapa(s).`,
@@ -145,6 +167,10 @@ export default function QuarteiraoOffline({ navigation }) {
 
   useEffect(() => {
     (async () => {
+      const agentId = await getId();
+      setIdAgente(agentId);
+      setSemanaAtual(getSemanaAtual());
+
       await carregarOffline();
       baixarDados();
     })();
@@ -169,7 +195,6 @@ export default function QuarteiraoOffline({ navigation }) {
 
   const qList = Array.isArray(quarteiroes) ? quarteiroes : [];
   const iList = Array.isArray(imoveis) ? imoveis : [];
-
   const sections = qList.reduce((acc, q) => {
     const title = q.nomeArea || "SEM ÁREA DEFINIDA";
     let sec = acc.find((s) => s.title === title);
@@ -183,13 +208,13 @@ export default function QuarteiraoOffline({ navigation }) {
   }, []);
 
   const buttonHeight = height(2) * 2 + font(2.5) * 1.5;
-  const buttonAreaHeight = height(1) + buttonHeight + bottomMargin + height(2);
+  const buttonAreaHeight =
+    height(1) + buttonHeight * 2 + bottomMargin + height(3);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Cabecalho navigation={navigation} />
-
         {syncMessage && (
           <View
             style={[
@@ -202,11 +227,9 @@ export default function QuarteiraoOffline({ navigation }) {
             <Text style={styles.syncMessageText}>{syncMessage.text}</Text>
           </View>
         )}
-
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>QUARTEIRÕES DO DIA</Text>
         </View>
-
         {sections.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -227,7 +250,6 @@ export default function QuarteiraoOffline({ navigation }) {
                     ? String(item.numero).padStart(2, "0")
                     : "00";
                 const textoFinal = `${areaNome} - QUARTEIRÃO ${numero}`;
-
                 const imoveisDoQuarteirao = iList.filter(
                   (i) => i.idQuarteirao === item._id
                 );
@@ -235,12 +257,10 @@ export default function QuarteiraoOffline({ navigation }) {
                 const imoveisVisitados = imoveisDoQuarteirao.filter(
                   (i) => i.status === "visitado"
                 ).length;
-
                 let backgroundColor = styles.listItemWrapper.backgroundColor;
                 if (imoveisVisitados > 0) backgroundColor = "#fbfde6ff";
                 if (imoveisVisitados === totalImoveis && totalImoveis > 0)
                   backgroundColor = "#d9f1dfff";
-
                 return (
                   <TouchableOpacity
                     style={[styles.listItemWrapper, { backgroundColor }]}
@@ -283,6 +303,18 @@ export default function QuarteiraoOffline({ navigation }) {
           activeOpacity={0.8}
         >
           <Text style={styles.closeDiaryButtonText}>FECHAR DIÁRIO</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.closeDiaryButton,
+            { marginBottom: bottomMargin, backgroundColor: "#05419A" },
+          ]}
+          onPress={handleFecharSemanal}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.closeDiaryButtonText}>
+            FECHAR SEMANAL (SEMANA {semanaAtual})
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -388,9 +420,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderTopWidth: 1,
     borderTopColor: "#eee",
+    paddingHorizontal: width(5)
   },
   closeDiaryButton: {
-    marginHorizontal: width(5),
     backgroundColor: "#05419A",
     paddingVertical: height(2),
     borderRadius: 8,
