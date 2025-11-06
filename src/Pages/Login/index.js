@@ -76,6 +76,7 @@ export default function Login({ navigation }) {
               <TextInput
                 placeholder="CPF..."
                 value={cpf}
+                placeholderTextColor="#666"
                 onChangeText={setCpf}
                 style={styles.label}
               />
@@ -84,6 +85,7 @@ export default function Login({ navigation }) {
                 placeholder="Senha..."
                 value={senha}
                 onChangeText={setSenha}
+                placeholderTextColor="#666"
                 secureTextEntry
                 style={styles.label}
               />
@@ -145,7 +147,8 @@ const styles = StyleSheet.create({
     fontSize: font(4),
     padding: height(2),
     height: height(10),
-    marginBottom: height(0.5)
+    marginBottom: height(0.5),
+    color: "#000"
   },
   buttonLogin: {
     width: width(90),

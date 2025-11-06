@@ -329,6 +329,7 @@ const styles = StyleSheet.create({
   pickerStyle: {
     height: height(6.5),
     width: "100%",
+    color: "#000",
     ...Platform.select({ android: { paddingHorizontal: width(2) } }),
   },
   button: {
