@@ -8,7 +8,6 @@ import {
   Alert,
   ScrollView,
   Modal,
-  Button,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -41,6 +40,14 @@ export default function CadastrarImovel({ route, navigation }) {
   }
 
   async function handleSubmit() {
+    if (form.posicao === "") {
+      Alert.alert(
+        "Erro de Cadastro",
+        "Por favor, selecione a posição do novo imóvel na lista (depois de qual imóvel ele será cadastrado)."
+      );
+      return;
+    }
+
     try {
       const formData = {
         ...form,
@@ -97,15 +104,17 @@ export default function CadastrarImovel({ route, navigation }) {
             onPress={() => setModalVisible(true)}
             style={styles.selectPositionButton}
           >
-            <Text style={styles.selectPositionText}>Selecionar posição</Text>
+            <Text style={styles.selectPositionText}>
+              Escolha depois de qual imóvel adicionar:
+            </Text>
           </TouchableOpacity>
 
           <Text style={styles.selectedPosition}>
             {posicao !== null
               ? posicao === 0
                 ? `Primeiro da lista`
-                : `${imoveis.find((i) => i.posicao === posicao - 1)
-                  ?.logradouro || ""
+                : `${imoveis.find((i) => i.posicao === posicao - 1)?.logradouro ||
+                ""
                 }, ${imoveis.find((i) => i.posicao === posicao - 1)?.numero || ""
                 }`
               : "Nenhuma posição escolhida ainda"}
@@ -126,7 +135,7 @@ export default function CadastrarImovel({ route, navigation }) {
                   style={styles.modalItem}
                   onPress={() => {
                     setPosicao(0);
-                    setForm({ ...form, posicao: 0 });
+                    setForm({ ...form, posicao: "0" });
                     setModalVisible(false);
                   }}
                 >
@@ -143,7 +152,7 @@ export default function CadastrarImovel({ route, navigation }) {
                         style={styles.modalItem}
                         onPress={() => {
                           setPosicao(novaPosicao);
-                          setForm({ ...form, posicao: novaPosicao });
+                          setForm({ ...form, posicao: String(novaPosicao) });
                           console.log("Nova posição:", novaPosicao);
                           setModalVisible(false);
                         }}
@@ -156,11 +165,12 @@ export default function CadastrarImovel({ route, navigation }) {
                   }}
                 />
 
-                <Button
-                  title="Cancelar"
+                <TouchableOpacity
+                  style={styles.cancelButton}
                   onPress={() => setModalVisible(false)}
-                  styles={{ color: "red" }}
-                />
+                >
+                  <Text style={styles.cancelButtonText}>CANCELAR</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </Modal>
@@ -340,4 +350,12 @@ const styles = StyleSheet.create({
     marginTop: height(2),
   },
   buttonText: { color: "#fff", fontSize: font(2.5), fontWeight: "bold" },
+  cancelButton: {
+    backgroundColor: "#05419A",
+    paddingVertical: height(1.5),
+    borderRadius: width(2),
+    alignItems: "center",
+    marginTop: height(2),
+  },
+  cancelButtonText: { color: "#fff", fontSize: font(2.25), fontWeight: "bold" },
 });
