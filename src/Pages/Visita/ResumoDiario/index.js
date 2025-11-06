@@ -323,14 +323,6 @@ export default function ResumoDiario({ navigation }) {
 
             <TextInput
               style={styles.input}
-              placeholder="Semana"
-              keyboardType="numeric"
-              value={semana}
-              onChangeText={setSemana}
-              placeholderTextColor="#777"
-            />
-            <TextInput
-              style={styles.input}
               placeholder="Atividade (1 a 6)"
               keyboardType="numeric"
               value={atividade}
@@ -340,6 +332,12 @@ export default function ResumoDiario({ navigation }) {
 
             <View style={styles.modalBotoesContainer}>
               <TouchableOpacity
+                style={[styles.modalBotao, { backgroundColor: "#f44336" }]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.textoBotao}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[styles.modalBotao, { backgroundColor: "#4CAF50" }]}
                 onPress={() => {
                   handleFecharDiario(areaSelecionada, Number(atividade));
@@ -347,13 +345,6 @@ export default function ResumoDiario({ navigation }) {
                 }}
               >
                 <Text style={styles.textoBotao}>Confirmar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalBotao, { backgroundColor: "#f44336" }]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.textoBotao}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>

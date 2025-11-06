@@ -52,9 +52,6 @@ const getSemanaAtual = () => {
 export default function ListarDiario({ navigation, route }) {
   const { idAgente } = route.params;
   const insets = useSafeAreaInsets();
-  {
-    console.log(idAgente);
-  }
 
   const [semanas, setSemanas] = useState([]);
   const [areaNamesCache, setAreaNamesCache] = useState({});
