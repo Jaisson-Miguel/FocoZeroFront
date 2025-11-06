@@ -17,7 +17,7 @@ import { height, width, font } from "../../../utils/responsive.js";
 import { downloadMapForOffline } from "../../../utils/mapaUtils.js";
 
 export default function QuarteiraoOffline({ navigation }) {
-  const [quarteiroes, setQuarteiroes] = useState([]);
+  const [quarteiroes, setQuarteiroes, idAgente] = useState([]);
   const [imoveis, setImoveis] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncMessage, setSyncMessage] = useState(null);

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "FocoZeroFront",
+    "name": "Foco Zero",
     "slug": "FocoZeroFront",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/splash.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -26,9 +26,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-secure-store",
-      "expo-font"
-    ]
+    "plugins": ["expo-secure-store", "expo-font"],
+    "extra": {
+      "eas": {
+        "projectId": "484a8b80-1323-480d-b168-b698f35d9318"
+      }
+    }
   }
 }
