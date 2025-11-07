@@ -56,6 +56,7 @@ export default function EditarImovelOnline({ route, navigation }) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
 
   function handleChange(field, value) {
     if (!isFiscal) setForm({ ...form, [field]: value });
@@ -102,6 +103,52 @@ export default function EditarImovelOnline({ route, navigation }) {
     }
   }
 
+  async function handleExcluir() {
+    Alert.alert(
+      "Excluir Imóvel",
+      "Tem certeza que deseja excluir este imóvel?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            setExcluindo(true);
+            try {
+              const response = await fetch(
+                `${API_URL}/excluirImovel/${imovel._id}`,
+                {
+                  method: "DELETE",
+                }
+              );
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                return Alert.alert(
+                  "Erro",
+                  data.message || "Falha ao excluir o imóvel."
+                );
+              }
+
+              Alert.alert("Sucesso", "Imóvel excluído com sucesso!", [
+                { text: "Ok", onPress: () => navigation.goBack() },
+              ]);
+            } catch (error) {
+              console.error("Erro ao excluir imóvel:", error);
+              Alert.alert(
+                "Erro",
+                "Não foi possível excluir o imóvel. Tente novamente."
+              );
+            } finally {
+              setExcluindo(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   const tipoOuComplemento = imovel.complemento || imovel.tipo;
   const tipoMapeadoDetalhado = mapearTipoImovel(tipoOuComplemento);
 
@@ -124,7 +171,7 @@ export default function EditarImovelOnline({ route, navigation }) {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: contentPaddingBottom }
+            { paddingBottom: contentPaddingBottom },
           ]}
         >
           <View style={styles.simpleTitleContainer}>
@@ -162,15 +209,6 @@ export default function EditarImovelOnline({ route, navigation }) {
               style={styles.picker}
               onValueChange={(v) => handleChange("tipo", v)}
               enabled={!isFiscal}
-              itemStyle={
-                Platform.OS === "ios"
-                  ? {
-                    height: height(6),
-                    lineHeight: height(6) * 1.25,
-                    paddingVertical: height(0.5),
-                  }
-                  : {}
-              }
             >
               <Picker.Item label="Selecione o tipo" value="" />
               <Picker.Item label="Residência" value="r" />
@@ -223,18 +261,33 @@ export default function EditarImovelOnline({ route, navigation }) {
           />
 
           {!isFiscal && (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleSubmit}
-              disabled={loading}
-              activeOpacity={0.7}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.buttonText}>SALVAR ALTERAÇÕES</Text>
-              )}
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleSubmit}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.buttonText}>SALVAR ALTERAÇÕES</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={handleExcluir}
+                disabled={excluindo}
+                activeOpacity={0.7}
+              >
+                {excluindo ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.buttonText}>EXCLUIR IMÓVEL</Text>
+                )}
+              </TouchableOpacity>
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -303,7 +356,6 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     color: "#333",
-    paddingVertical: 0,
   },
   button: {
     backgroundColor: "#05419A",
@@ -313,6 +365,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
+  },
+  deleteButton: {
+    backgroundColor: "#C62828",
   },
   buttonText: {
     color: "#fff",
