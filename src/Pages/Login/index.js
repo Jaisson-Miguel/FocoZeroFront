@@ -93,7 +93,7 @@ export default function Login({ navigation }) {
                 onPress={handleLogin}
                 style={styles.buttonLogin}
               >
-                <Text style={styles.textButtonLogin}>Entrar</Text>
+                <Text style={styles.textButtonLogin}>Login</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     padding: height(2),
     height: height(10),
     marginBottom: height(0.5),
-    color: "#000"
+    color: "#000",
   },
   buttonLogin: {
     width: width(90),

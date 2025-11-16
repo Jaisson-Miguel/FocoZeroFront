@@ -24,7 +24,7 @@ const NAO_VISITADO_RED = "#D32F2F";
 const BG_LIGHT_BLUE = "#E6EFFF";
 const BG_CRITICAL = "#FFEBEB";
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 const fontFallback = (size) => size * (screenWidth / 360);
 
 const DEFAULT_BOTTOM_MARGIN = 20;
@@ -88,30 +88,40 @@ export default function ResumoCicloPDF({ navigation }) {
           <div class="total-box">
             <h2>Totais Gerais</h2>
             <p><strong>Total de Imóveis:</strong> ${totais.totalGeral}</p>
-            <p><strong>Visitados:</strong> <span class="visited">${totais.totalVisitados}</span></p>
-            <p><strong>Não Visitados:</strong> <span class="not-visited">${totais.totalNaoVisitados}</span></p>
-            <p><strong>% Não Visitados:</strong> <span class="not-visited">${totais.percentualNaoVisitados}%</span></p>
+            <p><strong>Visitados:</strong> <span class="visited">${
+              totais.totalVisitados
+            }</span></p>
+            <p><strong>Não Visitados:</strong> <span class="not-visited">${
+              totais.totalNaoVisitados
+            }</span></p>
+            <p><strong>% Não Visitados:</strong> <span class="not-visited">${
+              totais.percentualNaoVisitados
+            }%</span></p>
           </div>
 
           <h2>Resumo por Área</h2>
           ${resumoImoveis
-          .map((area) => {
-            const totalArea = area.totalVisitados + area.totalNaoVisitados;
-            const percentualArea =
-              totalArea > 0
-                ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
-                : 0;
-            return `
+            .map((area) => {
+              const totalArea = area.totalVisitados + area.totalNaoVisitados;
+              const percentualArea =
+                totalArea > 0
+                  ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
+                  : 0;
+              return `
                 <div class="area-box">
                   <h3>${area.nomeArea.toUpperCase()}</h3>
-                  <p>Visitados: <span class="visited">${area.totalVisitados}</span></p>
-                  <p>Não Visitados: <span class="not-visited">${area.totalNaoVisitados}</span></p>
+                  <p>Visitados: <span class="visited">${
+                    area.totalVisitados
+                  }</span></p>
+                  <p>Não Visitados: <span class="not-visited">${
+                    area.totalNaoVisitados
+                  }</span></p>
                   <p class="total-area">Total na Área: ${totalArea}</p>
                   <p>% Não Visitados: <span class="not-visited">${percentualArea}%</span></p>
                 </div>
               `;
-          })
-          .join("")}
+            })
+            .join("")}
         </body>
         </html>
       `;
@@ -140,11 +150,15 @@ export default function ResumoCicloPDF({ navigation }) {
       <View style={styles.totalRow}>
         <View style={styles.totalPill}>
           <Text style={styles.pillLabel}>Visitados</Text>
-          <Text style={[styles.pillValue, { color: VISITADO_GREEN }]}>{totais.totalVisitados}</Text>
+          <Text style={[styles.pillValue, { color: VISITADO_GREEN }]}>
+            {totais.totalVisitados}
+          </Text>
         </View>
         <View style={[styles.totalPill, styles.pillNegative]}>
           <Text style={styles.pillLabel}>Não Visitados</Text>
-          <Text style={[styles.pillValue, { color: NAO_VISITADO_RED }]}>{totais.totalNaoVisitados}</Text>
+          <Text style={[styles.pillValue, { color: NAO_VISITADO_RED }]}>
+            {totais.totalNaoVisitados}
+          </Text>
         </View>
       </View>
 
@@ -155,7 +169,9 @@ export default function ResumoCicloPDF({ navigation }) {
 
       <View style={[styles.metricCard, styles.metricCardHighlight]}>
         <Text style={styles.metricLabelHighlight}>Porcentagem de fechados</Text>
-        <Text style={styles.metricValueHighlight}>{totais.percentualNaoVisitados}%</Text>
+        <Text style={styles.metricValueHighlight}>
+          {totais.percentualNaoVisitados}%
+        </Text>
       </View>
     </View>
   );
@@ -166,10 +182,13 @@ export default function ResumoCicloPDF({ navigation }) {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingBottom: (height ? height(5) : DEFAULT_BOTTOM_MARGIN) + insets.bottom }
+          {
+            paddingBottom:
+              (height ? height(5) : DEFAULT_BOTTOM_MARGIN) + insets.bottom,
+          },
         ]}
       >
-        <Text style={styles.titulo}>Resumo do Ciclo</Text>
+        <Text style={styles.titulo}>Imóveis Fechados</Text>
 
         {TotalSummary}
 
@@ -185,16 +204,16 @@ export default function ResumoCicloPDF({ navigation }) {
 
         {resumoImoveis.map((area, index) => {
           const totalArea = area.totalVisitados + area.totalNaoVisitados;
-          const percentualArea = totalArea > 0
-            ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
-            : 0;
+          const percentualArea =
+            totalArea > 0
+              ? ((area.totalNaoVisitados / totalArea) * 100).toFixed(2)
+              : 0;
 
           return (
-            <View
-              key={area.idArea || index}
-              style={styles.box}
-            >
-              <Text style={styles.subtitulo}>{area.nomeArea.toUpperCase()}</Text>
+            <View key={area.idArea || index} style={styles.box}>
+              <Text style={styles.subtitulo}>
+                {area.nomeArea.toUpperCase()}
+              </Text>
 
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>Visitados:</Text>
@@ -202,13 +221,17 @@ export default function ResumoCicloPDF({ navigation }) {
               </View>
               <View style={styles.dataRow}>
                 <Text style={styles.dataLabel}>Não Visitados:</Text>
-                <Text style={styles.dataValueRed}>{area.totalNaoVisitados}</Text>
+                <Text style={styles.dataValueRed}>
+                  {area.totalNaoVisitados}
+                </Text>
               </View>
               <View style={[styles.dataRow, styles.dataRowTotal]}>
                 <Text style={styles.dataLabelTotal}>Total na Área:</Text>
                 <Text style={styles.dataValueTotal}>{totalArea}</Text>
               </View>
-              <View style={[styles.dataRow, { marginTop: height ? height(1) : 5 }]}>
+              <View
+                style={[styles.dataRow, { marginTop: height ? height(1) : 5 }]}
+              >
                 <Text style={styles.dataLabel}>Porcentagem de fechados:</Text>
                 <Text style={styles.dataValueRed}>{percentualArea}%</Text>
               </View>
@@ -262,7 +285,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: font ? font(2.25) : fontFallback(16),
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   totalSummaryContainer: {
     backgroundColor: BG_LIGHT_BLUE,
@@ -271,26 +294,26 @@ const styles = StyleSheet.create({
     marginBottom: height ? height(3) : 15,
     borderWidth: 1,
     borderColor: PRIMARY_BLUE,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   totalSummaryTitle: {
     fontSize: font ? font(3.5) : fontFallback(18),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: PRIMARY_BLUE,
     marginBottom: height ? height(2) : 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: height ? height(2) : 10,
   },
   totalPill: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: width ? width(3) : 12,
     borderRadius: width ? width(2) : 6,
-    width: '48%',
-    alignItems: 'center',
+    width: "48%",
+    alignItems: "center",
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -298,24 +321,24 @@ const styles = StyleSheet.create({
     shadowRadius: 2.22,
   },
   pillNegative: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: "#FFF3E0",
   },
   pillLabel: {
     fontSize: font ? font(2.25) : fontFallback(14),
-    color: '#666',
+    color: "#666",
   },
   pillValue: {
     fontSize: font ? font(3) : fontFallback(22),
-    fontWeight: '900',
+    fontWeight: "900",
     marginTop: height ? height(0.5) : 3,
   },
   metricCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: width ? width(3) : 12,
     borderRadius: width ? width(2) : 6,
     marginBottom: height ? height(1) : 5,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderLeftWidth: 1.5,
     borderLeftColor: PRIMARY_BLUE,
   },
@@ -325,23 +348,23 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     fontSize: font ? font(2.25) : fontFallback(14),
-    color: '#444',
+    color: "#444",
     flex: 1,
   },
   metricValue: {
     fontSize: font ? font(2.5) : fontFallback(18),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: PRIMARY_BLUE,
   },
   metricLabelHighlight: {
     fontSize: font ? font(2.25) : fontFallback(15),
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: NAO_VISITADO_RED,
     flex: 1,
   },
   metricValueHighlight: {
     fontSize: font ? font(2.5) : fontFallback(20),
-    fontWeight: '900',
+    fontWeight: "900",
     color: NAO_VISITADO_RED,
   },
   sectionTitle: {
@@ -350,7 +373,7 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: height ? height(2) : 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     paddingBottom: height ? height(1) : 5,
   },
   box: {
@@ -372,42 +395,42 @@ const styles = StyleSheet.create({
     marginBottom: height ? height(1.5) : 8,
     color: PRIMARY_BLUE,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
     paddingBottom: height ? height(0.5) : 3,
   },
   dataRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: height ? height(0.5) : 3,
   },
   dataLabel: {
     fontSize: font ? font(2.5) : fontFallback(15),
-    color: '#444',
+    color: "#444",
   },
   dataValueGreen: {
     fontSize: font ? font(2.5) : fontFallback(15),
-    fontWeight: '700',
+    fontWeight: "700",
     color: VISITADO_GREEN,
   },
   dataValueRed: {
     fontSize: font ? font(2.5) : fontFallback(15),
-    fontWeight: '700',
+    fontWeight: "700",
     color: NAO_VISITADO_RED,
   },
   dataRowTotal: {
     marginTop: height ? height(1) : 5,
     borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    borderTopColor: "#ccc",
     paddingTop: height ? height(1) : 5,
   },
   dataLabelTotal: {
     fontSize: font ? font(2.5) : fontFallback(16),
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   dataValueTotal: {
     fontSize: font ? font(2.5) : fontFallback(16),
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
 });

@@ -12,8 +12,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Cabecalho from "../../../Components/Cabecalho";
 import { useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { height, width, font } from "../../../utils/responsive.js";
 import ImageViewing from "react-native-image-viewing";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const mapearTipoImovel = (tipoAbreviado) => {
   const tipos = {
@@ -34,27 +36,15 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function ImovelOffline({ route, navigation }) {
   const { quarteirao } = route.params;
+  const insets = useSafeAreaInsets();
 
   const [imoveis, setImoveis] = useState({});
   const [loading, setLoading] = useState(true);
   const [mapaVisivel, setMapaVisivel] = useState(false);
   const offline = true;
 
-  const agruparImoveisPorRua = (imoveisArray) => {
-    return imoveisArray.reduce((acc, imovel) => {
-      const rua = imovel.logradouro;
-      if (!acc[rua]) {
-        acc[rua] = [];
-      }
-      acc[rua].push(imovel);
-      return acc;
-    }, {});
-  };
-
   useFocusEffect(
     React.useCallback(() => {
-      let isActive = true;
-
       const carregarImoveis = async () => {
         setLoading(true);
         try {
@@ -81,10 +71,6 @@ export default function ImovelOffline({ route, navigation }) {
       };
 
       carregarImoveis();
-
-      return () => {
-        isActive = false;
-      };
     }, [quarteirao])
   );
 
@@ -156,7 +142,6 @@ export default function ImovelOffline({ route, navigation }) {
               {imoveis[rua].map((imovel) => {
                 const jaVisitado = imovel.status === "visitado";
                 const mostrarRecusa = imovel.status === "recusa";
-                const isDisabled = jaVisitado;
 
                 const tipoDoImovel = imovel.complemento || imovel.tipo;
                 const tipoMapeado = mapearTipoImovel(tipoDoImovel);
@@ -201,13 +186,14 @@ export default function ImovelOffline({ route, navigation }) {
                       >
                         <Text style={styles.editText}>Editar</Text>
                       </TouchableOpacity>
+
                       <TouchableOpacity
                         style={[
                           styles.visitButton,
-                          isDisabled && styles.visitButtonDisabled,
+                          jaVisitado && styles.visitButtonDisabled,
                         ]}
                         onPress={() =>
-                          !isDisabled &&
+                          !jaVisitado &&
                           navigation.navigate("Visita", {
                             imovel,
                             idArea: quarteirao.idArea,
@@ -215,8 +201,7 @@ export default function ImovelOffline({ route, navigation }) {
                             quarteirao,
                           })
                         }
-                        disabled={isDisabled}
-                        activeOpacity={isDisabled ? 1 : 0.7}
+                        disabled={jaVisitado}
                       >
                         <Text style={styles.visitText}>Visita</Text>
                       </TouchableOpacity>
@@ -228,6 +213,20 @@ export default function ImovelOffline({ route, navigation }) {
           ))
         )}
       </ScrollView>
+
+      <TouchableOpacity
+        style={[styles.fabButton, { bottom: insets.bottom + height(2.5) }]}
+        onPress={() =>
+          navigation.navigate("CadastrarImovel", {
+            idQuarteirao: quarteirao._id,
+            numeroQuarteirao: quarteirao.numero,
+            imoveis: Object.values(imoveis).flat(),
+          })
+        }
+        activeOpacity={0.8}
+      >
+        <Icon name="plus" size={font(5)} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -301,7 +300,6 @@ const styles = StyleSheet.create({
     color: "white",
     paddingVertical: height(1.5),
     paddingHorizontal: width(3.75),
-    marginBottom: 0,
   },
   imovelItem: {
     flexDirection: "row",
@@ -378,5 +376,24 @@ const styles = StyleSheet.create({
     marginTop: height(2.5),
     color: "gray",
     fontSize: font(2),
+  },
+
+  fabButton: {
+    position: "absolute",
+    width: height(8),
+    height: height(8),
+    alignItems: "center",
+    justifyContent: "center",
+    right: width(6),
+    backgroundColor: "#05419A",
+    borderRadius: height(8) / 2,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: "#fff",
   },
 });

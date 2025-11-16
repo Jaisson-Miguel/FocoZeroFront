@@ -89,19 +89,21 @@ export default function AgenteQuarteirao({ navigation, route }) {
     <View style={styles.container}>
       <Cabecalho navigation={navigation} />
       <View style={styles.containerMenor}>
-
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={confirmarReset}
           style={[styles.button, { backgroundColor: "red", marginBottom: height(1.2) }]}
         >
           <Text style={styles.buttonText}>Resetar Responsáveis</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("Register", { funcaoUsuario: funcao })
           }
-          style={[styles.button, { backgroundColor: "#05419A", marginBottom: height(2.5) }]}
+          style={[
+            styles.button,
+            { backgroundColor: "#05419A", marginBottom: height(2.5) },
+          ]}
         >
           <Text style={styles.buttonText}>Cadastrar Agente</Text>
         </TouchableOpacity>
@@ -111,9 +113,7 @@ export default function AgenteQuarteirao({ navigation, route }) {
         <FlatList
           data={agentes}
           keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <ItemAgenteGerenciar agente={item} />
-          )}
+          renderItem={({ item }) => <ItemAgenteGerenciar agente={item} />}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: insets.bottom + height(2) }}
           ListEmptyComponent={() => (
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: height(2),
     color: "#05419A",
-    textAlign: 'center',
+    textAlign: "center",
   },
   card: {
     backgroundColor: "#fff",
@@ -200,9 +200,9 @@ const styles = StyleSheet.create({
     fontSize: font(2.25),
   },
   emptyListText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: height(5),
     fontSize: font(2.25),
-    color: '#666',
-  }
+    color: "#666",
+  },
 });

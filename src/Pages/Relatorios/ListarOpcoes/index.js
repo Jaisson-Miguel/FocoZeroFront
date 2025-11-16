@@ -14,7 +14,7 @@ export default function ListarOpcoes({ navigation }) {
   const reports = [
     {
       key: "ResumoCicloPDF",
-      title: "RESUMO DO CICLO (PDF)",
+      title: "IMÓVEIS FECHADOS",
       icon: "analytics-outline",
       bgColor: "#4CAF50",
     },
